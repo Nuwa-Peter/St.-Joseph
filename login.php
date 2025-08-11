@@ -7,7 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    $sql = "SELECT id, name, email, password FROM users WHERE email = ?";
+    $sql = "SELECT id, name, email, password, role FROM users WHERE email = ?";
 
     if ($stmt = $conn->prepare($sql)) {
         $stmt->bind_param("s", $email);
@@ -16,12 +16,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->store_result();
 
             if ($stmt->num_rows == 1) {
-                $stmt->bind_result($id, $name, $email, $hashed_password);
+                $stmt->bind_result($id, $name, $email, $hashed_password, $role);
                 if ($stmt->fetch()) {
                     if (password_verify($password, $hashed_password)) {
                         $_SESSION["loggedin"] = true;
                         $_SESSION["id"] = $id;
                         $_SESSION["name"] = $name;
+                        $_SESSION["role"] = $role;
 
                         header("location: dashboard.php");
                     } else {

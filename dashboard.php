@@ -9,9 +9,11 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 require_once 'includes/header.php';
 ?>
 
-<div class="container mt-5">
-    <h2>Dashboard</h2>
-    <h4>Welcome, <?php echo htmlspecialchars($_SESSION["name"]); ?>!</h4>
-    <p>This is your dashboard. You are logged in.</p>
-    <a href="logout.php" class="btn btn-danger">Logout</a>
-</div>
+<h2>Dashboard</h2>
+<h4>Welcome, <?php echo htmlspecialchars($_SESSION["name"]); ?>!</h4>
+<p>This is your dashboard. You are logged in.</p>
+<a href="logout.php" class="btn btn-danger">Logout</a>
+
+<?php
+require_once 'includes/footer.php';
+?>
