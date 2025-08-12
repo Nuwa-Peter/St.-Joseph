@@ -1,0 +1,54 @@
+/* General body styling */
+body {
+    background-color: #f8f9fa;
+}
+
+/* Sidebar enhancements */
+.sidebar .nav-link {
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.sidebar .nav-link:hover {
+    background-color: #495057;
+    color: #fff;
+}
+
+.sidebar .nav-link[data-bs-toggle="collapse"].collapsed::after {
+    content: ' \25B8'; /* Right-pointing triangle */
+    font-size: 0.8em;
+    float: right;
+    transition: transform 0.2s ease-in-out;
+}
+
+.sidebar .nav-link[data-bs-toggle="collapse"]::after {
+    content: ' \25BE'; /* Down-pointing triangle */
+    font-size: 0.8em;
+    float: right;
+    transform: rotate(0deg);
+    transition: transform 0.2s ease-in-out;
+}
+
+
+/* Main content card/table styling */
+.card {
+    border: none;
+    box-shadow: 0 0 15px rgba(0,0,0,0.05);
+}
+
+.table {
+    --bs-table-bg: #fff;
+    --bs-table-striped-bg: #f8f9fa;
+    --bs-table-hover-bg: #e9ecef;
+}
+
+.btn-primary {
+    --bs-btn-bg: #007bff;
+    --bs-btn-border-color: #007bff;
+    --bs-btn-hover-bg: #0056b3;
+    --bs-btn-hover-border-color: #0056b3;
+}
+
+/* Form styling */
+.form-group {
+    margin-bottom: 1.5rem;
+}

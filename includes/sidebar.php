@@ -6,19 +6,40 @@
     <ul class="nav nav-pills flex-column mb-auto">
         <li class="nav-item">
             <a href="dashboard.php" class="nav-link text-white" aria-current="page">
-                Dashboard
+                <i class="bi bi-speedometer2 me-2"></i> Dashboard
             </a>
         </li>
         <li>
             <a href="announcements.php" class="nav-link text-white">
-                Announcements
+                <i class="bi bi-megaphone me-2"></i> Announcements
             </a>
         </li>
+
+        <li class="nav-item">
+            <a href="#academics-submenu" data-bs-toggle="collapse" class="nav-link text-white">
+                <i class="bi bi-journal-bookmark me-2"></i> Academics
+            </a>
+            <ul class="collapse nav flex-column ms-3" id="academics-submenu" data-bs-parent="#nav-pills">
+                <li class="nav-item">
+                    <a href="class_levels.php" class="nav-link text-white"><i class="bi bi-bar-chart-steps me-2"></i> Class Levels</a>
+                </li>
+                <li class="nav-item">
+                    <a href="subjects.php" class="nav-link text-white"><i class="bi bi-book me-2"></i> Subjects</a>
+                </li>
+                <li class="nav-item">
+                    <a href="teacher_assignments.php" class="nav-link text-white"><i class="bi bi-person-video3 me-2"></i> Teacher Assignments</a>
+                </li>
+                <li class="nav-item">
+                    <a href="student_assignments.php" class="nav-link text-white"><i class="bi bi-person-badge me-2"></i> Student Assignments</a>
+                </li>
+            </ul>
+        </li>
+
         <?php // Example of role-based menu item
         // if ($_SESSION['role'] === 'root' || $_SESSION['role'] === 'headteacher') { ?>
             <li>
                 <a href="users.php" class="nav-link text-white">
-                    User Management
+                    <i class="bi bi-people me-2"></i> User Management
                 </a>
             </li>
         <?php // } ?>
