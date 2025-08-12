@@ -47,6 +47,11 @@
     <hr>
     <div class="dropdown">
         <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+            <?php if(isset($_SESSION["initials"])): ?>
+                <div class="avatar-initials">
+                    <?php echo htmlspecialchars($_SESSION["initials"]); ?>
+                </div>
+            <?php endif; ?>
             <strong><?php if(isset($_SESSION["name"])) echo htmlspecialchars($_SESSION["name"]); ?></strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">

@@ -52,3 +52,18 @@ body {
 .form-group {
     margin-bottom: 1.5rem;
 }
+
+/* Avatar for user initials */
+.avatar-initials {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-right: 8px;
+}
