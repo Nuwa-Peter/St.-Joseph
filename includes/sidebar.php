@@ -47,7 +47,7 @@
     <hr>
     <div class="dropdown">
         <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-            <strong><?php echo htmlspecialchars($_SESSION["name"]); ?></strong>
+            <strong><?php if(isset($_SESSION["name"])) echo htmlspecialchars($_SESSION["name"]); ?></strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
             <li><a class="dropdown-item" href="profile.php">Profile</a></li>
