@@ -2,20 +2,19 @@
 session_start();
 require_once 'config.php';
 
-// If user is already logged in, redirect to dashboard
 if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     header("location: dashboard.php");
     exit;
 }
 
-$email = $password = "";
-$email_err = $password_err = $login_err = "";
+$login_identifier = $password = "";
+$login_err = $password_err = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (empty(trim($_POST["email"]))) {
-        $email_err = "Please enter email.";
+    if (empty(trim($_POST["login_identifier"]))) {
+        $login_err = "Please enter username or email.";
     } else {
-        $email = trim($_POST["email"]);
+        $login_identifier = trim($_POST["login_identifier"]);
     }
 
     if (empty(trim($_POST["password"]))) {
@@ -24,14 +23,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $password = trim($_POST["password"]);
     }
 
-    if (empty($email_err) && empty($password_err)) {
-        $sql = "SELECT id, first_name, last_name, email, password, role FROM users WHERE email = ?";
+    if (empty($login_err) && empty($password_err)) {
+        // Prepare a select statement
+        $sql = "SELECT id, username, first_name, last_name, email, password, role FROM users WHERE username = ? OR email = ?";
+
         if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("s", $email);
+            $stmt->bind_param("ss", $login_identifier, $login_identifier);
+
             if ($stmt->execute()) {
                 $stmt->store_result();
+
                 if ($stmt->num_rows == 1) {
-                    $stmt->bind_result($id, $first_name, $last_name, $email, $hashed_password, $role);
+                    $stmt->bind_result($id, $username, $first_name, $last_name, $email, $hashed_password, $role);
                     if ($stmt->fetch()) {
                         if (password_verify($password, $hashed_password)) {
                             $name = $first_name . ' ' . $last_name;
@@ -43,16 +46,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             $_SESSION["loggedin"] = true;
                             $_SESSION["id"] = $id;
+                            $_SESSION["username"] = $username;
                             $_SESSION["name"] = $name;
                             $_SESSION["initials"] = $initials;
                             $_SESSION["role"] = $role;
+
                             header("location: dashboard.php");
                         } else {
-                            $login_err = "Invalid email or password.";
+                            $login_err = "Invalid username/email or password.";
                         }
                     }
                 } else {
-                    $login_err = "Invalid email or password.";
+                    $login_err = "Invalid username/email or password.";
                 }
             } else {
                 $login_err = "Oops! Something went wrong. Please try again later.";
@@ -96,20 +101,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h2>Login</h2>
         <p>Please fill in your credentials to login.</p>
         <?php
-        if(!empty($login_err)){
-            echo '<div class="alert alert-danger">' . $login_err . '</div>';
+        if(!empty($login_err) || !empty($password_err)){
+            echo '<div class="alert alert-danger">' . ($login_err ?: $password_err) . '</div>';
         }
         ?>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="form-floating mb-3">
-                <input type="email" name="email" class="form-control <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>" id="email" placeholder="name@example.com" value="<?php echo $email; ?>">
-                <label for="email">Email address</label>
-                <span class="invalid-feedback"><?php echo $email_err; ?></span>
+                <input type="text" name="login_identifier" class="form-control <?php echo (!empty($login_err)) ? 'is-invalid' : ''; ?>" id="login_identifier" placeholder="Username or Email" value="<?php echo htmlspecialchars($login_identifier); ?>">
+                <label for="login_identifier">Username or Email</label>
             </div>
             <div class="form-floating mb-3">
                 <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>" id="password" placeholder="Password">
                 <label for="password">Password</label>
-                <span class="invalid-feedback"><?php echo $password_err; ?></span>
             </div>
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary">Login</button>
