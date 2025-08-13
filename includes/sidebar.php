@@ -52,6 +52,17 @@
             </ul>
         </li>
 
+        <li class="nav-item">
+            <a href="#students-submenu" data-bs-toggle="collapse" class="nav-link text-white">
+                <i class="bi bi-person-rolodex me-2"></i> Students
+            </a>
+            <ul class="collapse nav flex-column ms-3" id="students-submenu" data-bs-parent="#nav-pills">
+                <li class="nav-item">
+                    <a href="students.php" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i> All Students</a>
+                </li>
+            </ul>
+        </li>
+
         <?php // Example of role-based menu item
         // if ($_SESSION['role'] === 'root' || $_SESSION['role'] === 'headteacher') { ?>
             <li>

@@ -8,5 +8,7 @@
             "email": "jules@agent.com"
         }
     ],
-    "require": {}
+    "require": {
+        "tecnickcom/tcpdf": "^6.7.5"
+    }
 }
