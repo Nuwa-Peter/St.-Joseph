@@ -9,7 +9,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 require_once 'config.php';
 require_once 'includes/header.php';
 
-$sql = "SELECT announcements.id, announcements.title, announcements.content, announcements.created_at, users.name
+$sql = "SELECT announcements.id, announcements.title, announcements.content, announcements.created_at, users.first_name, users.last_name
         FROM announcements
         JOIN users ON announcements.user_id = users.id
         ORDER BY announcements.created_at DESC";
@@ -35,7 +35,7 @@ $result = $conn->query($sql);
                 <tr>
                     <td><?php echo htmlspecialchars($row["title"]); ?></td>
                     <td><?php echo nl2br(htmlspecialchars($row["content"])); ?></td>
-                    <td><?php echo htmlspecialchars($row["name"]); ?></td>
+                    <td><?php echo htmlspecialchars($row["first_name"] . ' ' . $row["last_name"]); ?></td>
                     <td><?php echo $row["created_at"]; ?></td>
                     <td>
                         <a href="announcement_edit.php?id=<?php echo $row["id"]; ?>" class="btn btn-primary btn-sm">Edit</a>

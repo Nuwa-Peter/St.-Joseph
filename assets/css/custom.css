@@ -3,6 +3,10 @@ body {
     background-color: #f8f9fa;
 }
 
+.bg-custom-green {
+    background-color: #1E4620 !important;
+}
+
 /* Sidebar enhancements */
 .sidebar .nav-link {
     transition: background-color 0.2s, color 0.2s;
@@ -70,6 +74,6 @@ body {
 
 /* Logo styling */
 .logo {
-    max-width: 120px;
+    max-width: 100px;
     margin-bottom: 1.5rem;
 }

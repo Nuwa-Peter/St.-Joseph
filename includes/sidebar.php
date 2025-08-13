@@ -1,4 +1,4 @@
-<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark" style="width: 280px; height: 100vh;">
+<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-custom-green" style="width: 280px; height: 100vh;">
     <a href="dashboard.php" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
         <span class="fs-4">St. Joseph's VSS</span>
     </a>
@@ -31,6 +31,17 @@
                 </li>
                 <li class="nav-item">
                     <a href="student_assignments.php" class="nav-link text-white"><i class="bi bi-person-badge me-2"></i> Student Assignments</a>
+                </li>
+            </ul>
+        </li>
+
+        <li class="nav-item">
+            <a href="#library-submenu" data-bs-toggle="collapse" class="nav-link text-white">
+                <i class="bi bi-book-half me-2"></i> Library
+            </a>
+            <ul class="collapse nav flex-column ms-3" id="library-submenu" data-bs-parent="#nav-pills">
+                <li class="nav-item">
+                    <a href="books.php" class="nav-link text-white"><i class="bi bi-bookshelf me-2"></i> Books</a>
                 </li>
             </ul>
         </li>
