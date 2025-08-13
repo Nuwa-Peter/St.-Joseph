@@ -46,6 +46,9 @@
                 <li class="nav-item">
                     <a href="checkouts.php" class="nav-link text-white"><i class="bi bi-arrow-left-right me-2"></i> Manage Checkouts</a>
                 </li>
+                <li class="nav-item">
+                    <a href="checkout_history.php" class="nav-link text-white"><i class="bi bi-clock-history me-2"></i> Checkout History</a>
+                </li>
             </ul>
         </li>
 
