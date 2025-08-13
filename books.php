@@ -40,6 +40,7 @@ $result = $conn->query($sql);
                     <td><?php echo htmlspecialchars($row["quantity"]); ?></td>
                     <td><?php echo htmlspecialchars($row["available_quantity"]); ?></td>
                     <td>
+                        <a href="book_view.php?id=<?php echo $row["id"]; ?>" class="btn btn-info btn-sm">View</a>
                         <a href="book_edit.php?id=<?php echo $row["id"]; ?>" class="btn btn-primary btn-sm">Edit</a>
                         <a href="book_delete.php?id=<?php echo $row["id"]; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this book?');">Delete</a>
                     </td>

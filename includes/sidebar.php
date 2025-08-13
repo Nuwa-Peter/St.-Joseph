@@ -43,6 +43,9 @@
                 <li class="nav-item">
                     <a href="books.php" class="nav-link text-white"><i class="bi bi-bookshelf me-2"></i> Books</a>
                 </li>
+                <li class="nav-item">
+                    <a href="checkouts.php" class="nav-link text-white"><i class="bi bi-arrow-left-right me-2"></i> Manage Checkouts</a>
+                </li>
             </ul>
         </li>
 
