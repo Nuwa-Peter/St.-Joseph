@@ -36,7 +36,7 @@ $result = $conn->query($sql);
                     <td><?php echo htmlspecialchars($row["title"]); ?></td>
                     <td><?php echo nl2br(htmlspecialchars($row["content"])); ?></td>
                     <td><?php echo htmlspecialchars($row["first_name"] . ' ' . $row["last_name"]); ?></td>
-                    <td><?php echo $row["created_at"]; ?></td>
+                    <td><?php echo date("d M Y, g:i A", strtotime($row["created_at"])); ?></td>
                     <td>
                         <a href="announcement_edit.php?id=<?php echo $row["id"]; ?>" class="btn btn-primary btn-sm">Edit</a>
                         <a href="announcement_delete.php?id=<?php echo $row["id"]; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this announcement?');">Delete</a>
