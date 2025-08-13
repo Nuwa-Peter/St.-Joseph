@@ -60,6 +60,12 @@
                 <li class="nav-item">
                     <a href="students.php" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i> All Students</a>
                 </li>
+                <li class="nav-item">
+                    <a href="student_create.php" class="nav-link text-white"><i class="bi bi-person-plus-fill me-2"></i> Add Student</a>
+                </li>
+                <li class="nav-item">
+                    <a href="student_import_export.php" class="nav-link text-white"><i class="bi bi-file-earmark-arrow-up-fill me-2"></i> Import/Export</a>
+                </li>
             </ul>
         </li>
 
