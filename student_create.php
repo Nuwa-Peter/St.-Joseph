@@ -65,7 +65,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $role = 'student';
 
             $photo_path = null;
-            if (isset($_FILES['photo']) && $_FILES['photo']['error'] == 0) {
+            if (!empty($_POST['cropped_photo_data'])) {
+                $data = $_POST['cropped_photo_data'];
+                list($type, $data) = explode(';', $data);
+                list(, $data)      = explode(',', $data);
+                $data = base64_decode($data);
+
+                $target_dir = "uploads/photos/";
+                if (!is_dir($target_dir)) mkdir($target_dir, 0755, true);
+                $file_ext = 'png'; // Cropper outputs png
+                $photo_path = $target_dir . $username . '_' . uniqid() . '.' . $file_ext;
+                file_put_contents($photo_path, $data);
+
+            } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] == 0) {
+                // Fallback to standard file upload if no cropped data
                 $target_dir = "uploads/photos/";
                 if (!is_dir($target_dir)) mkdir($target_dir, 0755, true);
                 $file_ext = pathinfo($_FILES["photo"]["name"], PATHINFO_EXTENSION);
@@ -100,6 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <h2>Add New Student</h2>
 <form id="student-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="cropped_photo_data" id="cropped-photo-data">
     <div class="card">
         <div class="card-header">Student Details</div>
         <div class="card-body">
@@ -185,9 +199,32 @@ photoInput.addEventListener('change', (e) => {
     }
 });
 
-document.getElementById('cropperModal').addEventListener('shown.bs.modal', () => { /* ... */ });
-document.getElementById('cropperModal').addEventListener('hidden.bs.modal', () => { /* ... */ });
-cropButton.addEventListener('click', () => { /* ... */ });
+document.getElementById('cropperModal').addEventListener('shown.bs.modal', () => {
+    cropper = new Cropper(imageToCrop, {
+        aspectRatio: 1,
+        viewMode: 1,
+    });
+});
+
+document.getElementById('cropperModal').addEventListener('hidden.bs.modal', () => {
+    cropper.destroy();
+    cropper = null;
+});
+
+cropButton.addEventListener('click', () => {
+    if (cropper) {
+        const canvas = cropper.getCroppedCanvas({
+            width: 400,
+            height: 400,
+        });
+        const croppedImageDataURL = canvas.toDataURL(originalFile.type);
+        preview.src = croppedImageDataURL;
+        preview.style.display = 'block';
+        document.getElementById('cropped-photo-data').value = croppedImageDataURL;
+        photoInput.value = ''; // Clear the original file input
+        cropperModal.hide();
+    }
+});
 
 // Webcam Logic
 webcamButton.addEventListener('click', () => {

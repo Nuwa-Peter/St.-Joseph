@@ -90,7 +90,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $conn->begin_transaction();
         try {
             $photo_path = $photo_current;
-            if (isset($_FILES['photo']) && $_FILES['photo']['error'] == 0) {
+            if (!empty($_POST['cropped_photo_data'])) {
+                $data = $_POST['cropped_photo_data'];
+                list($type, $data) = explode(';', $data);
+                list(, $data)      = explode(',', $data);
+                $data = base64_decode($data);
+
+                $target_dir = "uploads/photos/";
+                if (!is_dir($target_dir)) mkdir($target_dir, 0755, true);
+                $file_ext = 'png';
+                $photo_path = $target_dir . $username . '_' . uniqid() . '.' . $file_ext;
+                file_put_contents($photo_path, $data);
+
+            } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] == 0) {
                 $target_dir = "uploads/photos/";
                 if (!is_dir($target_dir)) mkdir($target_dir, 0755, true);
                 $file_ext = pathinfo($_FILES["photo"]["name"], PATHINFO_EXTENSION);
@@ -125,6 +137,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <h2>Edit Student</h2>
 <form id="student-form" action="<?php echo htmlspecialchars(basename($_SERVER['REQUEST_URI'])); ?>" method="post" enctype="multipart/form-data">
     <input type="hidden" name="id" value="<?php echo $student_id; ?>">
+    <input type="hidden" name="cropped_photo_data" id="cropped-photo-data">
     <div class="card">
         <div class="card-header">Student Details</div>
         <div class="card-body">
@@ -209,13 +222,63 @@ document.addEventListener('DOMContentLoaded', function() {
     let webcamStream;
 
     function showCropper(imageSrc, file) { /* ... */ }
-    photoInput.addEventListener('change', (e) => { /* ... */ });
-    document.getElementById('cropperModal').addEventListener('shown.bs.modal', () => { /* ... */ });
-    document.getElementById('cropperModal').addEventListener('hidden.bs.modal', () => { /* ... */ });
-    cropButton.addEventListener('click', () => { /* ... */ });
-    webcamButton.addEventListener('click', () => { /* ... */ });
-    document.getElementById('webcamModal').addEventListener('shown.bs.modal', () => { /* ... */ });
-    captureButton.addEventListener('click', () => { /* ... */ });
-    document.getElementById('webcamModal').addEventListener('hidden.bs.modal', () => { /* ... */ });
+    photoInput.addEventListener('change', (e) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            showCropper(URL.createObjectURL(files[0]), files[0]);
+        }
+    });
+
+    document.getElementById('cropperModal').addEventListener('shown.bs.modal', () => {
+        cropper = new Cropper(imageToCrop, { aspectRatio: 1, viewMode: 1 });
+    });
+
+    document.getElementById('cropperModal').addEventListener('hidden.bs.modal', () => {
+        cropper.destroy();
+        cropper = null;
+    });
+
+    cropButton.addEventListener('click', () => {
+        if (cropper) {
+            const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
+            preview.src = canvas.toDataURL();
+            preview.style.display = 'block';
+            document.getElementById('cropped-photo-data').value = canvas.toDataURL(originalFile.type);
+            photoInput.value = '';
+            cropperModal.hide();
+        }
+    });
+
+    webcamButton.addEventListener('click', () => {
+        webcamModal.show();
+    });
+
+    document.getElementById('webcamModal').addEventListener('shown.bs.modal', () => {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                webcamStream = stream;
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Error accessing webcam: ", err);
+                webcamModal.hide();
+            });
+    });
+
+    captureButton.addEventListener('click', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        webcamModal.hide();
+        const capturedFile = new File([blob], 'webcam_capture.png', { type: 'image/png' });
+        showCropper(canvas.toDataURL(), capturedFile);
+    });
+
+    document.getElementById('webcamModal').addEventListener('hidden.bs.modal', () => {
+        if (webcamStream) {
+            webcamStream.getTracks().forEach(track => track.stop());
+        }
+    });
 });
 </script>
