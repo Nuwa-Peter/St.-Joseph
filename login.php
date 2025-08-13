@@ -71,6 +71,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Login - School Management System</title>
     <link rel="icon" type="image/png" href="images/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/custom.css">
     <style>
         body {
             display: flex;
@@ -87,15 +88,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-radius: 0.5rem;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
-        .logo {
-            max-width: 150px;
-            margin-bottom: 1.5rem;
-        }
     </style>
 </head>
 <body>
     <div class="login-container text-center">
-        <img src="image/logo.png" alt="Logo" class="logo">
+        <img src="images/logo.png" alt="Logo" class="logo">
         <h2>Login</h2>
         <p>Please fill in your credentials to login.</p>
         <?php

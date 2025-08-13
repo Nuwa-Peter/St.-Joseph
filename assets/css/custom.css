@@ -67,3 +67,9 @@ body {
     font-size: 0.8rem;
     margin-right: 8px;
 }
+
+/* Logo styling */
+.logo {
+    max-width: 120px;
+    margin-bottom: 1.5rem;
+}
