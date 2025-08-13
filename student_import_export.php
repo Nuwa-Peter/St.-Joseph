@@ -98,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['student_file'])) {
             <div class="card-body">
                 <p>Upload an Excel file with student data. The file should have separate sheets for each stream (e.g., "S1 A", "S5 ARTS").</p>
                 <p>
-                    <a href="student_template_download.php" class="btn btn-primary">Download Excel Template</a>
+                    <a href="student_template_download.php" class="btn btn-primary"><i class="bi bi-file-earmark-arrow-down-fill me-2"></i>Download Excel Template</a>
                 </p>
                 <hr>
                 <?php if($success_count > 0): ?>
@@ -161,7 +161,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['student_file'])) {
                         <small class="text-muted">Note: Filtering by stream will override class filter.</small>
                     </div>
                     <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Export PDF</button>
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Export PDF</button>
                     </div>
                 </form>
             </div>

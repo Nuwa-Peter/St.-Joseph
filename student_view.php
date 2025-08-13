@@ -57,8 +57,17 @@ $conn->close();
     </div>
     <div class="card-body">
         <div class="row">
-            <div class="col-md-4">
-                <img src="<?php echo htmlspecialchars($student['photo'] ?? 'assets/images/default_avatar.png'); ?>" class="img-fluid rounded" alt="Student Photo">
+            <div class="col-md-4 text-center">
+                <?php if (!empty($student['photo']) && file_exists($student['photo'])): ?>
+                    <img src="<?php echo htmlspecialchars($student['photo']); ?>" class="img-fluid rounded" alt="Student Photo" style="max-height: 250px;">
+                <?php else:
+                    $name = $student["first_name"] . ' ' . $student["last_name"];
+                    $initials = '';
+                    $parts = explode(' ', $name);
+                    foreach ($parts as $part) { $initials .= strtoupper(substr($part, 0, 1)); }
+                ?>
+                    <div class="avatar-initials mx-auto" style="width: 150px; height: 150px; font-size: 4rem;"><?php echo htmlspecialchars($initials); ?></div>
+                <?php endif; ?>
             </div>
             <div class="col-md-8">
                 <p><strong>LIN:</strong> <?php echo htmlspecialchars($student['lin']); ?></p>
