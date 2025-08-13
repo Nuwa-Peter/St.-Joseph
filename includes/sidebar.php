@@ -21,7 +21,7 @@
             </a>
             <ul class="collapse nav flex-column ms-3" id="academics-submenu" data-bs-parent="#nav-pills">
                 <li class="nav-item">
-                    <a href="class_levels.php" class="nav-link text-white"><i class="bi bi-bar-chart-steps me-2"></i> Class Levels</a>
+                    <a href="class_levels.php" class="nav-link text-white"><i class="bi bi-bar-chart-steps me-2"></i> Classes & Streams</a>
                 </li>
                 <li class="nav-item">
                     <a href="subjects.php" class="nav-link text-white"><i class="bi bi-book me-2"></i> Subjects</a>

@@ -85,11 +85,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 ?>
 
-<h2>Edit Class Level</h2>
-<p>Please edit the input values and submit to update the class level.</p>
+<h2>Edit Class</h2>
+<p>Please edit the input values and submit to update the class.</p>
 <form action="<?php echo htmlspecialchars(basename($_SERVER['REQUEST_URI'])); ?>" method="post">
     <div class="form-group <?php echo (!empty($name_err)) ? 'has-error' : ''; ?>">
-        <label>Name</label>
+        <label>Class Name</label>
         <input type="text" name="name" class="form-control" value="<?php echo $name; ?>">
         <span class="help-block"><?php echo $name_err; ?></span>
     </div>

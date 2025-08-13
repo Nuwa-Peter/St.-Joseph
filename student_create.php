@@ -3,7 +3,7 @@ session_start();
 require_once 'config.php';
 require_once 'includes/header.php';
 
-// ... (PHP logic is significantly changed)
+// ... (PHP logic remains the same)
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try {
             $default_password = password_hash('password123', PASSWORD_DEFAULT);
             $role = 'student';
-            $email = null; // Set email to null as it's no longer collected
+            $email = null;
 
             $photo_path = null;
             if (!empty($_POST['cropped_photo_data'])) {
@@ -140,13 +140,104 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
     </div>
-    <div class="mt-3"><button type="submit" id="submit-button" class="btn btn-primary">Add Student</button> <a href="students.php" class="btn btn-secondary">Cancel</a></div>
+    <div class="mt-3"><button type="submit" id="submit-button" class="btn btn-primary" disabled>Add Student</button> <a href="students.php" class="btn btn-secondary">Cancel</a></div>
 </form>
 
-<!-- Modals and Scripts -->
-<!-- ... (omitted for brevity, same as before) ... -->
+<!-- Modals -->
+<div class="modal fade" id="webcamModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Capture Photo</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><video id="webcam-video" width="100%" autoplay></video></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="capture-button">Capture</button></div></div></div></div>
+<div class="modal fade" id="cropperModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Crop Image</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><div><img id="image-to-crop" src="" style="max-width: 100%;"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="crop-button">Crop & Use</button></div></div></div></div>
 
 <?php require_once 'includes/footer.php'; ?>
 <script>
-// All previous JS logic (dropdowns, LIN check, cropper, webcam) remains here
+document.addEventListener('DOMContentLoaded', function() {
+    const classSelect = document.getElementById('class_level_id');
+    const streamSelect = document.getElementById('stream_id');
+    const submitButton = document.getElementById('submit-button');
+
+    function validateFormState() {
+        submitButton.disabled = !(classSelect.value && streamSelect.value);
+    }
+
+    classSelect.addEventListener('change', function() {
+        const classId = this.value;
+        streamSelect.innerHTML = '<option value="">Loading...</option>';
+        streamSelect.disabled = true;
+        validateFormState();
+
+        if (classId) {
+            fetch(`api_get_streams.php?class_level_id=${classId}`)
+                .then(response => response.json())
+                .then(data => {
+                    streamSelect.innerHTML = '<option value="">Select a stream...</option>';
+                    data.forEach(stream => {
+                        const option = document.createElement('option');
+                        option.value = stream.id;
+                        option.textContent = stream.name;
+                        streamSelect.appendChild(option);
+                    });
+                    streamSelect.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error fetching streams:', error);
+                    streamSelect.innerHTML = '<option value="">Error</option>';
+                });
+        } else {
+            streamSelect.innerHTML = '<option value="">Select a class first...</option>';
+        }
+    });
+
+    streamSelect.addEventListener('change', validateFormState);
+
+    // LIN and Photo scripts below...
+    const linInput = document.getElementById('lin');
+    const linFeedback = document.getElementById('lin-feedback');
+    let debounceTimer;
+    linInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const lin = this.value;
+        if (lin.length < 3) { linInput.classList.remove('is-invalid', 'is-valid'); return; }
+        debounceTimer = setTimeout(() => {
+            fetch(`api_check_lin.php?lin=${encodeURIComponent(lin)}`)
+                .then(response => response.json())
+                .then(data => {
+                    linInput.classList.toggle('is-invalid', !data.unique);
+                    linInput.classList.toggle('is-valid', data.unique);
+                    if(!data.unique) linFeedback.textContent = 'This LIN is already in use.';
+                });
+        }, 500);
+    });
+
+    const photoInput = document.getElementById('photo-input');
+    const preview = document.getElementById('preview');
+    const cropperModal = new bootstrap.Modal(document.getElementById('cropperModal'));
+    const imageToCrop = document.getElementById('image-to-crop');
+    const cropButton = document.getElementById('crop-button');
+    let cropper;
+    let originalFile;
+    photoInput.addEventListener('change', (e) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            originalFile = files[0];
+            imageToCrop.src = URL.createObjectURL(originalFile);
+            cropperModal.show();
+        }
+    });
+    document.getElementById('cropperModal').addEventListener('shown.bs.modal', () => {
+        cropper = new Cropper(imageToCrop, { aspectRatio: 1, viewMode: 1 });
+    });
+    document.getElementById('cropperModal').addEventListener('hidden.bs.modal', () => {
+        cropper.destroy();
+        cropper = null;
+    });
+    cropButton.addEventListener('click', () => {
+        if (cropper) {
+            const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
+            preview.src = canvas.toDataURL();
+            preview.style.display = 'block';
+            document.getElementById('cropped-photo-data').value = canvas.toDataURL(originalFile.type);
+            photoInput.value = '';
+            cropperModal.hide();
+        }
+    });
+});
 </script>

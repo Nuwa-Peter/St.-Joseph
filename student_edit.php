@@ -3,7 +3,7 @@ session_start();
 require_once 'config.php';
 require_once 'includes/header.php';
 
-// ... (PHP logic to fetch student data is the same)
+// ... (PHP logic is the same)
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
@@ -48,7 +48,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $student_id = $_POST['id'];
     $first_name = trim($_POST['first_name']);
     $last_name = trim($_POST['last_name']);
-    // Username is not submitted, it's read-only
     $username = trim($_POST['username_readonly']);
     $lin = trim($_POST['lin']);
     $phone_number = trim($_POST['phone_number']);
@@ -84,10 +83,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 move_uploaded_file($_FILES["photo"]["tmp_name"], $photo_path);
             }
 
-            // Note: We don't update username or email for existing students here
             $sql_user = "UPDATE users SET first_name=?, last_name=?, lin=?, gender=?, phone_number=?, date_of_birth=?, student_type=?, photo=?, updated_at=NOW() WHERE id=?";
             $stmt_user = $conn->prepare($sql_user);
-            $stmt_user->bind_param("ssssssssi", $first_name, $last_name, $lin, $gender, $phone_number, $date_of_birth, $student_type, $photo_path, $student_id);
+            $stmt_user->bind_param("sssssssi", $first_name, $last_name, $lin, $gender, $phone_number, $date_of_birth, $student_type, $photo_path, $student_id);
             $stmt_user->execute();
             $stmt_user->close();
 
@@ -100,7 +98,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $conn->commit();
             header("location: students.php");
             exit();
-
         } catch (Exception $e) {
             $conn->rollback();
             $errors['db'] = "Database error: " . $e->getMessage();
@@ -117,7 +114,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="card">
         <div class="card-header">Student Details</div>
         <div class="card-body">
-            <div class="row">
+             <div class="row">
                 <div class="col-md-4 mb-3"><label>First Name</label><input type="text" name="first_name" class="form-control <?php echo isset($errors['first_name']) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($first_name); ?>"><?php if(isset($errors['first_name'])): ?><div class="invalid-feedback"><?php echo $errors['first_name']; ?></div><?php endif; ?></div>
                 <div class="col-md-4 mb-3"><label>Surname</label><input type="text" name="last_name" class="form-control <?php echo isset($errors['last_name']) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($last_name); ?>"><?php if(isset($errors['last_name'])): ?><div class="invalid-feedback"><?php echo $errors['last_name']; ?></div><?php endif; ?></div>
                 <div class="col-md-4 mb-3"><label>Username</label><input type="text" class="form-control" value="<?php echo htmlspecialchars($username); ?>" readonly></div>
@@ -148,10 +145,112 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </form>
 
 <!-- Modals and Scripts -->
-<!-- ... (omitted for brevity) ... -->
+<div class="modal fade" id="webcamModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Capture Photo</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><video id="webcam-video" width="100%" autoplay></video></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="capture-button">Capture</button></div></div></div></div>
+<div class="modal fade" id="cropperModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Crop Image</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><div><img id="image-to-crop" src="" style="max-width: 100%;"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="crop-button">Crop & Use</button></div></div></div></div>
 
 <?php require_once 'includes/footer.php'; ?>
 
 <script>
-    // All JS logic is here, including dependent dropdowns, LIN check, cropper, webcam
+document.addEventListener('DOMContentLoaded', function() {
+    const classSelect = document.getElementById('class_level_id');
+    const streamSelect = document.getElementById('stream_id');
+    const submitButton = document.getElementById('submit-button');
+    const selectedStreamId = '<?php echo $stream_id; ?>';
+
+    function validateFormState() {
+        const classId = classSelect.value;
+        const streamId = streamSelect.value;
+        submitButton.disabled = !(classId && streamId);
+    }
+
+    streamSelect.addEventListener('change', validateFormState);
+
+    function fetchStreams(classId, preselectStreamId) {
+        streamSelect.innerHTML = '<option value="">Loading...</option>';
+        streamSelect.disabled = true;
+
+        if (classId) {
+            fetch(`api_get_streams.php?class_level_id=${classId}`)
+                .then(response => response.json())
+                .then(data => {
+                    streamSelect.innerHTML = '<option value="">Select a stream...</option>';
+                    data.forEach(stream => {
+                        const option = document.createElement('option');
+                        option.value = stream.id;
+                        option.textContent = stream.name;
+                        if (stream.id == preselectStreamId) {
+                            option.selected = true;
+                        }
+                        streamSelect.appendChild(option);
+                    });
+                    streamSelect.disabled = false;
+                    validateFormState();
+                });
+        } else {
+            streamSelect.innerHTML = '<option value="">Select a class first...</option>';
+            validateFormState();
+        }
+    }
+
+    if (classSelect.value) {
+        fetchStreams(classSelect.value, selectedStreamId);
+    }
+
+    classSelect.addEventListener('change', function() {
+        fetchStreams(this.value, null);
+    });
+
+    // LIN and Photo scripts below...
+    const linInput = document.getElementById('lin');
+    const linFeedback = document.getElementById('lin-feedback');
+    const currentUserId = '<?php echo $student_id; ?>';
+    let debounceTimer;
+    linInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const lin = this.value;
+        if (lin.length < 3) { linInput.classList.remove('is-invalid', 'is-valid'); return; }
+        debounceTimer = setTimeout(() => {
+            fetch(`api_check_lin.php?lin=${encodeURIComponent(lin)}&user_id=${currentUserId}`)
+                .then(response => response.json())
+                .then(data => {
+                    linInput.classList.toggle('is-invalid', !data.unique);
+                    linInput.classList.toggle('is-valid', data.unique);
+                    if(!data.unique) linFeedback.textContent = 'This LIN is already in use.';
+                });
+        }, 500);
+    });
+
+    const photoInput = document.getElementById('photo-input');
+    const preview = document.getElementById('preview');
+    const cropperModal = new bootstrap.Modal(document.getElementById('cropperModal'));
+    const imageToCrop = document.getElementById('image-to-crop');
+    const cropButton = document.getElementById('crop-button');
+    let cropper;
+    let originalFile;
+    photoInput.addEventListener('change', (e) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            originalFile = files[0];
+            imageToCrop.src = URL.createObjectURL(originalFile);
+            cropperModal.show();
+        }
+    });
+    document.getElementById('cropperModal').addEventListener('shown.bs.modal', () => {
+        cropper = new Cropper(imageToCrop, { aspectRatio: 1, viewMode: 1 });
+    });
+    document.getElementById('cropperModal').addEventListener('hidden.bs.modal', () => {
+        cropper.destroy();
+        cropper = null;
+    });
+    cropButton.addEventListener('click', () => {
+        if (cropper) {
+            const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
+            preview.src = canvas.toDataURL();
+            preview.style.display = 'block';
+            document.getElementById('cropped-photo-data').value = canvas.toDataURL(originalFile.type);
+            photoInput.value = '';
+            cropperModal.hide();
+        }
+    });
+});
 </script>
