@@ -1,4 +1,4 @@
-<div class="sidebar d-flex flex-column flex-shrink-0 p-3 text-white bg-custom-lightblue" style="width: 280px; height: 100vh;">
+<div class="sidebar d-flex flex-column flex-shrink-0 p-3 text-white bg-custom-darkblue" style="width: 280px; height: 100vh;">
     <a href="dashboard.php" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
         <span class="fs-4">St. Joseph's VSS</span>
     </a>
