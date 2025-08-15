@@ -1,5 +1,10 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
   <div class="container-fluid">
+    <!-- Offcanvas Toggler -->
+    <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSidebar" aria-controls="offcanvasSidebar">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
     <a class="navbar-brand" href="dashboard.php">
         <img src="images/logo.png" alt="Logo" style="height: 40px;">
     </a>

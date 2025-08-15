@@ -22,12 +22,16 @@ $sql = "
 $result = $conn->query($sql);
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>All Students</h2>
-    <div>
-        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exportModal"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Export to PDF</button>
-        <a href="student_import_export.php" class="btn btn-info"><i class="bi bi-file-earmark-spreadsheet-fill me-2"></i>Import / Export</a>
-        <a href="student_create.php" class="btn btn-success"><i class="bi bi-person-plus-fill me-2"></i>Add New Student</a>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
+    <h2 class="mb-3 mb-md-0">All Students</h2>
+    <div class="btn-toolbar" role="toolbar">
+        <div class="btn-group me-2" role="group">
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exportModal"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Export to PDF</button>
+        </div>
+        <div class="btn-group" role="group">
+            <a href="student_import_export.php" class="btn btn-info"><i class="bi bi-file-earmark-spreadsheet-fill me-2"></i>Import / Export</a>
+            <a href="student_create.php" class="btn btn-success"><i class="bi bi-person-plus-fill me-2"></i>Add New Student</a>
+        </div>
     </div>
 </div>
 
@@ -69,7 +73,8 @@ $result = $conn->query($sql);
     </div>
 </div>
 
-<table class="table table-bordered table-striped align-middle">
+<div class="table-responsive">
+    <table class="table table-bordered table-striped align-middle">
     <thead>
         <tr>
             <th style="width: 5%;">Photo</th>
@@ -114,6 +119,7 @@ $result = $conn->query($sql);
         <?php endif; ?>
     </tbody>
 </table>
+</div>
 
 <?php
 $conn->close();

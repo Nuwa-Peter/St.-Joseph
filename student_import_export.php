@@ -55,9 +55,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['student_file'])) {
                 }
 
                 // Assuming columns are in order: FName, LName, Username, LIN, Phone, DOB, Gender, Type
-                list($first_name, $last_name, $username, $lin, $phone_number, $date_of_birth, $gender, $student_type) = $data;
+                list($first_name, $last_name, $username, $lin, $phone_number, $date_of_birth, $gender, $student_type) = array_pad($data, 8, null);
 
-                if(empty($username) || empty($first_name) || empty($last_name)) continue;
+                if(empty($first_name) || empty($last_name)) continue; // Basic validation
+
+                // If username is empty, generate one. Otherwise, check if the provided one is unique.
+                if (empty($username)) {
+                    $base_username = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $first_name . '.' . $last_name));
+                    $username = $base_username;
+                    $i = 1;
+                    while(true) {
+                        $stmt_check = $conn->prepare("SELECT id FROM users WHERE username = ?");
+                        $stmt_check->bind_param("s", $username);
+                        $stmt_check->execute();
+                        $stmt_check->store_result();
+                        if($stmt_check->num_rows == 0) { $stmt_check->close(); break; }
+                        $stmt_check->close();
+                        $username = $base_username . $i++;
+                    }
+                } else {
+                    $stmt_check = $conn->prepare("SELECT id FROM users WHERE username = ?");
+                    $stmt_check->bind_param("s", $username);
+                    $stmt_check->execute();
+                    $stmt_check->store_result();
+                    if($stmt_check->num_rows > 0) {
+                        // Handle duplicate username from file - maybe skip and log error? For now, we'll append a random number.
+                        $username = $username . '_' . rand(100, 999);
+                    }
+                    $stmt_check->close();
+                }
 
                 // Create user
                 $default_password = password_hash('password123', PASSWORD_DEFAULT);

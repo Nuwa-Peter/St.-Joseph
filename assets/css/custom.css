@@ -1,6 +1,7 @@
 /* General body styling */
 body {
     background-color: #f8f9fa;
+    font-family: 'Poppins', sans-serif;
 }
 
 .bg-custom-darkblue {
@@ -8,6 +9,10 @@ body {
 }
 
 /* Sidebar enhancements */
+.offcanvas-lg {
+    --bs-offcanvas-width: 280px;
+}
+
 .sidebar .nav-link {
     transition: background-color 0.2s, color 0.2s;
 }
@@ -76,4 +81,13 @@ body {
 .logo {
     max-width: 100px;
     margin-bottom: 1.5rem;
+}
+
+.sidebar-logo {
+    max-width: 90px;
+    height: auto;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    padding: 5px;
+    background-color: #fff;
 }

@@ -100,7 +100,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
-<h2>Add New Student</h2>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
+    <h2 class="mb-3 mb-md-0">Add New Student</h2>
+    <a href="student_import_export.php" class="btn btn-outline-primary">
+        <i class="bi bi-file-earmark-spreadsheet-fill me-2"></i>Add Students in Bulk
+    </a>
+</div>
+
+<div class="alert alert-info" role="alert">
+    <h4 class="alert-heading">Bulk Student Upload</h4>
+    <p>To add multiple students at once using an Excel file, please use the bulk import tool. You can download a template there to get started.</p>
+    <hr>
+    <a href="student_import_export.php" class="btn btn-primary mb-0"><i class="bi bi-arrow-right-circle-fill me-2"></i>Go to Bulk Import Page</a>
+</div>
+
 <form id="student-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
     <input type="hidden" name="cropped_photo_data" id="cropped-photo-data">
     <div class="card">
@@ -133,7 +146,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <label class="form-label">Student Photo</label>
                     <div class="input-group">
                         <input type="file" name="photo" class="form-control" id="photo-input" accept="image/*">
-                        <button class="btn btn-outline-secondary" type="button" id="webcam-button">Use Webcam</button>
+                        <button class="btn btn-outline-secondary" type="button" id="webcam-button">Take Photo</button>
                     </div>
                     <img id="preview" src="#" alt="Image Preview" class="mt-2" style="display:none; max-width: 150px;"/>
                 </div>
@@ -234,9 +247,53 @@ document.addEventListener('DOMContentLoaded', function() {
             const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
             preview.src = canvas.toDataURL();
             preview.style.display = 'block';
-            document.getElementById('cropped-photo-data').value = canvas.toDataURL(originalFile.type);
+            document.getElementById('cropped-photo-data').value = canvas.toDataURL('image/png'); // Always use PNG for consistency
             photoInput.value = '';
             cropperModal.hide();
+        }
+    });
+
+    // --- Webcam Functionality ---
+    const webcamButton = document.getElementById('webcam-button');
+    const webcamModal = new bootstrap.Modal(document.getElementById('webcamModal'));
+    const video = document.getElementById('webcam-video');
+    const captureButton = document.getElementById('capture-button');
+    let stream;
+
+    webcamButton.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            webcamModal.show();
+        } catch (err) {
+            console.error("Error accessing webcam:", err);
+            alert("Could not access the webcam. Please ensure you have a webcam connected and have granted permission.");
+        }
+    });
+
+    captureButton.addEventListener('click', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const dataUrl = canvas.toDataURL('image/png');
+        imageToCrop.src = dataUrl;
+
+        // Stop the webcam stream
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        webcamModal.hide();
+        cropperModal.show();
+    });
+
+    // Stop stream when webcam modal is closed without capturing
+    document.getElementById('webcamModal').addEventListener('hidden.bs.modal', () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
         }
     });
 });

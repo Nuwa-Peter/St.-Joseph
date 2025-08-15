@@ -19,9 +19,12 @@ $sql = "SELECT id, first_name, last_name, email, role, status FROM users ORDER B
 $result = $conn->query($sql);
 ?>
 
-<h2>User Management</h2>
-<a href="user_create.php" class="btn btn-success mb-3">Create User</a>
-<table class="table table-bordered">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
+    <h2 class="mb-3 mb-md-0">User Management</h2>
+    <a href="user_create.php" class="btn btn-success"><i class="bi bi-plus-circle-fill me-2"></i>Create User</a>
+</div>
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
     <thead>
         <tr>
             <th>Name</th>
@@ -52,6 +55,7 @@ $result = $conn->query($sql);
         <?php endif; ?>
     </tbody>
 </table>
+</div>
 
 <?php
 $conn->close();

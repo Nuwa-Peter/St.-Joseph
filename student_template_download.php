@@ -4,67 +4,73 @@ require_once 'vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Font;
 
 // Create new Spreadsheet object
 $spreadsheet = new Spreadsheet();
+$spreadsheet->removeSheetByIndex(0); // Remove the default sheet
 
-// Fetch all streams to create sheets
-$streams_sql = "SELECT s.name as stream_name, cl.name as class_name FROM streams s JOIN class_levels cl ON s.class_level_id = cl.id ORDER BY cl.name, s.name";
-$streams_result = $conn->query($streams_sql);
+// Fetch all streams with their class names
+$sql = "
+    SELECT s.name as stream_name, cl.name as class_name
+    FROM streams s
+    JOIN class_levels cl ON s.class_level_id = cl.id
+    ORDER BY cl.name, s.name
+";
+$result = $conn->query($sql);
 
-$sheetIndex = 0;
-while($stream = $streams_result->fetch_assoc()) {
-    $sheetName = $stream['class_name'] . ' ' . $stream['stream_name'];
-    // Sanitize sheet name (max 31 chars, no invalid chars)
-    $safeSheetName = substr(preg_replace('/[\\\\?*\\[\\]:\\/]/', '', $sheetName), 0, 31);
+if ($result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        $sheet_name = $row['class_name'] . ' ' . $row['stream_name'];
+        // Sanitize sheet name (max 31 chars, no invalid chars)
+        $safe_sheet_name = substr(preg_replace('/[\\\\\/?*\[\]:]/', '', $sheet_name), 0, 31);
 
-    if ($sheetIndex == 0) {
-        // Use the first sheet that's already there
-        $spreadsheet->getActiveSheet()->setTitle($safeSheetName);
-    } else {
-        // Create a new sheet
-        $spreadsheet->createSheet()->setTitle($safeSheetName);
+        // Create a new worksheet for each stream
+        $worksheet = $spreadsheet->createSheet();
+        $worksheet->setTitle($safe_sheet_name);
+
+        // Define headers
+        $headers = [
+            'First Name (Required)',
+            'Last Name (Required)',
+            'Username (Auto-generated if blank)',
+            'LIN (Learner ID Number)',
+            'Parent/Guardian Phone',
+            'Date of Birth (YYYY-MM-DD)',
+            'Gender (Male/Female)',
+            'Student Type (Day/Boarding)'
+        ];
+
+        // Write headers to the first row
+        $worksheet->fromArray($headers, NULL, 'A1');
+
+        // Style the header row
+        $header_style = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '4F81BD']]
+        ];
+        $worksheet->getStyle('A1:H1')->applyFromArray($header_style);
+
+        // Auto-size columns for better readability
+        foreach (range('A', 'H') as $col) {
+            $worksheet->getColumnDimension($col)->setAutoSize(true);
+        }
     }
-    $spreadsheet->setActiveSheetIndex($sheetIndex);
-
-    // Add headers
-    $headers = ['First Name', 'Last Name', 'Username', 'LIN', 'Parent Phone', 'Date of Birth (YYYY-MM-DD)', 'Gender (Male/Female)', 'Student Type (day/boarding)'];
-    $spreadsheet->getActiveSheet()->fromArray($headers, NULL, 'A1');
-
-    // Style header
-    $headerStyle = [
-        'font' => ['bold' => true],
-        'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFFF00']],
-    ];
-    $spreadsheet->getActiveSheet()->getStyle('A1:H1')->applyFromArray($headerStyle);
-
-    // Set column widths
-    foreach(range('A','H') as $col) {
-        $spreadsheet->getActiveSheet()->getColumnDimension($col)->setAutoSize(true);
-    }
-
-    $sheetIndex++;
+} else {
+    // If no streams, create a default sheet with instructions
+    $worksheet = $spreadsheet->createSheet();
+    $worksheet->setTitle('Instructions');
+    $worksheet->getCell('A1')->setValue('No streams found in the database. Please add classes and streams before using this template.');
 }
 
-// If no streams, create a default empty sheet
-if ($sheetIndex == 0) {
-    $spreadsheet->getActiveSheet()->setTitle('Students');
-    $headers = ['First Name', 'Last Name', 'Username', 'LIN', 'Parent Phone', 'Date of Birth (YYYY-MM-DD)', 'Gender (Male/Female)', 'Student Type (day/boarding)'];
-    $spreadsheet->getActiveSheet()->fromArray($headers, NULL, 'A1');
-}
+$conn->close();
 
-// Set active sheet index to the first sheet, so Excel opens this as the first sheet
-$spreadsheet->setActiveSheetIndex(0);
-
-// Redirect output to a client’s web browser (Xlsx)
+// Set headers to force download
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 header('Content-Disposition: attachment;filename="student_import_template.xlsx"');
 header('Cache-Control: max-age=0');
-// If you're serving to IE 9, then the following may be needed
-header('Cache-Control: max-age=1');
 
+// Create writer and output the file
 $writer = new Xlsx($spreadsheet);
 $writer->save('php://output');
 exit;
-
-?>

@@ -1,8 +1,8 @@
 <?php
 session_start();
 require_once 'config.php';
-require_once 'includes/header.php';
 
+// Redirect if not logged in
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     header("location: login.php");
     exit;
@@ -11,6 +11,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 $errors = [];
 $first_name = $last_name = $username = $email = $role = "";
 
+// Process form data when form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $first_name = trim($_POST['first_name']);
     $last_name = trim($_POST['last_name']);
@@ -19,11 +20,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
     $role = trim($_POST['role']);
 
+    // Validate form fields
     if (empty($first_name)) $errors['first_name'] = "First name is required.";
     if (empty($last_name)) $errors['last_name'] = "Last name is required.";
     if (empty($password)) $errors['password'] = "Password is required.";
     if (empty($role)) $errors['role'] = "Role is required.";
 
+    // Validate username
     if (empty($username)) {
         $errors['username'] = "Username is required.";
     } else {
@@ -37,6 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
+    // Validate email
     if (empty($email)) {
         $errors['email'] = "Email is required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -52,6 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
+    // Check input errors before inserting in database
     if (empty($errors)) {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
         $sql = "INSERT INTO users (first_name, last_name, username, email, password, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())";
@@ -59,6 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ssssss", $first_name, $last_name, $username, $email, $hashed_password, $role);
             if ($stmt->execute()) {
+                // Redirect to user list page on success
                 header("location: users.php");
                 exit();
             } else {
@@ -68,6 +74,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
+
+require_once 'includes/header.php';
 ?>
 
 <h2>Create User</h2>
