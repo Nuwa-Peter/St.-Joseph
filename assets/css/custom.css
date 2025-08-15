@@ -10,7 +10,7 @@ body {
 
 /* Sidebar enhancements */
 .offcanvas-lg {
-    --bs-offcanvas-width: 320px;
+    --bs-offcanvas-width: 340px;
 }
 
 .sidebar .nav-link {
@@ -22,19 +22,15 @@ body {
     color: #fff;
 }
 
-.sidebar .nav-link[data-bs-toggle="collapse"].collapsed::after {
-    content: ' \25B8'; /* Right-pointing triangle */
-    font-size: 0.8em;
+.sidebar .nav-link[data-bs-toggle="collapse"]::after {
+    font-family: 'bootstrap-icons';
+    content: '\\F285'; /* bi-chevron-right */
     float: right;
     transition: transform 0.2s ease-in-out;
 }
 
-.sidebar .nav-link[data-bs-toggle="collapse"]::after {
-    content: ' \25BE'; /* Down-pointing triangle */
-    font-size: 0.8em;
-    float: right;
-    transform: rotate(0deg);
-    transition: transform 0.2s ease-in-out;
+.sidebar .nav-link[data-bs-toggle="collapse"]:not(.collapsed)::after {
+    transform: rotate(90deg);
 }
 
 

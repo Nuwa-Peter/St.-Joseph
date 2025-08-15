@@ -1,4 +1,4 @@
-<div class="offcanvas-lg offcanvas-start text-white bg-custom-darkblue" tabindex="-1" id="offcanvasSidebar" aria-labelledby="offcanvasSidebarLabel">
+<div class="sidebar offcanvas-lg offcanvas-start text-white bg-custom-darkblue" tabindex="-1" id="offcanvasSidebar" aria-labelledby="offcanvasSidebarLabel">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title" id="offcanvasSidebarLabel">St. Joseph's VSS</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasSidebar" aria-label="Close"></button>
@@ -69,6 +69,12 @@
                         <i class="bi bi-chat-dots me-2"></i> Communications
                     </a>
                     <ul class="collapse nav flex-column ms-3" id="communications-submenu" data-bs-parent="#nav-pills">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link text-white"><i class="bi bi-chat-square-dots me-2"></i> Social Chat</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link text-white"><i class="bi bi-send me-2"></i> Bulk SMS</a>
+                        </li>
                         <li class="nav-item">
                             <a href="announcements.php" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i> Announcements</a>
                         </li>
