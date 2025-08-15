@@ -1,39 +1,23 @@
-import os
 from playwright.sync_api import sync_playwright, expect
 
-def run_verification():
+def run():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
 
-        try:
-            base_url = os.environ.get("BASE_URL", "http://localhost:8000")
+        # Go to login.php, which should now redirect to the dashboard
+        page.goto("http://localhost:8000/login.php")
 
-            # Navigate to the login page
-            page.goto(f"{base_url}/login.php")
+        # Wait for the welcome message to be visible
+        welcome_message = page.locator("h4")
+        expect(welcome_message).to_contain_text("Welcome, Super Admin!")
 
-            # Fill in the login form
-            page.get_by_label("Email").fill("root@school.app")
-            page.get_by_label("Password").fill("password")
+        # The sidebar is inside a div with class 'sidebar'.
+        sidebar = page.locator("div.sidebar")
 
-            # Click the login button
-            page.get_by_role("button", name="Login").click()
+        # Take a screenshot of the sidebar.
+        sidebar.screenshot(path="jules-scratch/verification/sidebar_verification.png")
 
-            # Wait for navigation to the dashboard and check for a known element
-            expect(page).to_have_url(f"{base_url}/dashboard.php")
-            expect(page.get_by_role("heading", name="Dashboard")).to_be_visible()
+        browser.close()
 
-            # Take a screenshot of the page
-            screenshot_path = "jules-scratch/verification/sidebar_verification.png"
-            page.screenshot(path=screenshot_path)
-            print(f"Screenshot saved to {screenshot_path}")
-
-        except Exception as e:
-            print(f"An error occurred: {e}")
-            page.screenshot(path="jules-scratch/verification/error.png")
-
-        finally:
-            browser.close()
-
-if __name__ == "__main__":
-    run_verification()
+run()

@@ -1,4 +1,4 @@
-<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-custom-green" style="width: 280px; height: 100vh;">
+<div class="sidebar d-flex flex-column flex-shrink-0 p-3 text-white bg-custom-lightblue" style="width: 280px; height: 100vh;">
     <a href="dashboard.php" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
         <span class="fs-4">St. Joseph's VSS</span>
     </a>
@@ -9,12 +9,30 @@
                 <i class="bi bi-speedometer2 me-2"></i> Dashboard
             </a>
         </li>
-        <li>
-            <a href="announcements.php" class="nav-link text-white">
-                <i class="bi bi-megaphone me-2"></i> Announcements
+        <?php // Example of role-based menu item
+        // if ($_SESSION['role'] === 'root' || $_SESSION['role'] === 'headteacher') { ?>
+            <li>
+                <a href="users.php" class="nav-link text-white">
+                    <i class="bi bi-people me-2"></i> User Management
+                </a>
+            </li>
+        <?php // } ?>
+        <li class="nav-item">
+            <a href="#students-submenu" data-bs-toggle="collapse" class="nav-link text-white">
+                <i class="bi bi-person-rolodex me-2"></i> Students
             </a>
+            <ul class="collapse nav flex-column ms-3" id="students-submenu" data-bs-parent="#nav-pills">
+                <li class="nav-item">
+                    <a href="students.php" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i> All Students</a>
+                </li>
+                <li class="nav-item">
+                    <a href="student_create.php" class="nav-link text-white"><i class="bi bi-person-plus-fill me-2"></i> Add Student</a>
+                </li>
+                <li class="nav-item">
+                    <a href="student_import_export.php" class="nav-link text-white"><i class="bi bi-file-earmark-arrow-up-fill me-2"></i> Import/Export</a>
+                </li>
+            </ul>
         </li>
-
         <li class="nav-item">
             <a href="#academics-submenu" data-bs-toggle="collapse" class="nav-link text-white">
                 <i class="bi bi-journal-bookmark me-2"></i> Academics
@@ -34,7 +52,31 @@
                 </li>
             </ul>
         </li>
-
+        <li class="nav-item">
+            <a href="#" class="nav-link text-white">
+                <i class="bi bi-file-earmark-text me-2"></i> Documents
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#communications-submenu" data-bs-toggle="collapse" class="nav-link text-white">
+                <i class="bi bi-chat-dots me-2"></i> Communications
+            </a>
+            <ul class="collapse nav flex-column ms-3" id="communications-submenu" data-bs-parent="#nav-pills">
+                <li class="nav-item">
+                    <a href="announcements.php" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i> Announcements</a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link text-white">
+                <i class="bi bi-card-checklist me-2"></i> Examinations
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link text-white">
+                <i class="bi bi-cash-coin me-2"></i> Finance
+            </a>
+        </li>
         <li class="nav-item">
             <a href="#library-submenu" data-bs-toggle="collapse" class="nav-link text-white">
                 <i class="bi bi-book-half me-2"></i> Library
@@ -51,32 +93,21 @@
                 </li>
             </ul>
         </li>
-
         <li class="nav-item">
-            <a href="#students-submenu" data-bs-toggle="collapse" class="nav-link text-white">
-                <i class="bi bi-person-rolodex me-2"></i> Students
+            <a href="#" class="nav-link text-white">
+                <i class="bi bi-dpad me-2"></i> Welfare & Activities
             </a>
-            <ul class="collapse nav flex-column ms-3" id="students-submenu" data-bs-parent="#nav-pills">
-                <li class="nav-item">
-                    <a href="students.php" class="nav-link text-white"><i class="bi bi-people-fill me-2"></i> All Students</a>
-                </li>
-                <li class="nav-item">
-                    <a href="student_create.php" class="nav-link text-white"><i class="bi bi-person-plus-fill me-2"></i> Add Student</a>
-                </li>
-                <li class="nav-item">
-                    <a href="student_import_export.php" class="nav-link text-white"><i class="bi bi-file-earmark-arrow-up-fill me-2"></i> Import/Export</a>
-                </li>
-            </ul>
         </li>
-
-        <?php // Example of role-based menu item
-        // if ($_SESSION['role'] === 'root' || $_SESSION['role'] === 'headteacher') { ?>
-            <li>
-                <a href="users.php" class="nav-link text-white">
-                    <i class="bi bi-people me-2"></i> User Management
-                </a>
-            </li>
-        <?php // } ?>
+        <li class="nav-item">
+            <a href="#" class="nav-link text-white">
+                <i class="bi bi-gear me-2"></i> Advanced
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="#" class="nav-link text-white">
+                <i class="bi bi-info-circle me-2"></i> About
+            </a>
+        </li>
     </ul>
     <hr>
     <div class="dropdown">
