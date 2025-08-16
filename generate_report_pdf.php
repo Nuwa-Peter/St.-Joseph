@@ -67,13 +67,8 @@ function calculateGrade($score, $boundaries) {
 // --- PDF Generation ---
 
 class ReportCardPDF extends TCPDF {
-    public function Header() {
-        // School Logo
-        $this->Image('images/logo.png', 10, 10, 25, 25, 'PNG');
-        // School Name
-        $this->SetFont('helvetica', 'B', 20);
-        $this->Cell(0, 15, 'St. Joseph\'s VSS', 0, false, 'C', 0, '', 0, false, 'M', 'M');
-    }
+    // We will draw the header manually to have full control over position relative to the border
+    public function Header() { }
 
     public function Footer() {
         $this->SetY(-15);
@@ -139,6 +134,12 @@ foreach ($student_ids as $s_id) {
     $pdf->AddPage();
     $pdf->DrawBorder();
 
+    // --- Manual Header ---
+    // School Logo
+    $pdf->Image('images/logo.png', 15, 8, 25, 25, 'PNG');
+    // School Name
+    $pdf->SetFont('helvetica', 'B', 20);
+    $pdf->Cell(0, 15, 'St. Joseph\'s VSS', 0, false, 'C', 0, '', 0, false, 'M', 'M');
     // Student Photo
     $photo_path = $student['photo'] ?? null;
     if ($photo_path && file_exists($photo_path)) {
