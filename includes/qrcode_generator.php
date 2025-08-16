@@ -121,26 +121,17 @@ class QRCode {
                 $scalex   = (isset($options['sx']) ? (float)$options['sx'] : $scale);
                 $scaley   = (isset($options['sy']) ? (float)$options['sy'] : $scale);
                 $dpadding = 0;
-                $padding  = (isset($options['p']) ? (int)$options['p'] : $dpaddi
-ng);
-                $vert     = (isset($options['pv']) ? (int)$options['pv'] : $padd
-ing);
-                $horiz    = (isset($options['ph']) ? (int)$options['ph'] : $padd
-ing);
-                $top      = (isset($options['pt']) ? (int)$options['pt'] : $vert
-);
-                $left     = (isset($options['pl']) ? (int)$options['pl'] : $hori
-z);
-                $right    = (isset($options['pr']) ? (int)$options['pr'] : $hori
-z);
-                $bottom   = (isset($options['pb']) ? (int)$options['pb'] : $vert
-);
+                $padding  = (isset($options['p']) ? (int)$options['p'] : $dpadding);
+                $vert     = (isset($options['pv']) ? (int)$options['pv'] : $padding);
+                $horiz    = (isset($options['ph']) ? (int)$options['ph'] : $padding);
+                $top      = (isset($options['pt']) ? (int)$options['pt'] : $vert);
+                $left     = (isset($options['pl']) ? (int)$options['pl'] : $horiz);
+                $right    = (isset($options['pr']) ? (int)$options['pr'] : $horiz);
+                $bottom   = (isset($options['pb']) ? (int)$options['pb'] : $vert);
                 $dwidth   = ceil($size[0] * $scalex) + $left + $right;
                 $dheight  = ceil($size[1] * $scaley) + $top + $bottom;
-                $iwidth   = (isset($options['w']) ? (int)$options['w'] : $dwidth
-);
-                $iheight  = (isset($options['h']) ? (int)$options['h'] : $dheigh
-t);
+                $iwidth   = (isset($options['w']) ? (int)$options['w'] : $dwidth);
+                $iheight  = (isset($options['h']) ? (int)$options['h'] : $dheight);
                 $swidth   = $iwidth - $left - $right;
                 $sheight  = $iheight - $top - $bottom;
 
