@@ -61,19 +61,16 @@ class QRCode {
                 $image = imagecreatetruecolor($width, $height);
                 imagesavealpha($image, true);
 
-                $bgcolor = (isset($this->options['bc']) ? $this->options['bc'] :
- 'FFFFFF');
+                $bgcolor = (isset($this->options['bc']) ? $this->options['bc'] : 'FFFFFF');
                 $bgcolor = $this->allocate_color($image, $bgcolor);
                 imagefill($image, 0, 0, $bgcolor);
 
-                $fgcolor = (isset($this->options['fc']) ? $this->options['fc'] :
- '000000');
+                $fgcolor = (isset($this->options['fc']) ? $this->options['fc'] : '000000');
                 $fgcolor = $this->allocate_color($image, $fgcolor);
 
                 $colors = array($bgcolor, $fgcolor);
 
-                $density = (isset($this->options['md']) ? (float)$this->options[
-'md'] : 1);
+                $density = (isset($this->options['md']) ? (float)$this->options['md'] : 1);
                 list($width, $height) = $this->calculate_size($code, $widths);
                 if ($width && $height) {
                         $scale = min($w / $width, $h / $height);
@@ -98,8 +95,7 @@ class QRCode {
                                 $ry = floor($y1 + (1 - $density) * $wh / 2);
                                 $rw = ceil($wh * $density);
                                 $rh = ceil($wh * $density);
-                                imagefilledrectangle($image, $rx, $ry, $rx+$rw-1
-, $ry+$rh-1, $mc);
+                                imagefilledrectangle($image, $rx, $ry, $rx+$rw-1, $ry+$rh-1, $mc);
                         }
                 }
 
@@ -135,8 +131,7 @@ class QRCode {
                 $swidth   = $iwidth - $left - $right;
                 $sheight  = $iheight - $top - $bottom;
 
-                return array($code, $widths, $iwidth, $iheight, $left, $top, $sw
-idth, $sheight);
+                return array($code, $widths, $iwidth, $iheight, $left, $top, $swidth, $sheight);
         }
 
         private function allocate_color($image, $color) {
@@ -150,8 +145,7 @@ idth, $sheight);
         /* - - - - DISPATCH - - - - */
 
         private function dispatch_encode($data, $options) {
-                switch (strtolower(preg_replace('/[^A-Za-z0-9]/', '', $options['
-s']))) {
+                switch (strtolower(preg_replace('/[^A-Za-z0-9]/', '', $options['s']))) {
                         case 'qrl': return $this->qr_encode($data, 0);
                         case 'qrm': return $this->qr_encode($data, 1);
                         case 'qrq': return $this->qr_encode($data, 2);
@@ -180,13 +174,11 @@ s']))) {
         /* - - - - QR ENCODER - - - - */
 
         private function qr_encode($data, $ecl) {
-                list($mode, $vers, $ec, $data) = $this->qr_encode_data($data, $e
-cl);
+                list($mode, $vers, $ec, $data) = $this->qr_encode_data($data, $ecl);
                 $data = $this->qr_encode_ec($data, $ec, $vers);
                 list($size, $mtx) = $this->qr_create_matrix($vers, $data);
                 list($mask, $mtx) = $this->qr_apply_best_mask($mtx, $size);
-                $mtx = $this->qr_finalize_matrix($mtx, $size, $ecl, $mask, $vers
-);
+                $mtx = $this->qr_finalize_matrix($mtx, $size, $ecl, $mask, $vers);
                 return array(
                         'q' => array(4, 4, 4, 4),
                         's' => array($size, $size),
@@ -197,8 +189,7 @@ cl);
         private function qr_encode_data($data, $ecl) {
                 $mode = $this->qr_detect_mode($data);
                 $version = $this->qr_detect_version($data, $mode, $ecl);
-                $version_group = (($version < 10) ? 0 : (($version < 27) ? 1 : 2
-));
+                $version_group = (($version < 10) ? 0 : (($version < 27) ? 1 : 2));
                 $ec_params = $this->qr_ec_params[($version - 1) * 4 + $ecl];
 
                 /* Don't cut off mid-character if exceeding capacity. */
@@ -209,20 +200,16 @@ cl);
                 /* Convert from character level to bit level. */
                 switch ($mode) {
                         case 0:
-                                $code = $this->qr_encode_numeric($data, $version
-_group);
+                                $code = $this->qr_encode_numeric($data, $version_group);
                                 break;
                         case 1:
-                                $code = $this->qr_encode_alphanumeric($data, $ve
-rsion_group);
+                                $code = $this->qr_encode_alphanumeric($data, $version_group);
                                 break;
                         case 2:
-                                $code = $this->qr_encode_binary($data, $version_
-group);
+                                $code = $this->qr_encode_binary($data, $version_group);
                                 break;
                         case 3:
-                                $code = $this->qr_encode_kanji($data, $version_g
-roup);
+                                $code = $this->qr_encode_kanji($data, $version_group);
                                 break;
                 }
 
@@ -244,8 +231,7 @@ roup);
                         $data[] = $byte;
                 }
 
-                for ($i = count($data), $a = 1, $n = $ec_params[0]; $i < $n; $i+
-+, $a ^= 1) {
+                for ($i = count($data), $a = 1, $n = $ec_params[0]; $i < $n; $i++, $a ^= 1) {
                         $data[] = $a ? 236 : 17;
                 }
 
@@ -256,8 +242,7 @@ roup);
         private function qr_detect_mode($data) {
                 $numeric = '/^[0-9]*$/';
                 $alphanumeric = '/^[0-9A-Z .\/:$%*+-]*$/';
-                $kanji = '/^([\x81-\x9F\xE0-\xEA][\x40-\xFC]|[\xEB][\x40-\xBF])*
-$/';
+                $kanji = '/^([\x81-\x9F\xE0-\xEA][\x40-\xFC]|[\xEB][\x40-\xBF])*$/';
                 if (preg_match($numeric, $data)) return 0;
                 if (preg_match($alphanumeric, $data)) return 1;
                 if (preg_match($kanji, $data)) return 3;
@@ -432,14 +417,9 @@ $/';
                         $group = substr($data, $i, 2);
                         $c1 = ord(substr($group, 0, 1));
                         $c2 = ord(substr($group, 1, 1));
-                        if ($c1 >= 0x81 && $c1 <= 0x9F && $c2 >= 0x40 && $c2 <=
-0xFC) {
+                        if ($c1 >= 0x81 && $c1 <= 0x9F && $c2 >= 0x40 && $c2 <= 0xFC) {
                                 $ch = ($c1 - 0x81) * 0xC0 + ($c2 - 0x40);
-                        } else if (
-                                ($c1 >= 0xE0 && $c1 <= 0xEA && $c2 >= 0x40 && $c
-2 <= 0xFC) ||
-                                ($c1 == 0xEB && $c2 >= 0x40 && $c2 <= 0xBF)
-                        ) {
+                        } else if (($c1 >= 0xE0 && $c1 <= 0xEA && $c2 >= 0x40 && $c2 <= 0xFC) || ($c1 == 0xEB && $c2 >= 0x40 && $c2 <= 0xBF)) {
                                 $ch = ($c1 - 0xC1) * 0xC0 + ($c2 - 0x40);
                         } else {
                                 $ch = 0;
@@ -465,8 +445,7 @@ $/';
                 $blocks = $this->qr_ec_split($data, $ec_params);
                 $ec_blocks = array();
                 for ($i = 0, $n = count($blocks); $i < $n; $i++) {
-                        $ec_blocks[] = $this->qr_ec_divide($blocks[$i], $ec_para
-ms);
+                        $ec_blocks[] = $this->qr_ec_divide($blocks[$i], $ec_params);
                 }
                 $data = $this->qr_ec_interleave($blocks);
                 $ec_data = $this->qr_ec_interleave($ec_blocks);
@@ -491,8 +470,7 @@ ms);
                         $code[] = $ch & 0x02;
                         $code[] = $ch & 0x01;
                 }
-                for ($n = $this->qr_remainder_bits[$version - 1]; $n > 0; $n--)
-{
+                for ($n = $this->qr_remainder_bits[$version - 1]; $n > 0; $n--) {
                         $code[] = 0;
                 }
                 return $code;
@@ -501,13 +479,11 @@ ms);
         private function qr_ec_split($data, $ec_params) {
                 $blocks = array();
                 $offset = 0;
-                for ($i = $ec_params[2], $length = $ec_params[3]; $i > 0; $i--)
-{
+                for ($i = $ec_params[2], $length = $ec_params[3]; $i > 0; $i--) {
                         $blocks[] = array_slice($data, $offset, $length);
                         $offset += $length;
                 }
-                for ($i = $ec_params[4], $length = $ec_params[5]; $i > 0; $i--)
-{
+                for ($i = $ec_params[4], $length = $ec_params[5]; $i > 0; $i--) {
                         $blocks[] = array_slice($data, $offset, $length);
                         $offset += $length;
                 }
@@ -526,10 +502,8 @@ ms);
                         if ($message[$i]) {
                                 $leadterm = $this->qr_log[$message[$i]];
                                 for ($j = 0; $j <= $num_error; $j++) {
-                                        $term = ($generator[$j] + $leadterm) % 2
-55;
-                                        $message[$i + $j] ^= $this->qr_exp[$term
-];
+                                        $term = ($generator[$j] + $leadterm) % 255;
+                                        $message[$i + $j] ^= $this->qr_exp[$term];
                                 }
                         }
                 }
@@ -566,11 +540,7 @@ ms);
                 /* Finder patterns. */
                 for ($i = 0; $i < 8; $i++) {
                         for ($j = 0; $j < 8; $j++) {
-                                $m = (($i == 7 || $j == 7) ? 2 :
-                                     (($i == 0 || $j == 0 || $i == 6 || $j == 6)
- ? 3 :
-                                     (($i == 1 || $j == 1 || $i == 5 || $j == 5)
- ? 2 : 3)));
+                                $m = (($i == 7 || $j == 7) ? 2 : (($i == 0 || $j == 0 || $i == 6 || $j == 6) ? 3 : (($i == 1 || $j == 1 || $i == 5 || $j == 5) ? 2 : 3)));
                                 $matrix[$i][$j] = $m;
                                 $matrix[$size - $i - 1][$j] = $m;
                                 $matrix[$i][$size - $j - 1] = $m;
@@ -583,14 +553,10 @@ ms);
                         foreach ($alignment as $i) {
                                 foreach ($alignment as $j) {
                                         if (!$matrix[$i][$j]) {
-                                                for ($ii = -2; $ii <= 2; $ii++)
-{
-                                                        for ($jj = -2; $jj <= 2;
- $jj++) {
-                                                                $m = (max(abs($i
-i), abs($jj)) & 1) ^ 3;
-                                                                $matrix[$i + $ii
-][$j + $jj] = $m;
+                                                for ($ii = -2; $ii <= 2; $ii++) {
+                                                        for ($jj = -2; $jj <= 2; $jj++) {
+                                                                $m = (max(abs($ii), abs($jj)) & 1) ^ 3;
+                                                                $matrix[$i + $ii][$j + $jj] = $m;
                                                         }
                                                 }
                                         }
@@ -604,18 +570,15 @@ i), abs($jj)) & 1) ^ 3;
                         $matrix[6][$i] = ($i & 1) ^ 3;
                 }
 
-                /* Dark module. Such an ominous name for such an innocuous thing
-. */
+                /* Dark module. Such an ominous name for such an innocuous thing. */
                 $matrix[$size - 8][8] = 3;
 
                 /* Format information area. */
                 for ($i = 0; $i <= 8; $i++) {
                         if (!$matrix[$i][8]) $matrix[$i][8] = 1;
                         if (!$matrix[8][$i]) $matrix[8][$i] = 1;
-                        if ($i && !$matrix[$size - $i][8]) $matrix[$size - $i][8
-] = 1;
-                        if ($i && !$matrix[8][$size - $i]) $matrix[8][$size - $i
-] = 1;
+                        if ($i && !$matrix[$size - $i][8]) $matrix[$size - $i][8] = 1;
+                        if ($i && !$matrix[8][$size - $i]) $matrix[8][$size - $i] = 1;
                 }
 
                 /* Version information area. */
@@ -640,8 +603,7 @@ i), abs($jj)) & 1) ^ 3;
                                 $offset++;
                         }
                         if (!$matrix[$row][$col - 1]) {
-                                $matrix[$row][$col - 1] = $data[$offset] ? 5 : 4
-;
+                                $matrix[$row][$col - 1] = $data[$offset] ? 5 : 4;
                                 $offset++;
                         }
                         $row += $dir;
@@ -660,8 +622,7 @@ i), abs($jj)) & 1) ^ 3;
                 $best_matrix = $this->qr_apply_mask($matrix, $size, $best_mask);
                 $best_penalty = $this->qr_penalty($best_matrix, $size);
                 for ($test_mask = 1; $test_mask < 8; $test_mask++) {
-                        $test_matrix = $this->qr_apply_mask($matrix, $size, $tes
-t_mask);
+                        $test_matrix = $this->qr_apply_mask($matrix, $size, $test_mask);
                         $test_penalty = $this->qr_penalty($test_matrix, $size);
                         if ($test_penalty < $best_penalty) {
                                 $best_mask = $test_mask;
@@ -691,14 +652,10 @@ t_mask);
                         case 1: return !( ($r     ) % 2 );
                         case 2: return !( (     $c) % 3 );
                         case 3: return !( ($r + $c) % 3 );
-                        case 4: return !( (floor(($r) / 2) + floor(($c) / 3)) %
-2 );
-                        case 5: return !( ((($r * $c) % 2) + (($r * $c) % 3))
-  );
-                        case 6: return !( ((($r * $c) % 2) + (($r * $c) % 3)) %
-2 );
-                        case 7: return !( ((($r + $c) % 2) + (($r * $c) % 3)) %
-2 );
+                        case 4: return !( (floor(($r) / 2) + floor(($c) / 3)) % 2 );
+                        case 5: return !( ((($r * $c) % 2) + (($r * $c) % 3)) );
+                        case 6: return !( ((($r * $c) % 2) + (($r * $c) % 3)) % 2 );
+                        case 7: return !( ((($r + $c) % 2) + (($r * $c) % 3)) % 2 );
                 }
         }
 
@@ -718,23 +675,19 @@ t_mask);
                         $colvalue = 0;
                         $colcount = 0;
                         for ($j = 0; $j < $size; $j++) {
-                                $rv = ($matrix[$i][$j] == 5 || $matrix[$i][$j] =
-= 3) ? 1 : 0;
-                                $cv = ($matrix[$j][$i] == 5 || $matrix[$j][$i] =
-= 3) ? 1 : 0;
+                                $rv = ($matrix[$i][$j] == 5 || $matrix[$i][$j] == 3) ? 1 : 0;
+                                $cv = ($matrix[$j][$i] == 5 || $matrix[$j][$i] == 3) ? 1 : 0;
                                 if ($rv == $rowvalue) {
                                         $rowcount++;
                                 } else {
-                                        if ($rowcount >= 5) $score += $rowcount
-- 2;
+                                        if ($rowcount >= 5) $score += $rowcount - 2;
                                         $rowvalue = $rv;
                                         $rowcount = 1;
                                 }
                                 if ($cv == $colvalue) {
                                         $colcount++;
                                 } else {
-                                        if ($colcount >= 5) $score += $colcount
-- 2;
+                                        if ($colcount >= 5) $score += $colcount - 2;
                                         $colvalue = $cv;
                                         $colcount = 1;
                                 }
@@ -757,8 +710,7 @@ t_mask);
                                 $v2 = ($v2 == 5 || $v2 == 3) ? 1 : 0;
                                 $v3 = ($v3 == 5 || $v3 == 3) ? 1 : 0;
                                 $v4 = ($v4 == 5 || $v4 == 3) ? 1 : 0;
-                                if ($v1 == $v2 && $v2 == $v3 && $v3 == $v4) $sco
-re += 3;
+                                if ($v1 == $v2 && $v2 == $v3 && $v3 == $v4) $score += 3;
                         }
                 }
                 return $score;
@@ -770,28 +722,20 @@ re += 3;
                         $rowvalue = 0;
                         $colvalue = 0;
                         for ($j = 0; $j < 11; $j++) {
-                                $rv = ($matrix[$i][$j] == 5 || $matrix[$i][$j] =
-= 3) ? 1 : 0;
-                                $cv = ($matrix[$j][$i] == 5 || $matrix[$j][$i] =
-= 3) ? 1 : 0;
+                                $rv = ($matrix[$i][$j] == 5 || $matrix[$i][$j] == 3) ? 1 : 0;
+                                $cv = ($matrix[$j][$i] == 5 || $matrix[$j][$i] == 3) ? 1 : 0;
                                 $rowvalue = (($rowvalue << 1) & 0x7FF) | $rv;
                                 $colvalue = (($colvalue << 1) & 0x7FF) | $cv;
                         }
-                        if ($rowvalue == 0x5D0 || $rowvalue == 0x5D) $score += 4
-0;
-                        if ($colvalue == 0x5D0 || $colvalue == 0x5D) $score += 4
-0;
+                        if ($rowvalue == 0x5D0 || $rowvalue == 0x5D) $score += 40;
+                        if ($colvalue == 0x5D0 || $colvalue == 0x5D) $score += 40;
                         for ($j = 11; $j < $size; $j++) {
-                                $rv = ($matrix[$i][$j] == 5 || $matrix[$i][$j] =
-= 3) ? 1 : 0;
-                                $cv = ($matrix[$j][$i] == 5 || $matrix[$j][$i] =
-= 3) ? 1 : 0;
+                                $rv = ($matrix[$i][$j] == 5 || $matrix[$i][$j] == 3) ? 1 : 0;
+                                $cv = ($matrix[$j][$i] == 5 || $matrix[$j][$i] == 3) ? 1 : 0;
                                 $rowvalue = (($rowvalue << 1) & 0x7FF) | $rv;
                                 $colvalue = (($colvalue << 1) & 0x7FF) | $cv;
-                                if ($rowvalue == 0x5D0 || $rowvalue == 0x5D) $sc
-ore += 40;
-                                if ($colvalue == 0x5D0 || $colvalue == 0x5D) $sc
-ore += 40;
+                                if ($rowvalue == 0x5D0 || $rowvalue == 0x5D) $score += 40;
+                                if ($colvalue == 0x5D0 || $colvalue == 0x5D) $score += 40;
                         }
                 }
                 return $score;
@@ -801,8 +745,7 @@ ore += 40;
                 $dark = 0;
                 for ($i = 0; $i < $size; $i++) {
                         for ($j = 0; $j < $size; $j++) {
-                                if ($matrix[$i][$j] == 5 || $matrix[$i][$j] == 3
-) {
+                                if ($matrix[$i][$j] == 5 || $matrix[$i][$j] == 3) {
                                         $dark++;
                                 }
                         }
@@ -814,8 +757,7 @@ ore += 40;
                 return min($a, $b) * 10;
         }
 
-        private function qr_finalize_matrix($matrix, $size, $ecl, $mask, $versio
-n) {
+        private function qr_finalize_matrix($matrix, $size, $ecl, $mask, $version) {
                 /* Format Info */
                 $format = $this->qr_format_info[$ecl * 8 + $mask];
                 $matrix[8][0] = $format[0];
@@ -873,86 +815,46 @@ n) {
         /*    [ (0 for L, 1 for M, 2 for Q, 3 for H)                    ]  */
         /*    [ (0 for numeric, 1 for alpha, 2 for binary, 3 for kanji) ]  */
         private $qr_capacity = array(
-                array(array(  41,   25,   17,   10), array(  34,   20,   14,
-8), array(  27,   16,   11,    7), array(  17,   10,    7,    4)),
-                array(array(  77,   47,   32,   20), array(  63,   38,   26,   1
-6), array(  48,   29,   20,   12), array(  34,   20,   14,    8)),
-                array(array( 127,   77,   53,   32), array( 101,   61,   42,   2
-6), array(  77,   47,   32,   20), array(  58,   35,   24,   15)),
-                array(array( 187,  114,   78,   48), array( 149,   90,   62,   3
-8), array( 111,   67,   46,   28), array(  82,   50,   34,   21)),
-                array(array( 255,  154,  106,   65), array( 202,  122,   84,   5
-2), array( 144,   87,   60,   37), array( 106,   64,   44,   27)),
-                array(array( 322,  195,  134,   82), array( 255,  154,  106,   6
-5), array( 178,  108,   74,   45), array( 139,   84,   58,   36)),
-                array(array( 370,  224,  154,   95), array( 293,  178,  122,   7
-5), array( 207,  125,   86,   53), array( 154,   93,   64,   39)),
-                array(array( 461,  279,  192,  118), array( 365,  221,  152,   9
-3), array( 259,  157,  108,   66), array( 202,  122,   84,   52)),
-                array(array( 552,  335,  230,  141), array( 432,  262,  180,  11
-1), array( 312,  189,  130,   80), array( 235,  143,   98,   60)),
-                array(array( 652,  395,  271,  167), array( 513,  311,  213,  13
-1), array( 364,  221,  151,   93), array( 288,  174,  119,   74)),
-                array(array( 772,  468,  321,  198), array( 604,  366,  251,  15
-5), array( 427,  259,  177,  109), array( 331,  200,  137,   85)),
-                array(array( 883,  535,  367,  226), array( 691,  419,  287,  17
-7), array( 489,  296,  203,  125), array( 374,  227,  155,   96)),
-                array(array(1022,  619,  425,  262), array( 796,  483,  331,  20
-4), array( 580,  352,  241,  149), array( 427,  259,  177,  109)),
-                array(array(1101,  667,  458,  282), array( 871,  528,  362,  22
-3), array( 621,  376,  258,  159), array( 468,  283,  194,  120)),
-                array(array(1250,  758,  520,  320), array( 991,  600,  412,  25
-4), array( 703,  426,  292,  180), array( 530,  321,  220,  136)),
-                array(array(1408,  854,  586,  361), array(1082,  656,  450,  27
-7), array( 775,  470,  322,  198), array( 602,  365,  250,  154)),
-                array(array(1548,  938,  644,  397), array(1212,  734,  504,  31
-0), array( 876,  531,  364,  224), array( 674,  408,  280,  173)),
-                array(array(1725, 1046,  718,  442), array(1346,  816,  560,  34
-5), array( 948,  574,  394,  243), array( 746,  452,  310,  191)),
-                array(array(1903, 1153,  792,  488), array(1500,  909,  624,  38
-4), array(1063,  644,  442,  272), array( 813,  493,  338,  208)),
-                array(array(2061, 1249,  858,  528), array(1600,  970,  666,  41
-0), array(1159,  702,  482,  297), array( 919,  557,  382,  235)),
-                array(array(2232, 1352,  929,  572), array(1708, 1035,  711,  43
-8), array(1224,  742,  509,  314), array( 969,  587,  403,  248)),
-                array(array(2409, 1460, 1003,  618), array(1872, 1134,  779,  48
-0), array(1358,  823,  565,  348), array(1056,  640,  439,  270)),
-                array(array(2620, 1588, 1091,  672), array(2059, 1248,  857,  52
-8), array(1468,  890,  611,  376), array(1108,  672,  461,  284)),
-                array(array(2812, 1704, 1171,  721), array(2188, 1326,  911,  56
-1), array(1588,  963,  661,  407), array(1228,  744,  511,  315)),
-                array(array(3057, 1853, 1273,  784), array(2395, 1451,  997,  61
-4), array(1718, 1041,  715,  440), array(1286,  779,  535,  330)),
-                array(array(3283, 1990, 1367,  842), array(2544, 1542, 1059,  65
-2), array(1804, 1094,  751,  462), array(1425,  864,  593,  365)),
-                array(array(3517, 2132, 1465,  902), array(2701, 1637, 1125,  69
-2), array(1933, 1172,  805,  496), array(1501,  910,  625,  385)),
-                array(array(3669, 2223, 1528,  940), array(2857, 1732, 1190,  73
-2), array(2085, 1263,  868,  534), array(1581,  958,  658,  405)),
-                array(array(3909, 2369, 1628, 1002), array(3035, 1839, 1264,  77
-8), array(2181, 1322,  908,  559), array(1677, 1016,  698,  430)),
-                array(array(4158, 2520, 1732, 1066), array(3289, 1994, 1370,  84
-3), array(2358, 1429,  982,  604), array(1782, 1080,  742,  457)),
-                array(array(4417, 2677, 1840, 1132), array(3486, 2113, 1452,  89
-4), array(2473, 1499, 1030,  634), array(1897, 1150,  790,  486)),
-                array(array(4686, 2840, 1952, 1201), array(3693, 2238, 1538,  94
-7), array(2670, 1618, 1112,  684), array(2022, 1226,  842,  518)),
-                array(array(4965, 3009, 2068, 1273), array(3909, 2369, 1628, 100
-2), array(2805, 1700, 1168,  719), array(2157, 1307,  898,  553)),
-                array(array(5253, 3183, 2188, 1347), array(4134, 2506, 1722, 106
-0), array(2949, 1787, 1228,  756), array(2301, 1394,  958,  590)),
-                array(array(5529, 3351, 2303, 1417), array(4343, 2632, 1809, 111
-3), array(3081, 1867, 1283,  790), array(2361, 1431,  983,  605)),
-                array(array(5836, 3537, 2431, 1496), array(4588, 2780, 1911, 117
-6), array(3244, 1966, 1351,  832), array(2524, 1530, 1051,  647)),
-                array(array(6153, 3729, 2563, 1577), array(4775, 2894, 1989, 122
-4), array(3417, 2071, 1423,  876), array(2625, 1591, 1093,  673)),
-                array(array(6479, 3927, 2699, 1661), array(5039, 3054, 2099, 129
-2), array(3599, 2181, 1499,  923), array(2735, 1658, 1139,  701)),
-                array(array(6743, 4087, 2809, 1729), array(5313, 3220, 2213, 136
-2), array(3791, 2298, 1579,  972), array(2927, 1774, 1219,  750)),
-                array(array(7089, 4296, 2953, 1817), array(5596, 3391, 2331, 143
-5), array(3993, 2420, 1663, 1024), array(3057, 1852, 1273,  784)),
+                array(array(  41,   25,   17,   10), array(  34,   20,   14, 8), array(  27,   16,   11,    7), array(  17,   10,    7,    4)),
+                array(array(  77,   47,   32,   20), array(  63,   38,   26,   16), array(  48,   29,   20,   12), array(  34,   20,   14,    8)),
+                array(array( 127,   77,   53,   32), array( 101,   61,   42,   26), array(  77,   47,   32,   20), array(  58,   35,   24,   15)),
+                array(array( 187,  114,   78,   48), array( 149,   90,   62,   38), array( 111,   67,   46,   28), array(  82,   50,   34,   21)),
+                array(array( 255,  154,  106,   65), array( 202,  122,   84,   52), array( 144,   87,   60,   37), array( 106,   64,   44,   27)),
+                array(array( 322,  195,  134,   82), array( 255,  154,  106,   65), array( 178,  108,   74,   45), array( 139,   84,   58,   36)),
+                array(array( 370,  224,  154,   95), array( 293,  178,  122,   75), array( 207,  125,   86,   53), array( 154,   93,   64,   39)),
+                array(array( 461,  279,  192,  118), array( 365,  221,  152,   93), array( 259,  157,  108,   66), array( 202,  122,   84,   52)),
+                array(array( 552,  335,  230,  141), array( 432,  262,  180,  111), array( 312,  189,  130,   80), array( 235,  143,   98,   60)),
+                array(array( 652,  395,  271,  167), array( 513,  311,  213,  131), array( 364,  221,  151,   93), array( 288,  174,  119,   74)),
+                array(array( 772,  468,  321,  198), array( 604,  366,  251,  155), array( 427,  259,  177,  109), array( 331,  200,  137,   85)),
+                array(array( 883,  535,  367,  226), array( 691,  419,  287,  177), array( 489,  296,  203,  125), array( 374,  227,  155,   96)),
+                array(array(1022,  619,  425,  262), array( 796,  483,  331,  204), array( 580,  352,  241,  149), array( 427,  259,  177,  109)),
+                array(array(1101,  667,  458,  282), array( 871,  528,  362,  223), array( 621,  376,  258,  159), array( 468,  283,  194,  120)),
+                array(array(1250,  758,  520,  320), array( 991,  600,  412,  254), array( 703,  426,  292,  180), array( 530,  321,  220,  136)),
+                array(array(1408,  854,  586,  361), array(1082,  656,  450,  277), array( 775,  470,  322,  198), array( 602,  365,  250,  154)),
+                array(array(1548,  938,  644,  397), array(1212,  734,  504,  310), array( 876,  531,  364,  224), array( 674,  408,  280,  173)),
+                array(array(1725, 1046,  718,  442), array(1346,  816,  560,  345), array( 948,  574,  394,  243), array( 746,  452,  310,  191)),
+                array(array(1903, 1153,  792,  488), array(1500,  909,  624,  384), array(1063,  644,  442,  272), array( 813,  493,  338,  208)),
+                array(array(2061, 1249,  858,  528), array(1600,  970,  666,  410), array(1159,  702,  482,  297), array( 919,  557,  382,  235)),
+                array(array(2232, 1352,  929,  572), array(1708, 1035,  711,  438), array(1224,  742,  509,  314), array( 969,  587,  403,  248)),
+                array(array(2409, 1460, 1003,  618), array(1872, 1134,  779,  480), array(1358,  823,  565,  348), array(1056,  640,  439,  270)),
+                array(array(2620, 1588, 1091,  672), array(2059, 1248,  857,  528), array(1468,  890,  611,  376), array(1108,  672,  461,  284)),
+                array(array(2812, 1704, 1171,  721), array(2188, 1326,  911,  561), array(1588,  963,  661,  407), array(1228,  744,  511,  315)),
+                array(array(3057, 1853, 1273,  784), array(2395, 1451,  997,  614), array(1718, 1041,  715,  440), array(1286,  779,  535,  330)),
+                array(array(3283, 1990, 1367,  842), array(2544, 1542, 1059,  652), array(1804, 1094,  751,  462), array(1425,  864,  593,  365)),
+                array(array(3517, 2132, 1465,  902), array(2701, 1637, 1125,  692), array(1933, 1172,  805,  496), array(1501,  910,  625,  385)),
+                array(array(3669, 2223, 1528,  940), array(2857, 1732, 1190,  732), array(2085, 1263,  868,  534), array(1581,  958,  658,  405)),
+                array(array(3909, 2369, 1628, 1002), array(3035, 1839, 1264,  778), array(2181, 1322,  908,  559), array(1677, 1016,  698,  430)),
+                array(array(4158, 2520, 1732, 1066), array(3289, 1994, 1370,  843), array(2358, 1429,  982,  604), array(1782, 1080,  742,  457)),
+                array(array(4417, 2677, 1840, 1132), array(3486, 2113, 1452,  894), array(2473, 1499, 1030,  634), array(1897, 1150,  790,  486)),
+                array(array(4686, 2840, 1952, 1201), array(3693, 2238, 1538,  947), array(2670, 1618, 1112,  684), array(2022, 1226,  842,  518)),
+                array(array(4965, 3009, 2068, 1273), array(3909, 2369, 1628, 1002), array(2805, 1700, 1168,  719), array(2157, 1307,  898,  553)),
+                array(array(5253, 3183, 2188, 1347), array(4134, 2506, 1722, 1060), array(2949, 1787, 1228,  756), array(2301, 1394,  958,  590)),
+                array(array(5529, 3351, 2303, 1417), array(4343, 2632, 1809, 1113), array(3081, 1867, 1283,  790), array(2361, 1431,  983,  605)),
+                array(array(5836, 3537, 2431, 1496), array(4588, 2780, 1911, 1176), array(3244, 1966, 1351,  832), array(2524, 1530, 1051,  647)),
+                array(array(6153, 3729, 2563, 1577), array(4775, 2894, 1989, 1224), array(3417, 2071, 1423,  876), array(2625, 1591, 1093,  673)),
+                array(array(6479, 3927, 2699, 1661), array(5039, 3054, 2099, 1292), array(3599, 2181, 1499,  923), array(2735, 1658, 1139,  701)),
+                array(array(6743, 4087, 2809, 1729), array(5313, 3220, 2213, 1362), array(3791, 2298, 1579,  972), array(2927, 1774, 1219,  750)),
+                array(array(7089, 4296, 2953, 1817), array(5596, 3391, 2331, 1435), array(3993, 2420, 1663, 1024), array(3057, 1852, 1273,  784)),
         );
 
         /*  $qr_ec_params[                                              */
