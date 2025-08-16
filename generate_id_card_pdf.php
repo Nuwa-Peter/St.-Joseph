@@ -83,59 +83,75 @@ foreach ($user_ids as $uid) {
     // --- FRONT SIDE ---
     $pdf->AddPage('P', $page_format);
 
-    // BG and Border
-    $pdf->SetFillColor(240, 248, 255); // AliceBlue
-    $pdf->Rect(0, 0, $cr80_width, $cr80_height, 'F');
-    $pdf->SetDrawColor(0, 0, 128); // Navy
-    $pdf->SetLineWidth(0.5);
-    $pdf->Rect(1, 1, $cr80_width - 2, $cr80_height - 2);
+    // Blue header background
+    $pdf->SetFillColor(4, 23, 79); // Dark Navy Blue
+    $pdf->Rect(0, 0, $cr80_width, 18, 'F');
 
-    // Header
-    $pdf->Image('images/logo.png', 4, 4, 12, 12, 'PNG');
+    // School Logo & Name
+    $pdf->Image('images/logo.png', 4, 4, 10, 10, 'PNG');
     $pdf->SetFont('helvetica', 'B', 10);
-    $pdf->Cell(0, 5, 'St. Joseph\'s VSS', 0, 1, 'C');
-    $pdf->SetFont('helvetica', '', 7);
-    $pdf->Cell(0, 3, 'Student ID Card', 0, 1, 'C');
+    $pdf->SetTextColor(255, 255, 255);
+    $pdf->SetXY(16, 5);
+    $pdf->Cell(0, 5, 'St. Joseph\'s VSS', 0, 1, 'L');
+    $pdf->SetFont('helvetica', '', 6);
+    $pdf->SetXY(16, 9);
+    $pdf->Cell(0, 5, 'Excellence and Integrity', 0, 1, 'L');
+
+    // Card Type
+    $pdf->SetFont('helvetica', 'B', 8);
+    $pdf->SetXY(0, 13);
+    $pdf->SetTextColor(0, 0, 0);
+    $pdf->Cell(0, 5, strtoupper($user['role']) . ' ID CARD', 0, 1, 'C');
 
     // Photo
+    $pdf->SetDrawColor(4, 23, 79);
+    $pdf->SetLineWidth(0.5);
+    $photo_x = ($cr80_width - 24) / 2; // Center the photo
+    $pdf->Rect($photo_x - 1, 20, 26, 26); // Border around photo
     $photo_path = $user['photo'] ?? null;
     if ($photo_path && file_exists($photo_path)) {
-        $pdf->Image($photo_path, 32, 15, 22, 22, 'JPG');
+        $pdf->Image($photo_path, $photo_x, 21, 24, 24, 'JPG', '', '', true, 300, '', false, false, 0);
     } else {
         $placeholder = ($user['gender'] === 'Female') ? 'images/placeholder_female.png' : 'images/placeholder_male.png';
-        if (file_exists($placeholder)) $pdf->Image($placeholder, 32, 15, 22, 22, 'PNG');
+        if (file_exists($placeholder)) $pdf->Image($placeholder, $photo_x, 21, 24, 24, 'PNG', '', '', true, 300, '', false, false, 0);
     }
 
-    // Details
-    $pdf->SetY(38);
+    // Name
+    $pdf->SetY(47);
     $pdf->SetFont('helvetica', 'B', 9);
     $pdf->Cell(0, 4, htmlspecialchars($user['first_name'] . ' ' . $user['last_name']), 0, 1, 'C');
 
+    // ID Number
+    $pdf->SetFont('helvetica', '', 7);
+    $pdf->Cell(0, 3, 'ID: ' . htmlspecialchars($user['unique_id'] ?? 'N/A'), 0, 1, 'C');
+
+    // --- Details Table ---
+    $pdf->SetY(52);
     $pdf->SetFont('helvetica', '', 6.5);
-    $y_pos = 42;
-    $details = [
-        'ID' => $user['unique_id'] ?? 'N/A',
-        'LIN' => $user['lin'] ?? 'N/A',
-        'Class' => ($user['class_name'] ?? '') . ' ' . ($user['stream_name'] ?? ''),
-        'DOB' => $user['date_of_birth'] ?? 'N/A',
-    ];
-    foreach($details as $label => $value) {
-        $pdf->SetXY(5, $y_pos);
-        $pdf->SetFont('helvetica', 'B', 6.5);
-        $pdf->Cell(10, 3, $label.':', 0, 0);
-        $pdf->SetFont('helvetica', '', 6.5);
-        $pdf->Cell(0, 3, htmlspecialchars(trim($value)), 0, 1);
-        $y_pos += 3;
-    }
+    $details_html = '<table border="0" cellpadding="1" width="100%">
+        <tr>
+            <td width="15%"><b>LIN:</b></td>
+            <td width="35%">' . htmlspecialchars($user['lin'] ?? 'N/A') . '</td>
+            <td width="15%"><b>DOB:</b></td>
+            <td width="35%">' . htmlspecialchars($user['date_of_birth'] ?? 'N/A') . '</td>
+        </tr>
+        <tr>
+            <td width="15%"><b>Class:</b></td>
+            <td width="85%" colspan="3">' . htmlspecialchars(trim(($user['class_name'] ?? '') . ' ' . ($user['stream_name'] ?? ''))) . '</td>
+        </tr>
+    </table>';
+    $pdf->writeHTMLCell(0, 0, 5, 50, $details_html, 0, 1, 0, true, '', true);
 
 
     // --- BACK SIDE ---
     $pdf->AddPage('P', $page_format);
-    $pdf->SetFillColor(255, 255, 255);
-    $pdf->Rect(0, 0, $cr80_width, $cr80_height, 'F');
-    $pdf->SetDrawColor(0, 0, 128);
-    $pdf->SetLineWidth(0.5);
-    $pdf->Rect(1, 1, $cr80_width - 2, $cr80_height - 2);
+
+    // Background and Info
+    $pdf->SetY(5);
+    $pdf->SetFont('helvetica', 'B', 8);
+    $pdf->Cell(0, 5, 'PROPERTY OF ST. JOSEPH\'S VSS', 0, 1, 'C');
+    $pdf->SetFont('helvetica', 'I', 6);
+    $pdf->MultiCell(0, 6, "This card is for identification purposes only and must be presented upon request by school authorities. If found, please return to the school office.", 0, 'C', false, 1);
 
     // QR Code
     $qr_data = 'http://localhost/new/user_view.php?id=' . $user['id']; // Example URL
@@ -143,18 +159,13 @@ foreach ($user_ids as $uid) {
     ob_start();
     $qr_code_generator->output_image();
     $qr_image_data = ob_get_clean();
-    $pdf->Image('@' . $qr_image_data, 28, 5, 30, 30, 'PNG');
+    $pdf->Image('@' . $qr_image_data, 30, 20, 25, 25, 'PNG');
 
     // Dates
-    $pdf->SetY(38);
-    $pdf->SetFont('helvetica', '', 7);
+    $pdf->SetY(46);
+    $pdf->SetFont('helvetica', '', 6.5);
     $pdf->Cell(0, 4, 'Issue Date: ' . htmlspecialchars($issue_date), 0, 1, 'C');
     $pdf->Cell(0, 4, 'Expiry Date: ' . htmlspecialchars($expiry_date), 0, 1, 'C');
-
-    // Other info
-    $pdf->SetY(45);
-    $pdf->SetFont('helvetica', 'I', 6);
-    $pdf->MultiCell(0, 5, "If found, please return to St. Joseph's VSS.\nThis card remains the property of the school.", 0, 'C');
 }
 
 $conn->close();

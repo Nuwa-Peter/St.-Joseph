@@ -45,10 +45,10 @@ $roles = ['student' => 'Students', 'teacher' => 'Teachers', 'headteacher' => 'He
                     </div>
                 </div>
                 <div class="col-md-6 mb-3" id="individual-user-container" style="display: none;">
-                    <label for="user_id" class="form-label">Select User</label>
-                    <select name="user_id" id="user_id" class="form-select" disabled>
-                        <option value="">Select a role first...</option>
-                    </select>
+                    <label for="user_search_input" class="form-label">Search for User (Name or LIN)</label>
+                    <input type="text" id="user_search_input" class="form-control" placeholder="Start typing to search..." disabled>
+                    <input type="hidden" name="user_id" id="user_id_hidden">
+                    <div id="search-results" class="list-group position-absolute" style="z-index: 1000;"></div>
                 </div>
             </div>
 
@@ -73,43 +73,85 @@ $roles = ['student' => 'Students', 'teacher' => 'Teachers', 'headteacher' => 'He
 document.addEventListener('DOMContentLoaded', function() {
     const scopeRadios = document.querySelectorAll('input[name="generation_scope"]');
     const userContainer = document.getElementById('individual-user-container');
-    const userSelect = document.getElementById('user_id');
+    const searchInput = document.getElementById('user_search_input');
+    const hiddenInput = document.getElementById('user_id_hidden');
+    const resultsContainer = document.getElementById('search-results');
     const roleSelect = document.getElementById('role');
+    let debounceTimer;
 
-    scopeRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'individual') {
-                userContainer.style.display = 'block';
-                userSelect.disabled = !roleSelect.value;
-            } else {
-                userContainer.style.display = 'none';
-                userSelect.disabled = true;
-            }
-        });
+    function toggleIndividualSearch() {
+        const scope = document.querySelector('input[name="generation_scope"]:checked').value;
+        if (scope === 'individual') {
+            userContainer.style.display = 'block';
+            searchInput.disabled = !roleSelect.value;
+        } else {
+            userContainer.style.display = 'none';
+            searchInput.disabled = true;
+            searchInput.value = '';
+            hiddenInput.value = '';
+            resultsContainer.innerHTML = '';
+        }
+    }
+
+    scopeRadios.forEach(radio => radio.addEventListener('change', toggleIndividualSearch));
+    roleSelect.addEventListener('change', function() {
+        searchInput.value = '';
+        hiddenInput.value = '';
+        resultsContainer.innerHTML = '';
+        toggleIndividualSearch();
     });
 
-    roleSelect.addEventListener('change', function() {
-        const role = this.value;
-        const scope = document.querySelector('input[name="generation_scope"]:checked').value;
-        userSelect.disabled = true;
-        userSelect.innerHTML = '<option value="">Loading...</option>';
+    searchInput.addEventListener('input', function() {
+        const query = this.value;
+        const role = roleSelect.value;
+        hiddenInput.value = ''; // Clear hidden ID when user types
 
-        if (scope === 'individual' && role) {
-            fetch(`api_get_users_by_role.php?role=${role}`)
+        clearTimeout(debounceTimer);
+        if (query.length < 2) {
+            resultsContainer.innerHTML = '';
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            fetch(`api_search_users.php?role=${role}&query=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
-                    userSelect.innerHTML = '<option value="">Select User...</option>';
+                    resultsContainer.innerHTML = '';
                     if (data.error) {
                         console.error(data.error);
                         return;
                     }
-                    data.forEach(user => {
-                        userSelect.innerHTML += `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`;
-                    });
-                    userSelect.disabled = false;
+                    if (data.length > 0) {
+                        data.forEach(user => {
+                            const item = document.createElement('a');
+                            item.href = '#';
+                            item.className = 'list-group-item list-group-item-action';
+                            item.textContent = `${user.first_name} ${user.last_name} (${user.lin || 'No LIN'})`;
+                            item.dataset.id = user.id;
+                            item.dataset.name = `${user.first_name} ${user.last_name}`;
+                            resultsContainer.appendChild(item);
+                        });
+                    } else {
+                        resultsContainer.innerHTML = '<span class="list-group-item">No results found</span>';
+                    }
                 });
-        } else {
-            userSelect.innerHTML = '<option value="">Select a role first...</option>';
+        }, 300); // Debounce for 300ms
+    });
+
+    resultsContainer.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = e.target;
+        if (target.matches('a.list-group-item-action')) {
+            searchInput.value = target.dataset.name;
+            hiddenInput.value = target.dataset.id;
+            resultsContainer.innerHTML = '';
+        }
+    });
+
+    // Hide results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!userContainer.contains(e.target)) {
+            resultsContainer.innerHTML = '';
         }
     });
 });
