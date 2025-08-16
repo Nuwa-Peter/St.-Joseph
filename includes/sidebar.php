@@ -95,9 +95,20 @@
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link text-white">
-                        <i class="bi bi-card-checklist me-2"></i> Examinations
+                    <a href="#exams-submenu" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-card-checklist me-2"></i> Examinations
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right sidebar-chevron" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg>
                     </a>
+                    <ul class="collapse nav flex-column ms-3" id="exams-submenu" data-bs-parent="#nav-pills">
+                        <li class="nav-item">
+                            <a href="set_exam.php" class="nav-link text-white"><i class="bi bi-pencil-square me-2"></i> Set Exams</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="marks_entry.php" class="nav-link text-white"><i class="bi bi-card-list me-2"></i> Marks Entry</a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link text-white">
