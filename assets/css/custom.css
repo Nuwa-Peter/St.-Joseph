@@ -10,7 +10,7 @@ body {
 
 /* Sidebar enhancements */
 .offcanvas-lg {
-    --bs-offcanvas-width: 340px;
+    --bs-offcanvas-width: 380px;
 }
 
 .sidebar {
@@ -81,10 +81,11 @@ body {
 }
 
 .sidebar-logo {
-    max-width: 90px;
-    height: auto;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
-    border: 2px solid #fff;
+    object-fit: cover;
+    border: 3px solid #fff;
     padding: 5px;
     background-color: #fff;
 }

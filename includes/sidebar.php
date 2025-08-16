@@ -78,7 +78,7 @@
                 <li class="nav-item">
                     <a href="#communications-submenu" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
                         <span>
-                            <i class="bi bi-chat-dots me-2"></i> Communications
+                            <i class="bi bi-telephone me-2"></i> Communications
                         </span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right sidebar-chevron" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg>
                     </a>
@@ -87,7 +87,7 @@
                             <a href="#" class="nav-link text-white"><i class="bi bi-chat-square-dots me-2"></i> Social Chat</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link text-white"><i class="bi bi-send me-2"></i> Bulk SMS</a>
+                            <a href="#" class="nav-link text-white"><i class="bi bi-chat-text me-2"></i> Bulk SMS</a>
                         </li>
                         <li class="nav-item">
                             <a href="announcements.php" class="nav-link text-white"><i class="bi bi-megaphone me-2"></i> Announcements</a>
