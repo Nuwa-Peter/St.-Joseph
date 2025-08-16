@@ -13,6 +13,10 @@ body {
     --bs-offcanvas-width: 340px;
 }
 
+.sidebar {
+    overflow-x: hidden;
+}
+
 .sidebar .nav-link {
     transition: background-color 0.2s, color 0.2s;
 }

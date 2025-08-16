@@ -7,7 +7,6 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 }
 
 require_once 'config.php';
-require_once 'includes/header.php';
 
 $name = $code = "";
 $name_err = $code_err = "";
@@ -29,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $name = trim($_POST["name"]);
                 }
             } else {
-                echo "Oops! Something went wrong. Please try again later.";
+                // Consider a more robust error handling
             }
             $stmt->close();
         }
@@ -51,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $code = trim($_POST["code"]);
                 }
             } else {
-                echo "Oops! Something went wrong. Please try again later.";
+                // Consider a more robust error handling
             }
             $stmt->close();
         }
@@ -67,14 +66,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 header("location: subjects.php");
                 exit();
             } else {
-                echo "Something went wrong. Please try again later.";
+                // Consider a more robust error handling
             }
             $stmt->close();
         }
     }
-
-    $conn->close();
 }
+
+require_once 'includes/header.php';
 ?>
 
 <h2>Create Subject</h2>
@@ -97,5 +96,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </form>
 
 <?php
+$conn->close();
 require_once 'includes/footer.php';
 ?>
