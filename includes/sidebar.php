@@ -18,9 +18,14 @@
                 </li>
                 <?php // Example of role-based menu item
                 // if ($_SESSION['role'] === 'root' || $_SESSION['role'] === 'headteacher') { ?>
-                    <li>
+                    <li class="nav-item">
                         <a href="users.php" class="nav-link text-white">
                             <i class="bi bi-people me-2"></i> User Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="teachers.php" class="nav-link text-white">
+                            <i class="bi bi-person-video3 me-2"></i> Teachers
                         </a>
                     </li>
                 <?php // } ?>
