@@ -117,12 +117,9 @@ class QRCode {
 
                 $size     = $this->calculate_size($code, $widths);
                 $dscale   = 4;
-                $scale    = (isset($options['sf']) ? (float)$options['sf'] : $ds
-cale);
-                $scalex   = (isset($options['sx']) ? (float)$options['sx'] : $sc
-ale);
-                $scaley   = (isset($options['sy']) ? (float)$options['sy'] : $sc
-ale);
+                $scale    = (isset($options['sf']) ? (float)$options['sf'] : $dscale);
+                $scalex   = (isset($options['sx']) ? (float)$options['sx'] : $scale);
+                $scaley   = (isset($options['sy']) ? (float)$options['sy'] : $scale);
                 $dpadding = 0;
                 $padding  = (isset($options['p']) ? (int)$options['p'] : $dpaddi
 ng);
