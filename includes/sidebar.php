@@ -68,12 +68,26 @@
                         <li class="nav-item">
                             <a href="student_assignments.php" class="nav-link text-white"><i class="bi bi-person-badge me-2"></i> Student Assignments</a>
                         </li>
+                        <li class="nav-item">
+                            <a href="grading_scales.php" class="nav-link text-white"><i class="bi bi-rulers me-2"></i> Grading Scales</a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link text-white">
-                        <i class="bi bi-file-earmark-text me-2"></i> Documents
+                    <a href="#documents-submenu" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-file-earmark-text me-2"></i> Documents
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right sidebar-chevron" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg>
                     </a>
+                    <ul class="collapse nav flex-column ms-3" id="documents-submenu" data-bs-parent="#nav-pills">
+                        <li class="nav-item">
+                            <a href="report_card_generator.php" class="nav-link text-white"><i class="bi bi-file-earmark-pdf me-2"></i> Generate Report Cards</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="id_card_generator.php" class="nav-link text-white"><i class="bi bi-person-vcard me-2"></i> Generate ID Cards</a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a href="#communications-submenu" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
