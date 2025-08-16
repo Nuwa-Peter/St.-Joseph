@@ -26,6 +26,12 @@ body {
     color: #fff;
 }
 
+.sidebar-link-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .sidebar-chevron {
     transition: transform 0.2s ease-in-out;
 }
