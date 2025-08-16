@@ -22,14 +22,11 @@ body {
     color: #fff;
 }
 
-.sidebar .nav-link[data-bs-toggle="collapse"]::after {
-    font-family: 'bootstrap-icons';
-    content: '\\F285'; /* bi-chevron-right */
-    float: right;
+.sidebar-chevron {
     transition: transform 0.2s ease-in-out;
 }
 
-.sidebar .nav-link[data-bs-toggle="collapse"]:not(.collapsed)::after {
+.sidebar .nav-link[aria-expanded="true"] .sidebar-chevron {
     transform: rotate(90deg);
 }
 
