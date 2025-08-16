@@ -56,8 +56,7 @@ class QRCode {
         }
 
         public function render_image() {
-                list($code, $widths, $width, $height, $x, $y, $w, $h) = $this->e
-ncode_and_calculate_size($this->data, $this->options);
+                list($code, $widths, $width, $height, $x, $y, $w, $h) = $this->encode_and_calculate_size($this->data, $this->options);
 
                 $image = imagecreatetruecolor($width, $height);
                 imagesavealpha($image, true);

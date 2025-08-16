@@ -7,6 +7,26 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 }
 
 require_once 'config.php';
+
+// Handle form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $student_id = $_POST['student_id'];
+    $stream_id = $_POST['stream_id'];
+
+    // Use ON DUPLICATE KEY UPDATE to either assign a new student or update an existing one's stream.
+    // This assumes a student can only be in one stream at a time, enforced by a unique key on user_id.
+    $assign_sql = "INSERT INTO stream_user (user_id, stream_id, created_at, updated_at) VALUES (?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE stream_id = VALUES(stream_id), updated_at = NOW()";
+
+    if($stmt = $conn->prepare($assign_sql)) {
+        $stmt->bind_param("ii", $student_id, $stream_id);
+        $stmt->execute();
+        $stmt->close();
+    }
+    // Redirect to the same page to see the new assignment and prevent form resubmission
+    header("location: student_assignments.php");
+    exit();
+}
+
 require_once 'includes/header.php';
 
 // Fetch students and streams for dropdowns
@@ -15,20 +35,6 @@ $students_result = $conn->query($students_sql);
 
 $streams_sql = "SELECT s.id, s.name, cl.name AS class_level_name FROM streams s JOIN class_levels cl ON s.class_level_id = cl.id ORDER BY cl.name, s.name ASC";
 $streams_result = $conn->query($streams_sql);
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $student_id = $_POST['student_id'];
-    $stream_id = $_POST['stream_id'];
-
-    $assign_sql = "INSERT INTO stream_user (stream_id, user_id, created_at, updated_at) VALUES (?, ?, NOW(), NOW()) ON DUPLICATE KEY UPDATE stream_id = VALUES(stream_id), updated_at = NOW()";
-    if($stmt = $conn->prepare($assign_sql)) {
-        $stmt->bind_param("ii", $stream_id, $student_id);
-        $stmt->execute();
-        $stmt->close();
-    }
-    header("location: student_assignments.php");
-    exit();
-}
 
 // Fetch existing assignments
 $assignments_sql = "
