@@ -11,6 +11,15 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 $errors = [];
 $first_name = $last_name = $username = $email = $role = "";
 
+// Define roles available for creation based on the creator's role
+$all_roles = ['student', 'teacher', 'parent', 'bursar', 'librarian', 'headteacher', 'root'];
+$allowed_roles = $all_roles;
+
+// Headteachers cannot create root users
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'headteacher') {
+    $allowed_roles = array_filter($all_roles, function($r) { return $r !== 'root'; });
+}
+
 // Process form data when form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $first_name = trim($_POST['first_name']);
@@ -24,7 +33,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($first_name)) $errors['first_name'] = "First name is required.";
     if (empty($last_name)) $errors['last_name'] = "Last name is required.";
     if (empty($password)) $errors['password'] = "Password is required.";
-    if (empty($role)) $errors['role'] = "Role is required.";
+
+    // Validate role
+    if (empty($role)) {
+        $errors['role'] = "Role is required.";
+    } elseif (!in_array($role, $allowed_roles)) {
+        $errors['role'] = "You do not have permission to create a user with this role.";
+    }
 
     // Validate username
     if (empty($username)) {
@@ -115,13 +130,11 @@ require_once 'includes/header.php';
             <label for="role" class="form-label">Role</label>
             <select name="role" class="form-select <?php echo isset($errors['role']) ? 'is-invalid' : ''; ?>">
                 <option value="">Select a role...</option>
-                <option value="student" <?php echo ($role == 'student') ? 'selected' : ''; ?>>Student</option>
-                <option value="teacher" <?php echo ($role == 'teacher') ? 'selected' : ''; ?>>Teacher</option>
-                <option value="parent" <?php echo ($role == 'parent') ? 'selected' : ''; ?>>Parent</option>
-                <option value="bursar" <?php echo ($role == 'bursar') ? 'selected' : ''; ?>>Bursar</option>
-                <option value="librarian" <?php echo ($role == 'librarian') ? 'selected' : ''; ?>>Librarian</option>
-                <option value="headteacher" <?php echo ($role == 'headteacher') ? 'selected' : ''; ?>>Head Teacher</option>
-                <option value="root" <?php echo ($role == 'root') ? 'selected' : ''; ?>>Root</option>
+                <?php foreach ($allowed_roles as $role_value): ?>
+                    <option value="<?php echo htmlspecialchars($role_value); ?>" <?php echo ($role == $role_value) ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars(ucwords(str_replace('_', ' ', $role_value))); ?>
+                    </option>
+                <?php endforeach; ?>
             </select>
             <?php if(isset($errors['role'])): ?><div class="invalid-feedback"><?php echo $errors['role']; ?></div><?php endif; ?>
         </div>

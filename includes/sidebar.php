@@ -127,11 +127,39 @@
                         </li>
                     </ul>
                 </li>
+                <?php
+                $finance_roles = ['bursar', 'headteacher', 'root'];
+                if (isset($_SESSION['role']) && in_array($_SESSION['role'], $finance_roles)):
+                ?>
                 <li class="nav-item">
-                    <a href="#" class="nav-link text-white">
-                        <i class="bi bi-cash-coin me-2"></i> Finance
+                    <a href="#finance-submenu" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <span class="sidebar-link-text">
+                            <i class="bi bi-cash-coin me-2"></i> Finance
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right sidebar-chevron" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg>
                     </a>
+                    <ul class="collapse nav flex-column ms-3" id="finance-submenu" data-bs-parent="#nav-pills">
+                        <li class="nav-item">
+                            <a href="finance_dashboard.php" class="nav-link text-white"><i class="bi bi-graph-up me-2"></i> Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="fee_structures.php" class="nav-link text-white"><i class="bi bi-collection me-2"></i> Fee Structures</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="invoices.php" class="nav-link text-white"><i class="bi bi-receipt me-2"></i> Invoices & Payments</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="student_accounts.php" class="nav-link text-white"><i class="bi bi-person-lines-fill me-2"></i> Student Accounts</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="expenses.php" class="nav-link text-white"><i class="bi bi-box-arrow-up-right me-2"></i> Expenses</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="finance_reports.php" class="nav-link text-white"><i class="bi bi-file-earmark-bar-graph me-2"></i> Reports</a>
+                        </li>
+                    </ul>
                 </li>
+                <?php endif; ?>
                 <li class="nav-item">
                     <a href="#library-submenu" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
                         <span class="sidebar-link-text">
