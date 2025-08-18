@@ -22,6 +22,17 @@ $roles = ['student' => 'Students', 'teacher' => 'Teachers', 'headteacher' => 'He
         <form action="generate_id_card_pdf.php" method="post" target="_blank">
             <div class="row">
                 <div class="col-md-6 mb-3">
+                    <label for="generation_scope" class="form-label">Scope</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="generation_scope" id="scope_all" value="all" checked>
+                        <label class="form-check-label" for="scope_all">All users in selected role</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="generation_scope" id="scope_individual" value="individual">
+                        <label class="form-check-label" for="scope_individual">Individual User</label>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
                     <label for="role" class="form-label">Generate for</label>
                     <select name="role" id="role" class="form-select" required>
                         <option value="">Select Role...</option>
@@ -33,17 +44,6 @@ $roles = ['student' => 'Students', 'teacher' => 'Teachers', 'headteacher' => 'He
             </div>
 
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="generation_scope" class="form-label">Scope</label>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="generation_scope" id="scope_all" value="all" checked>
-                        <label class="form-check-label" for="scope_all">All users in selected role</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="generation_scope" id="scope_individual" value="individual">
-                        <label class="form-check-label" for="scope_individual">Individual User</label>
-                    </div>
-                </div>
                 <div class="col-md-6 mb-3" id="individual-user-container" style="display: none;">
                     <label for="user_search_input" class="form-label">Search for User (Name or LIN)</label>
                     <input type="text" id="user_search_input" class="form-control" placeholder="Start typing to search..." disabled>
@@ -123,12 +123,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     if (data.length > 0) {
                         data.forEach(user => {
-                            const item = document.createElement('a');
-                            item.href = '#';
-                            item.className = 'list-group-item list-group-item-action';
-                            item.textContent = `${user.first_name} ${user.last_name} (${user.lin || 'No LIN'})`;
-                            item.dataset.id = user.id;
-                            item.dataset.name = `${user.first_name} ${user.last_name}`;
+                            const item = document.createElement('div');
+                            item.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+                            const nameSpan = document.createElement('span');
+                            nameSpan.textContent = `${user.first_name} ${user.last_name} (${user.lin || 'No LIN'})`;
+                            nameSpan.style.cursor = 'pointer';
+                            nameSpan.dataset.id = user.id;
+                            nameSpan.dataset.name = `${user.first_name} ${user.last_name}`;
+                            nameSpan.onclick = function() {
+                                searchInput.value = this.dataset.name;
+                                hiddenInput.value = this.dataset.id;
+                                resultsContainer.innerHTML = '';
+                            };
+
+                            let viewUrl = (role === 'student') ? `student_view.php?id=${user.id}` : `user_edit.php?id=${user.id}`;
+
+                            const viewBtn = document.createElement('a');
+                            viewBtn.href = viewUrl;
+                            viewBtn.target = '_blank';
+                            viewBtn.className = 'btn btn-sm btn-outline-secondary';
+                            viewBtn.innerHTML = '<i class="bi bi-eye"></i> View';
+
+                            item.appendChild(nameSpan);
+                            item.appendChild(viewBtn);
                             resultsContainer.appendChild(item);
                         });
                     } else {
