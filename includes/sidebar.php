@@ -46,6 +46,9 @@
                         <li class="nav-item">
                             <a href="student_import_export.php" class="nav-link text-white"><i class="bi bi-file-earmark-arrow-up-fill me-2"></i> Import/Export</a>
                         </li>
+                        <li class="nav-item">
+                            <a href="unregistered_students.php" class="nav-link text-white"><i class="bi bi-person-x me-2"></i> Unregistered Students</a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item">

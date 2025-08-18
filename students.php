@@ -1,6 +1,30 @@
 <?php
 session_start();
 require_once 'config.php';
+require_once 'config.php';
+
+$success_message = "";
+$error_message = "";
+
+// Handle Unregister form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['unregister_student'])) {
+    $student_id = $_POST['student_id'];
+    $reason = trim($_POST['reason']);
+
+    if (empty($reason)) {
+        $error_message = "A reason is required to unregister a student.";
+    } else {
+        $stmt = $conn->prepare("UPDATE users SET status = 'unregistered', status_change_reason = ?, status_changed_at = NOW() WHERE id = ?");
+        $stmt->bind_param("si", $reason, $student_id);
+        if ($stmt->execute()) {
+            $success_message = "Student has been successfully unregistered.";
+        } else {
+            $error_message = "Failed to unregister student.";
+        }
+        $stmt->close();
+    }
+}
+
 require_once 'includes/header.php';
 
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
@@ -16,7 +40,7 @@ $sql = "
     LEFT JOIN stream_user su ON u.id = su.user_id
     LEFT JOIN streams s ON su.stream_id = s.id
     LEFT JOIN class_levels cl ON s.class_level_id = cl.id
-    WHERE u.role = 'student'
+    WHERE u.role = 'student' AND u.status = 'active'
     ORDER BY u.last_name, u.first_name
 ";
 $result = $conn->query($sql);
@@ -34,6 +58,9 @@ $result = $conn->query($sql);
         </div>
     </div>
 </div>
+
+<?php if($success_message): ?><div class="alert alert-success"><?php echo $success_message; ?></div><?php endif; ?>
+<?php if($error_message): ?><div class="alert alert-danger"><?php echo $error_message; ?></div><?php endif; ?>
 
 <!-- Export Modal -->
 <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
@@ -108,18 +135,69 @@ $result = $conn->query($sql);
                     <td>
                         <a href="student_view.php?id=<?php echo $row["id"]; ?>" class="btn btn-sm btn-info">View</a>
                         <a href="student_edit.php?id=<?php echo $row["id"]; ?>" class="btn btn-sm btn-primary">Edit</a>
-                        <a href="user_delete.php?id=<?php echo $row["id"]; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this student?');">Delete</a>
+                        <button type="button" class="btn btn-sm btn-danger unregister-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#unregisterModal"
+                                data-student-id="<?php echo $row["id"]; ?>"
+                                data-student-name="<?php echo htmlspecialchars($row["first_name"] . ' ' . $row["last_name"]); ?>">
+                            Unregister
+                        </button>
                     </td>
                 </tr>
             <?php endwhile; ?>
         <?php else: ?>
             <tr>
-                <td colspan="6" class="text-center">No students found.</td>
+                <td colspan="6" class="text-center">No active students found.</td>
             </tr>
         <?php endif; ?>
     </tbody>
 </table>
 </div>
+
+<!-- Unregister Modal -->
+<div class="modal fade" id="unregisterModal" tabindex="-1" aria-labelledby="unregisterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="students.php" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="unregisterModalLabel">Unregister Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to unregister <strong id="student-name-modal"></strong>?</p>
+                    <input type="hidden" name="student_id" id="student-id-modal">
+                    <div class="mb-3">
+                        <label for="reason" class="form-label">Reason for Unregistering</label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="unregister_student" class="btn btn-danger">Confirm Unregister</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const unregisterModal = document.getElementById('unregisterModal');
+    unregisterModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const studentId = button.getAttribute('data-student-id');
+        const studentName = button.getAttribute('data-student-name');
+
+        const modalTitle = unregisterModal.querySelector('.modal-title');
+        const modalStudentName = unregisterModal.querySelector('#student-name-modal');
+        const modalStudentIdInput = unregisterModal.querySelector('#student-id-modal');
+
+        modalTitle.textContent = 'Unregister ' + studentName;
+        modalStudentName.textContent = studentName;
+        modalStudentIdInput.value = studentId;
+    });
+});
+</script>
 
 <?php
 $conn->close();
