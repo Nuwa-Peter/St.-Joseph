@@ -31,40 +31,65 @@ $photo_err = "";
 if (isset($_POST['upload_photo'])) {
     $authorized_roles = ['teacher', 'librarian', 'root', 'bursar', 'headteacher'];
     if (in_array($_SESSION['role'], $authorized_roles)) {
-        if (isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] == 0) {
+
+        $image_data = null;
+        $file_extension = null;
+
+        // Check for webcam data first
+        if (!empty($_POST['cropped_photo_data'])) {
+            // data:image/png;base64,iVBORw0KGgo...
+            if (preg_match('/^data:image\/(\w+);base64,/', $_POST['cropped_photo_data'], $type)) {
+                $data = substr($_POST['cropped_photo_data'], strpos($_POST['cropped_photo_data'], ',') + 1);
+                $image_data = base64_decode($data);
+                $file_extension = strtolower($type[1]); // png, jpeg etc.
+            } else {
+                $photo_err = "Invalid image data format.";
+            }
+        }
+        // Fallback to standard file upload
+        elseif (isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] == 0) {
             $allowed = ['jpg', 'jpeg', 'png', 'gif'];
             $filename = $_FILES['profile_photo']['name'];
             $filetype = pathinfo($filename, PATHINFO_EXTENSION);
             if (in_array(strtolower($filetype), $allowed)) {
-                // Generate a unique name for the file
-                $new_filename = 'user_' . $user_id . '_' . uniqid() . '.' . $filetype;
-                $target_path = 'uploads/photos/' . $new_filename;
-
-                if (move_uploaded_file($_FILES['profile_photo']['tmp_name'], $target_path)) {
-                    // Delete old photo if it exists
-                    if (!empty($user['photo']) && file_exists($user['photo'])) {
-                        unlink($user['photo']);
-                    }
-                    // Update database
-                    $stmt_photo = $conn->prepare("UPDATE users SET photo = ? WHERE id = ?");
-                    $stmt_photo->bind_param("si", $target_path, $user_id);
-                    if ($stmt_photo->execute()) {
-                        $success_message = "Profile photo updated successfully.";
-                        // Refresh user data to show new photo immediately
-                        $user['photo'] = $target_path;
-                    } else {
-                        $photo_err = "Failed to update database.";
-                    }
-                    $stmt_photo->close();
-                } else {
-                    $photo_err = "Failed to move uploaded file.";
-                }
+                $image_data = file_get_contents($_FILES['profile_photo']['tmp_name']);
+                $file_extension = strtolower($filetype);
             } else {
                 $photo_err = "Invalid file type. Please upload a JPG, PNG, or GIF.";
             }
-        } else {
-            $photo_err = "Error uploading file. Please try again.";
         }
+
+        // If we have image data, process it
+        if ($image_data !== null && $file_extension !== null) {
+            // Generate a unique name for the file
+            $new_filename = 'user_' . $user_id . '_' . uniqid() . '.' . $file_extension;
+            $target_path = 'uploads/photos/' . $new_filename;
+
+            if (file_put_contents($target_path, $image_data)) {
+                // Delete old photo if it exists
+                if (!empty($user['photo']) && file_exists($user['photo'])) {
+                    unlink($user['photo']);
+                }
+                // Update database
+                $stmt_photo = $conn->prepare("UPDATE users SET photo = ? WHERE id = ?");
+                $stmt_photo->bind_param("si", $target_path, $user_id);
+                if ($stmt_photo->execute()) {
+                    $success_message = "Profile photo updated successfully.";
+                    // Refresh user data to show new photo immediately
+                    $user['photo'] = $target_path;
+                } else {
+                    $photo_err = "Failed to update database.";
+                }
+                $stmt_photo->close();
+            } else {
+                $photo_err = "Failed to save the uploaded file.";
+            }
+        }
+        // If no data was submitted and no other error was set, set a generic error.
+        elseif (empty($photo_err)) {
+             $photo_err = "No photo was submitted or an error occurred during upload.";
+        }
+
     } else {
         $photo_err = "You are not authorized to perform this action.";
     }
@@ -134,10 +159,14 @@ require_once 'includes/header.php';
                 $authorized_roles = ['teacher', 'librarian', 'root', 'bursar', 'headteacher'];
                 if (in_array($_SESSION['role'], $authorized_roles)):
                 ?>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#photoUploadModal">
-                        Change Photo
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#photoUploadModal">
+                        <i class="bi bi-upload me-1"></i> Upload Photo
+                    </button>
+                     <button type="button" class="btn btn-outline-secondary" id="webcam-button">
+                        <i class="bi bi-camera-video me-1"></i> Take Photo
                     </button>
                 <?php endif; ?>
+                <input type="hidden" name="cropped_photo_data" id="cropped-photo-data">
 
             </div>
         </div>
@@ -219,7 +248,88 @@ require_once 'includes/header.php';
     </div>
 </div>
 
+<!-- Webcam & Cropper Modals -->
+<div class="modal fade" id="webcamModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Capture Photo</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><video id="webcam-video" width="100%" autoplay></video></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="capture-button">Capture</button></div></div></div></div>
+<div class="modal fade" id="cropperModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Crop Image</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><div><img id="image-to-crop" src="" style="max-width: 100%;"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="crop-button">Crop & Use</button></div></div></div></div>
+
+
+<!-- Hidden Form for Webcam/Cropped Photo -->
+<form id="webcam-photo-form" action="profile.php" method="post" style="display: none;">
+    <input type="hidden" name="cropped_photo_data" id="hidden-cropped-photo-data">
+    <input type="hidden" name="upload_photo" value="1">
+</form>
+
 <?php
 $conn->close();
 require_once 'includes/footer.php';
 ?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if the user is authorized to see the webcam button
+    const webcamButton = document.getElementById('webcam-button');
+    if (!webcamButton) return; // Exit if button doesn't exist
+
+    const webcamModal = new bootstrap.Modal(document.getElementById('webcamModal'));
+    const cropperModal = new bootstrap.Modal(document.getElementById('cropperModal'));
+    const video = document.getElementById('webcam-video');
+    const captureButton = document.getElementById('capture-button');
+    const imageToCrop = document.getElementById('image-to-crop');
+    const cropButton = document.getElementById('crop-button');
+    const hiddenPhotoForm = document.getElementById('webcam-photo-form');
+    const hiddenPhotoDataInput = document.getElementById('hidden-cropped-photo-data');
+    let stream;
+    let cropper;
+
+    webcamButton.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            webcamModal.show();
+        } catch (err) {
+            console.error("Error accessing webcam:", err);
+            alert("Could not access the webcam. Please ensure you have a webcam connected and have granted permission.");
+        }
+    });
+
+    captureButton.addEventListener('click', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        imageToCrop.src = canvas.toDataURL('image/png');
+
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+
+        webcamModal.hide();
+        cropperModal.show();
+    });
+
+    document.getElementById('cropperModal').addEventListener('shown.bs.modal', () => {
+        cropper = new Cropper(imageToCrop, { aspectRatio: 1, viewMode: 1 });
+    });
+
+    document.getElementById('cropperModal').addEventListener('hidden.bs.modal', () => {
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+    });
+
+    cropButton.addEventListener('click', () => {
+        if (cropper) {
+            const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
+            hiddenPhotoDataInput.value = canvas.toDataURL('image/png');
+            hiddenPhotoForm.submit();
+        }
+    });
+
+    document.getElementById('webcamModal').addEventListener('hidden.bs.modal', () => {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+    });
+});
+</script>
