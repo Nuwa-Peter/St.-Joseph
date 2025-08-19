@@ -143,6 +143,9 @@
                             <a href="finance_dashboard.php" class="nav-link text-white"><i class="bi bi-graph-up me-2"></i> Dashboard</a>
                         </li>
                         <li class="nav-item">
+                            <a href="accountability.php" class="nav-link text-white"><i class="bi bi-journal-check me-2"></i> Accountability</a>
+                        </li>
+                        <li class="nav-item">
                             <a href="fee_structures.php" class="nav-link text-white"><i class="bi bi-collection me-2"></i> Fee Structures</a>
                         </li>
                         <li class="nav-item">
