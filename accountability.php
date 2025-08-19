@@ -177,51 +177,52 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <!-- Report Results -->
     <div id="report-results">
-        <?php if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($transactions)):
-            // Calculate totals for the summary
-            $total_income = array_sum(array_column($transactions, 'amount_in'));
-            $total_expenses = array_sum(array_column($transactions, 'amount_out'));
-            $net_profit = $total_income - $total_expenses;
-        ?>
+        <?php if ($_SERVER["REQUEST_METHOD"] == "POST"): ?>
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0"><?php echo $report_title; ?></h4>
                     <button class="btn btn-secondary no-print" onclick="window.print();"><i class="bi bi-printer me-2"></i>Print Report</button>
                 </div>
                 <div class="card-body">
-                    <!-- Summary Cards -->
-                    <div class="row mb-4">
-                        <div class="col-md-4">
-                            <div class="card border-success">
-                                <div class="card-body text-center">
-                                    <h6 class="card-title text-success">Total Income</h6>
-                                    <p class="card-text fs-5 fw-bold">UGX <?php echo number_format($total_income, 2); ?></p>
+                    <?php if (!empty($transactions)):
+                        // Calculate totals for the summary
+                        $total_income = array_sum(array_column($transactions, 'amount_in'));
+                        $total_expenses = array_sum(array_column($transactions, 'amount_out'));
+                        $net_profit = $total_income - $total_expenses;
+                    ?>
+                        <!-- Summary Cards -->
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <div class="card border-success">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title text-success">Total Income</h6>
+                                        <p class="card-text fs-5 fw-bold">UGX <?php echo number_format($total_income, 2); ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-danger">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title text-danger">Total Expenses</h6>
+                                        <p class="card-text fs-5 fw-bold">UGX <?php echo number_format($total_expenses, 2); ?></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card border-primary">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title text-primary">Net Profit / Loss</h6>
+                                        <p class="card-text fs-5 fw-bold <?php echo ($net_profit >= 0) ? 'text-success' : 'text-danger'; ?>">
+                                            UGX <?php echo number_format($net_profit, 2); ?>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card border-danger">
-                                <div class="card-body text-center">
-                                    <h6 class="card-title text-danger">Total Expenses</h6>
-                                    <p class="card-text fs-5 fw-bold">UGX <?php echo number_format($total_expenses, 2); ?></p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card border-primary">
-                                <div class="card-body text-center">
-                                    <h6 class="card-title text-primary">Net Profit / Loss</h6>
-                                    <p class="card-text fs-5 fw-bold <?php echo ($net_profit >= 0) ? 'text-success' : 'text-danger'; ?>">
-                                        UGX <?php echo number_format($net_profit, 2); ?>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <h5 class="mt-4 mb-3">Transaction Details</h5>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-bordered">
+                        <h5 class="mt-4 mb-3">Transaction Details</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Date</th>

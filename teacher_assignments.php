@@ -7,6 +7,59 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 }
 
 require_once 'config.php';
+
+// Handle form submission for new assignment
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $teacher_id = $_POST['teacher_id'];
+    $subject_id = $_POST['subject_id'];
+    $stream_id = $_POST['stream_id'];
+
+    // For simplicity, we'll assume a paper exists for each subject with the same name.
+    // In a real application, you might need a more robust way to manage papers.
+    $paper_id = null;
+    $paper_sql = "SELECT id FROM papers WHERE subject_id = ?";
+    if($stmt = $conn->prepare($paper_sql)) {
+        $stmt->bind_param("i", $subject_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if($result->num_rows > 0) {
+            $paper = $result->fetch_assoc();
+            $paper_id = $paper['id'];
+        } else {
+            // Create a paper if it doesn't exist
+            $subject_name_sql = "SELECT name FROM subjects WHERE id = ?";
+            if($stmt_subject = $conn->prepare($subject_name_sql)) {
+                $stmt_subject->bind_param("i", $subject_id);
+                $stmt_subject->execute();
+                $subject_result = $stmt_subject->get_result()->fetch_assoc();
+                $subject_name = $subject_result['name'];
+
+                $insert_paper_sql = "INSERT INTO papers (subject_id, name, created_at, updated_at) VALUES (?, ?, NOW(), NOW())";
+                if($stmt_insert_paper = $conn->prepare($insert_paper_sql)) {
+                    $stmt_insert_paper->bind_param("is", $subject_id, $subject_name);
+                    $stmt_insert_paper->execute();
+                    $paper_id = $stmt_insert_paper->insert_id;
+                    $stmt_insert_paper->close();
+                }
+                $stmt_subject->close();
+            }
+        }
+        $stmt->close();
+    }
+
+    if($paper_id) {
+        $assign_sql = "INSERT INTO paper_stream_user (paper_id, stream_id, user_id, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())";
+        if($stmt = $conn->prepare($assign_sql)) {
+            $stmt->bind_param("iii", $paper_id, $stream_id, $teacher_id);
+            $stmt->execute();
+            $stmt->close();
+        }
+    }
+    header("location: teacher_assignments.php");
+    exit();
+}
+
+
 require_once 'includes/header.php';
 
 // Fetch teachers, subjects, and streams for dropdowns
