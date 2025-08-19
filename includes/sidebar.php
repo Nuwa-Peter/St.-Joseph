@@ -1,3 +1,20 @@
+<style>
+    #live-search-results {
+        position: absolute;
+        width: calc(100% - 1rem); /* Match padding of parent */
+        z-index: 1000;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    #live-search-results .list-group-item {
+        background-color: #f8f9fa;
+        color: #212529;
+        border-bottom: 1px solid #dee2e6;
+    }
+     #live-search-results .list-group-item:hover {
+        background-color: #e9ecef;
+    }
+</style>
 <div class="sidebar offcanvas-lg offcanvas-start text-white bg-custom-darkblue" tabindex="-1" id="offcanvasSidebar" aria-labelledby="offcanvasSidebarLabel">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title" id="offcanvasSidebarLabel">St. Joseph's VSS</h5>
@@ -11,6 +28,13 @@
             </a>
             <hr class="mt-0">
             <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item mb-2 px-2" style="position: relative;">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                        <input class="form-control form-control-sm" type="search" id="live-search-input" placeholder="Search for user..." aria-label="Search" autocomplete="off">
+                    </div>
+                    <div class="list-group" id="live-search-results"></div>
+                </li>
                 <li class="nav-item">
                     <a href="dashboard.php" class="nav-link text-white" aria-current="page">
                         <i class="bi bi-speedometer2 me-2"></i> Dashboard
@@ -217,3 +241,63 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('live-search-input');
+    const resultsContainer = document.getElementById('live-search-results');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const query = searchInput.value;
+
+            if (query.length < 2) {
+                resultsContainer.innerHTML = '';
+                resultsContainer.style.display = 'none';
+                return;
+            }
+
+            fetch(`api_live_search.php?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsContainer.innerHTML = '';
+                    if (data.length > 0) {
+                        resultsContainer.style.display = 'block';
+                        data.forEach(user => {
+                            const link = document.createElement('a');
+                            link.href = `profile.php?id=${user.id}`;
+                            link.className = 'list-group-item list-group-item-action d-flex align-items-center';
+
+                            let initials = (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase();
+
+                            link.innerHTML = `
+                                <div class="flex-shrink-0">
+                                    <div class="avatar-initials-sm">${initials}</div>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-0">${user.first_name} ${user.last_name}</h6>
+                                    <small class="text-muted">${user.role}</small>
+                                </div>
+                            `;
+                            resultsContainer.appendChild(link);
+                        });
+                    } else {
+                        resultsContainer.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching search results:', error);
+                    resultsContainer.style.display = 'none';
+                });
+        }, 300); // 300ms debounce
+    });
+
+    // Hide results when clicking outside
+    document.addEventListener('click', function (event) {
+        if (!searchInput.contains(event.target)) {
+            resultsContainer.style.display = 'none';
+        }
+    });
+});
+</script>

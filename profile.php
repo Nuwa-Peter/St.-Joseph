@@ -7,18 +7,23 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     exit;
 }
 
-// Fetch current user's data from the database
-$user_id = $_SESSION['id'];
-$stmt = $conn->prepare("SELECT first_name, last_name, username, email, role, photo FROM users WHERE id = ?");
-$stmt->bind_param("i", $user_id);
+// Determine which user profile to display
+$user_id_to_display = $_GET['id'] ?? $_SESSION['id'];
+$is_own_profile = ($user_id_to_display == $_SESSION['id']);
+
+// Fetch user's data from the database
+$stmt = $conn->prepare("SELECT id, first_name, last_name, username, email, role, photo FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id_to_display);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 $stmt->close();
 
 if (!$user) {
-    // Should not happen if user is logged in, but as a safeguard
-    echo "Error: User not found.";
+    // Handle user not found
+    require_once 'includes/header.php';
+    echo "<div class='container'><div class='alert alert-danger mt-4'>User not found.</div></div>";
+    require_once 'includes/footer.php';
     exit;
 }
 
@@ -155,18 +160,15 @@ require_once 'includes/header.php';
                 <p class="text-muted mb-1"><?php echo htmlspecialchars(ucfirst($user['role'])); ?></p>
                 <p class="text-muted mb-4"><?php echo htmlspecialchars($user['email']); ?></p>
 
-                <?php
-                $authorized_roles = ['teacher', 'librarian', 'root', 'bursar', 'headteacher'];
-                if (in_array($_SESSION['role'], $authorized_roles)):
-                ?>
+                <?php if ($is_own_profile): ?>
                     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#photoUploadModal">
                         <i class="bi bi-upload me-1"></i> Upload Photo
                     </button>
                      <button type="button" class="btn btn-outline-secondary" id="webcam-button">
                         <i class="bi bi-camera-video me-1"></i> Take Photo
                     </button>
+                    <input type="hidden" name="cropped_photo_data" id="cropped-photo-data">
                 <?php endif; ?>
-                <input type="hidden" name="cropped_photo_data" id="cropped-photo-data">
 
             </div>
         </div>
@@ -196,6 +198,7 @@ require_once 'includes/header.php';
             </div>
         </div>
 
+        <?php if ($is_own_profile): ?>
         <div class="card">
             <div class="card-header">Change Password</div>
             <div class="card-body">
@@ -219,6 +222,7 @@ require_once 'includes/header.php';
                 </form>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 </div>
 
