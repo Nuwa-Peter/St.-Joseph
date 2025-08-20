@@ -12,7 +12,7 @@ $errors = [];
 $first_name = $last_name = $username = $email = $role = "";
 
 // Define roles available for creation based on the creator's role
-$all_roles = ['student', 'teacher', 'parent', 'bursar', 'librarian', 'headteacher', 'root'];
+$all_roles = ['student', 'teacher', 'parent', 'bursar', 'librarian', 'lab_attendant', 'headteacher', 'root'];
 $allowed_roles = $all_roles;
 
 // Headteachers cannot create root users

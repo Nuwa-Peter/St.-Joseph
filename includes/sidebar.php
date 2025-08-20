@@ -76,6 +76,40 @@
                     </ul>
                 </li>
                 <li class="nav-item">
+                    <a href="#requisitions-submenu" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <span class="sidebar-link-text">
+                            <i class="bi bi-pen me-2"></i> Requisitions
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right sidebar-chevron" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg>
+                    </a>
+                    <ul class="collapse nav flex-column ms-3" id="requisitions-submenu" data-bs-parent="#nav-pills">
+                        <li class="nav-item">
+                            <a href="make_requisition.php" class="nav-link text-white"><i class="bi bi-pencil-square me-2"></i> Make a Requisition</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="view_requisitions.php" class="nav-link text-white"><i class="bi bi-list-check me-2"></i> View Requisitions</a>
+                        </li>
+                    </ul>
+                </li>
+                <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'lab_attendant'): ?>
+                <li class="nav-item">
+                    <a href="#lab-submenu" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
+                        <span class="sidebar-link-text">
+                            <i class="bi bi-eyedropper me-2"></i> Laboratory
+                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right sidebar-chevron" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg>
+                    </a>
+                    <ul class="collapse nav flex-column ms-3" id="lab-submenu" data-bs-parent="#nav-pills">
+                        <li class="nav-item">
+                            <a href="lab_dashboard.php" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i> Lab Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="lab_inventory.php" class="nav-link text-white"><i class="bi bi-card-list me-2"></i> Manage Inventory</a>
+                        </li>
+                    </ul>
+                </li>
+                <?php endif; ?>
+                <li class="nav-item">
                     <a href="#academics-submenu" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
                         <span class="sidebar-link-text">
                             <i class="bi bi-journal-bookmark me-2"></i> Academics
