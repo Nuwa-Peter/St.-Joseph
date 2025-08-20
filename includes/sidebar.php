@@ -15,7 +15,7 @@
         background-color: #e9ecef;
     }
 </style>
-<div class="sidebar offcanvas-lg offcanvas-start text-white bg-custom-darkblue" tabindex="-1" id="offcanvasSidebar" aria-labelledby="offcanvasSidebarLabel">
+<div class="sidebar offcanvas-lg offcanvas-start text-white sidebar-modern" tabindex="-1" id="offcanvasSidebar" aria-labelledby="offcanvasSidebarLabel">
     <div class="offcanvas-header">
         <h5 class="offcanvas-title" id="offcanvasSidebarLabel">St. Joseph's VSS</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#offcanvasSidebar" aria-label="Close"></button>

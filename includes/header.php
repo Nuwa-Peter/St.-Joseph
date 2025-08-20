@@ -15,6 +15,7 @@
 
     <link rel="stylesheet" href="assets/libs/cropperjs/cropper.min.css">
     <link rel="stylesheet" href="assets/css/custom.css">
+    <link rel="stylesheet" href="assets/css/modern-sidebar.css">
     <style>
         .main-layout {
             display: flex;
