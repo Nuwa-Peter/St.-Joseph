@@ -8,9 +8,8 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     exit;
 }
 
-require_once 'includes/header.php';
-
 $errors = [];
+// Handle form submission before any HTML output
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_requisition'])) {
     $items = $_POST['items'] ?? [];
     $notes = trim($_POST['notes']);
@@ -42,7 +41,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_requisition']))
             $stmt->close();
 
             // --- Generate Notifications for Bursars ---
-            // 1. Get all bursar IDs
             $bursar_ids = [];
             $bursar_sql = "SELECT id FROM users WHERE role = 'bursar'";
             if ($bursar_result = $conn->query($bursar_sql)) {
@@ -51,7 +49,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_requisition']))
                 }
             }
 
-            // 2. Create a notification for each bursar
             if (!empty($bursar_ids)) {
                 $requester_name = $_SESSION['name'] ?? 'A user';
                 $message = "A new requisition has been submitted by " . $requester_name . ".";
@@ -76,6 +73,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_requisition']))
         }
     }
 }
+
+require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
