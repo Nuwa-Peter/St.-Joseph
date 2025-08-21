@@ -108,6 +108,8 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                         <i class="bi bi-gear me-1"></i> Admin
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                        <li><a class="dropdown-item" href="student_analytics.php">Student Analytics</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="users.php">User Management</a></li>
                         <li><a class="dropdown-item" href="teachers.php">Teachers</a></li>
                         <li><hr class="dropdown-divider"></li>
