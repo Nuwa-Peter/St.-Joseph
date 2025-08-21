@@ -15,23 +15,9 @@
 
     <link rel="stylesheet" href="assets/libs/cropperjs/cropper.min.css">
     <link rel="stylesheet" href="assets/css/custom.css">
-    <link rel="stylesheet" href="assets/css/modern-sidebar.css">
-    <style>
-        .main-layout {
-            display: flex;
-            min-height: 100vh;
-        }
-        .content-wrapper {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/modern-navbar.css">
 </head>
 <body>
-    <div class="main-layout">
-        <?php require_once 'sidebar.php'; ?>
-        <div class="content-wrapper">
-            <?php require_once 'navbar.php'; ?>
-            <main class="flex-grow-1 p-4">
-                <!-- Page content will be here -->
+    <?php require_once 'navbar.php'; ?>
+    <main class="container-fluid p-4">
+        <!-- Page content will be here -->
