@@ -12,6 +12,6 @@
         "tecnickcom/tcpdf": "^6.7.5",
         "phpoffice/phpspreadsheet": "^2.1",
         "endroid/qr-code": "^4.0",
-        "hellogerard/jobby": "^4.0"
+        "hellogerard/jobby": "^3.5"
     }
 }
