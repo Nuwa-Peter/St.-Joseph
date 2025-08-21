@@ -8,6 +8,10 @@
     box-shadow: 0 2px 4px rgba(0,0,0,.04);
 }
 
+.navbar .nav-link {
+    font-size: 0.9rem; /* Slightly smaller font size for navbar items */
+}
+
 /* Nested Dropdown (Submenu) Styling */
 .dropdown-submenu {
     position: relative;
