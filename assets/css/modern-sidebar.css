@@ -49,9 +49,8 @@
 }
 
 /* Submenu / Collapsed section styling */
+/* The background-color and margin were removed from this rule to prevent a layout shift (enlargement) of the sidebar when the submenu is opened. */
 .sidebar-modern .collapse {
-    background-color: rgba(0, 0, 0, 0.1);
-    margin: 0 8px;
     border-radius: 8px;
 }
 
