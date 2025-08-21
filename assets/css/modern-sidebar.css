@@ -10,6 +10,11 @@
     border-right: 1px solid #4a5568; /* A slightly lighter border for separation */
 }
 
+/* Enforce vertical layout to prevent FOUC (Flash of Unstyled Content) */
+.sidebar-modern .nav-pills {
+    flex-direction: column;
+}
+
 /* General navigation link styling */
 .sidebar-modern .nav-link {
     color: #cbd5e0; /* A slightly dimmer text color for non-active links */
