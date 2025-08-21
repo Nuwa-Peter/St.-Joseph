@@ -119,6 +119,9 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                     <ul class="dropdown-menu" aria-labelledby="adminDropdown">
                         <li><a class="dropdown-item" href="student_analytics.php">Student Analytics</a></li>
                         <li><a class="dropdown-item" href="admin_leave_requests.php">Manage Leave Requests</a></li>
+                        <?php if ($_SESSION['role'] === 'root'): ?>
+                        <li><a class="dropdown-item" href="audit_trail.php">System Audit Trail</a></li>
+                        <?php endif; ?>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="users.php">User Management</a></li>
                         <li><a class="dropdown-item" href="teachers.php">Teachers</a></li>
