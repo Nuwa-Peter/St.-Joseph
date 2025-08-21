@@ -1,7 +1,12 @@
 <?php
 // This file assumes session_start() has been called in the parent file
 $user_role = $_SESSION['role'] ?? '';
+
+// Define role groups for easier checking
+$admin_roles = ['root', 'headteacher'];
 $finance_roles = ['bursar', 'headteacher', 'root'];
+
+$is_admin = in_array($user_role, $admin_roles);
 $is_finance_user = in_array($user_role, $finance_roles);
 $is_lab_attendant = $user_role === 'lab_attendant';
 ?>
@@ -9,7 +14,7 @@ $is_lab_attendant = $user_role === 'lab_attendant';
     <div class="container-fluid">
         <a class="navbar-brand" href="dashboard.php">
             <img src="images/logo.png" alt="Logo" style="height: 40px; border-radius: 50%;">
-            St. Joseph's VSS
+            St. Joseph's Vocational SS Nyamityobora
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -19,6 +24,28 @@ $is_lab_attendant = $user_role === 'lab_attendant';
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link" href="dashboard.php"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+                </li>
+
+                <!-- Academics Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="academicsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-journal-bookmark me-1"></i> Academics
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="academicsDropdown">
+                        <li><a class="dropdown-item" href="class_levels.php">Classes & Streams</a></li>
+                        <li><a class="dropdown-item" href="subjects.php">Subjects</a></li>
+                        <li><a class="dropdown-item" href="teacher_assignments.php">Teacher Assignments</a></li>
+                        <li><a class="dropdown-item" href="student_assignments.php">Student Assignments</a></li>
+                        <li><a class="dropdown-item" href="grading_scales.php">Grading Scales</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Examinations</h6></li>
+                        <li><a class="dropdown-item" href="set_exam.php">Set Exams</a></li>
+                        <li><a class="dropdown-item" href="marks_entry.php">Marks Entry</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Documents</h6></li>
+                        <li><a class="dropdown-item" href="report_card_generator.php">Generate Report Cards</a></li>
+                        <li><a class="dropdown-item" href="id_card_generator.php">Generate ID Cards</a></li>
+                    </ul>
                 </li>
 
                 <!-- Students Dropdown -->
@@ -34,28 +61,26 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                     </ul>
                 </li>
 
-                <!-- Academics Dropdown -->
+                <!-- Library Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="academicsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-journal-bookmark me-1"></i> Academics
+                    <a class="nav-link dropdown-toggle" href="#" id="libraryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-book-half me-1"></i> Library
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="academicsDropdown">
-                        <li><a class="dropdown-item" href="class_levels.php">Classes & Streams</a></li>
-                        <li><a class="dropdown-item" href="subjects.php">Subjects</a></li>
-                        <li><a class="dropdown-item" href="teacher_assignments.php">Teacher Assignments</a></li>
-                        <li><a class="dropdown-item" href="student_assignments.php">Student Assignments</a></li>
-                        <li><a class="dropdown-item" href="grading_scales.php">Grading Scales</a></li>
+                    <ul class="dropdown-menu" aria-labelledby="libraryDropdown">
+                         <li><a class="dropdown-item" href="books.php">Books</a></li>
+                         <li><a class="dropdown-item" href="checkouts.php">Manage Checkouts</a></li>
+                         <li><a class="dropdown-item" href="checkout_history.php">Checkout History</a></li>
                     </ul>
                 </li>
 
-                <!-- Examinations Dropdown -->
+                <!-- Requisitions Dropdown (For all users) -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="examsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-card-checklist me-1"></i> Examinations
+                    <a class="nav-link dropdown-toggle" href="#" id="requisitionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-pen me-1"></i> Requisitions
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="examsDropdown">
-                        <li><a class="dropdown-item" href="set_exam.php">Set Exams</a></li>
-                        <li><a class="dropdown-item" href="marks_entry.php">Marks Entry</a></li>
+                    <ul class="dropdown-menu" aria-labelledby="requisitionsDropdown">
+                         <li><a class="dropdown-item" href="make_requisition.php">Make a Requisition</a></li>
+                         <li><a class="dropdown-item" href="view_requisitions.php">View Requisitions</a></li>
                     </ul>
                 </li>
 
@@ -77,72 +102,47 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                 </li>
                 <?php endif; ?>
 
-                <!-- More Dropdown for other items -->
+                <!-- Admin Dropdown (Role-based) -->
+                <?php if ($is_admin): ?>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        More
+                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-gear me-1"></i> Admin
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="moreDropdown">
-                        <!-- Requisitions Sub-Dropdown -->
-                        <li class="dropdown-submenu">
-                             <a class="dropdown-item dropdown-toggle" href="#">Requisitions</a>
-                             <ul class="dropdown-menu">
-                                 <li><a class="dropdown-item" href="make_requisition.php">Make a Requisition</a></li>
-                                 <li><a class="dropdown-item" href="view_requisitions.php">View Requisitions</a></li>
-                             </ul>
-                         </li>
-                        <!-- Library Sub-Dropdown -->
-                        <li class="dropdown-submenu">
-                             <a class="dropdown-item dropdown-toggle" href="#">Library</a>
-                             <ul class="dropdown-menu">
-                                 <li><a class="dropdown-item" href="books.php">Books</a></li>
-                                 <li><a class="dropdown-item" href="checkouts.php">Manage Checkouts</a></li>
-                                 <li><a class="dropdown-item" href="checkout_history.php">Checkout History</a></li>
-                             </ul>
-                         </li>
-                         <!-- Documents Sub-Dropdown -->
-                         <li class="dropdown-submenu">
-                             <a class="dropdown-item dropdown-toggle" href="#">Documents</a>
-                             <ul class="dropdown-menu">
-                                 <li><a class="dropdown-item" href="report_card_generator.php">Generate Report Cards</a></li>
-                                 <li><a class="dropdown-item" href="id_card_generator.php">Generate ID Cards</a></li>
-                             </ul>
-                         </li>
-                         <!-- Communications Sub-Dropdown -->
-                         <li class="dropdown-submenu">
-                             <a class="dropdown-item dropdown-toggle" href="#">Communications</a>
-                             <ul class="dropdown-menu">
-                                 <li><a class="dropdown-item" href="#">Social Chat</a></li>
-                                 <li><a class="dropdown-item" href="#">Bulk SMS</a></li>
-                                 <li><a class="dropdown-item" href="announcements.php">Announcements</a></li>
-                             </ul>
-                         </li>
-                         <?php if ($is_lab_attendant): ?>
-                         <!-- Laboratory Sub-Dropdown (Role-based) -->
-                         <li class="dropdown-submenu">
-                             <a class="dropdown-item dropdown-toggle" href="#">Laboratory</a>
-                             <ul class="dropdown-menu">
-                                 <li><a class="dropdown-item" href="lab_dashboard.php">Lab Dashboard</a></li>
-                                 <li><a class="dropdown-item" href="lab_inventory.php">Manage Inventory</a></li>
-                             </ul>
-                         </li>
-                         <?php endif; ?>
-                         <li><hr class="dropdown-divider"></li>
-                         <li><a class="dropdown-item" href="users.php">User Management</a></li>
-                         <li><a class="dropdown-item" href="teachers.php">Teachers</a></li>
+                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                        <li><a class="dropdown-item" href="users.php">User Management</a></li>
+                        <li><a class="dropdown-item" href="teachers.php">Teachers</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Communications</h6></li>
+                        <li><a class="dropdown-item" href="#">Social Chat</a></li>
+                        <li><a class="dropdown-item" href="#">Bulk SMS</a></li>
+                        <li><a class="dropdown-item" href="announcements.php">Announcements</a></li>
                     </ul>
                 </li>
+                <?php endif; ?>
+
+                <!-- Laboratory Link (Role-based) -->
+                <?php if ($is_lab_attendant): ?>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="labDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-eyedropper me-1"></i> Laboratory
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="labDropdown">
+                        <li><a class="dropdown-item" href="lab_dashboard.php">Lab Dashboard</a></li>
+                        <li><a class="dropdown-item" href="lab_inventory.php">Manage Inventory</a></li>
+                    </ul>
+                </li>
+                <?php endif; ?>
             </ul>
 
             <!-- Right-aligned items -->
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
                 <!-- Search Bar -->
-                <li class="nav-item">
+                <li class="nav-item me-2">
                      <div class="input-group">
                         <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
-                        <input class="form-control form-control-sm" type="search" id="live-search-input" placeholder="Search for user..." aria-label="Search" autocomplete="off">
+                        <input class="form-control form-control-sm" type="search" id="live-search-input" placeholder="Search" aria-label="Search" autocomplete="off">
                     </div>
-                    <div class="list-group" id="live-search-results" style="position: absolute; z-index: 1001; width: 300px;"></div>
+                    <div class="list-group" id="live-search-results"></div>
                 </li>
                 <!-- Notifications Dropdown -->
                 <li class="nav-item dropdown mx-2">
@@ -168,6 +168,7 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li><a class="dropdown-item" href="profile.php">Profile</a></li>
+                        <li><a class="dropdown-item" href="about.php">About</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="logout.php">Sign out</a></li>
                     </ul>
@@ -182,16 +183,8 @@ $is_lab_attendant = $user_role === 'lab_attendant';
 
 <!-- All JS from original navbar -->
 <script>
-// Live search, notifications, etc.
-// NOTE: This script block is a simplified placeholder.
-// The original notification and search JS should be preserved.
-// For brevity, I'm assuming the JS from the original file is here.
 document.addEventListener('DOMContentLoaded', function() {
-    // Submenu hover logic is now handled by CSS in modern-navbar.css
-
-    // Notification and Search JS from the original file should be here.
-    // I will copy it from the original file content in the next step if needed.
-    // For now, this is a placeholder to show where it would go.
+    // JS for notifications and search bar
     const notificationBadge = document.getElementById('notification-count-badge');
     const notificationCount = document.getElementById('notification-count');
     const notificationMenu = document.getElementById('notification-dropdown-menu');
