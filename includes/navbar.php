@@ -72,14 +72,23 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                     </ul>
                 </li>
 
-                <!-- Requisitions Dropdown (For all users) -->
+                <!-- Files Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="requisitionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-pen me-1"></i> Requisitions
+                    <a class="nav-link dropdown-toggle" href="#" id="filesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-folder-fill me-1"></i> Files
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="requisitionsDropdown">
-                         <li><a class="dropdown-item" href="make_requisition.php">Make a Requisition</a></li>
-                         <li><a class="dropdown-item" href="view_requisitions.php">View Requisitions</a></li>
+                    <ul class="dropdown-menu" aria-labelledby="filesDropdown">
+                        <!-- Requisitions Sub-menu -->
+                        <li class="dropdown-submenu">
+                             <a class="dropdown-item dropdown-toggle" href="#">Requisitions</a>
+                             <ul class="dropdown-menu">
+                                 <li><a class="dropdown-item" href="make_requisition.php">Make a Requisition</a></li>
+                                 <li><a class="dropdown-item" href="view_requisitions.php">View Requisitions</a></li>
+                             </ul>
+                         </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="request_leave.php">Request Leave</a></li>
+                        <li><a class="dropdown-item" href="view_my_leave.php">My Leave Requests</a></li>
                     </ul>
                 </li>
 
@@ -109,6 +118,7 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="adminDropdown">
                         <li><a class="dropdown-item" href="student_analytics.php">Student Analytics</a></li>
+                        <li><a class="dropdown-item" href="admin_leave_requests.php">Manage Leave Requests</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="users.php">User Management</a></li>
                         <li><a class="dropdown-item" href="teachers.php">Teachers</a></li>
