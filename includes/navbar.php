@@ -94,14 +94,8 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                         <i class="bi bi-folder-fill me-1"></i> Files
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="filesDropdown">
-                        <!-- Requisitions Sub-menu -->
-                        <li class="dropdown-submenu">
-                             <a class="dropdown-item dropdown-toggle" href="#">Requisitions</a>
-                             <ul class="dropdown-menu">
-                                 <li><a class="dropdown-item" href="make_requisition.php">Make a Requisition</a></li>
-                                 <li><a class="dropdown-item" href="view_requisitions.php">View Requisitions</a></li>
-                             </ul>
-                         </li>
+                        <li><a class="dropdown-item" href="make_requisition.php">Make a Requisition</a></li>
+                        <li><a class="dropdown-item" href="view_requisitions.php">View Requisitions</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="request_leave.php">Request Leave</a></li>
                         <li><a class="dropdown-item" href="view_my_leave.php">My Leave Requests</a></li>
