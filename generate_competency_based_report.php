@@ -56,7 +56,7 @@ if (empty($student_ids)) {
     showError("No students found for the selected criteria.");
 }
 
-// --- Fetch shared data ---
+// --- Fetch shared data & assets ---
 $grade_boundaries = [];
 $stmt_grades = $conn->prepare("SELECT grade_name, min_score, max_score, comment FROM grade_boundaries WHERE grading_scale_id = ? ORDER BY max_score DESC");
 $stmt_grades->bind_param("i", $grading_scale_id);
@@ -66,6 +66,8 @@ while ($row = $result_grades->fetch_assoc()) {
     $grade_boundaries[] = $row;
 }
 $stmt_grades->close();
+
+$school_logo_url = 'images/logo.png'; // Use local path consistent with TCPDF implementation
 
 // --- Helper Functions ---
 function calculateGrade($score, $boundaries) {
@@ -151,11 +153,23 @@ foreach ($student_ids as $current_student_id) {
 
     // Final Calculations & Variable Mapping
     $report_title = strtoupper($student_result['class_name'] . ' END OF ' . $term . ' RESULTS');
+
+    // Determine student photo path, consistent with TCPDF implementation
+    $photo_path = 'images/placeholder_male.png'; // Default
+    if (!empty($student_result['photo']) && file_exists($student_result['photo'])) {
+        $photo_path = $student_result['photo'];
+    } elseif (!empty($student_result['gender'])) {
+        if (strtolower($student_result['gender']) === 'female' && file_exists('images/placeholder_female.png')) {
+            $photo_path = 'images/placeholder_female.png';
+        }
+    }
+
     $student = [
         "name" => strtoupper($student_result['first_name'] . ' ' . $student_result['last_name']),
         "scholar_id" => $student_result['unique_id'], "term" => $academic_year . ' ' . $term,
         "date" => date('d-M-Y'), "class" => $student_result['class_name'] . ' / ' . $student_result['stream_name'],
-        "vcode" => 'N/A', "lin" => $student_result['lin'], "state" => ucfirst($student_result['status']), "residence" => 'N/A'
+        "vcode" => 'N/A', "lin" => $student_result['lin'], "state" => ucfirst($student_result['status']), "residence" => 'N/A',
+        "photo_url" => $photo_path
     ];
     $overall_average = ($subject_count > 0) ? round($total_final_score / $subject_count) : 0;
     $level_achievement = "RESULT 1"; // Placeholder

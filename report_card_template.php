@@ -227,13 +227,44 @@
                 page-break-after: always;
                 box-shadow: none;
             }
+            .actions-container {
+                display: none;
+            }
+        }
+
+        .actions-container {
+            padding: 10px 20px;
+            text-align: right;
+            background: #e9ecef;
+            border-bottom: 1px solid #dee2e6;
+            width: 210mm;
+            margin: auto;
+            box-sizing: border-box;
+        }
+
+        .actions-container button {
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid #004080;
+            background-color: #004080;
+            color: white;
+            border-radius: 4px;
+        }
+        .actions-container button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
+    <div class="actions-container">
+        <button onclick="window.print()">Print Reports</button>
+        <button id="download-pdf">Download as PDF</button>
+    </div>
+
     <div class="report-card">
         <div class="header">
-            <img src="school-logo.png" alt="School Logo" class="logo">
+            <img src="<?php echo htmlspecialchars($school_logo_url); ?>" alt="School Logo" class="logo">
             <div class="school-info">
                 <h1>ST JOSEPH VOC. SEC SCHOOL - NYAMITYOBORA</h1>
                 <p><b>SCH.ID:</b> 1002215 | <b>TEL:</b> 0704050747 | <b>Email:</b> st.josephthejust@gmail.com | <b>P.O BOX</b> 406 MBARARA</p>
@@ -262,7 +293,7 @@
                 <div><b>Date:</b></div>
                 <div><?php echo htmlspecialchars($student['date']); ?></div>
             </div>
-            <img src="student-photo.png" alt="Student Photo" class="student-photo">
+            <img src="<?php echo htmlspecialchars($student['photo_url']); ?>" alt="Student Photo" class="student-photo">
         </div>
 
         <table class="assessment-table">
@@ -354,5 +385,26 @@
         </div>
 
     </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        document.getElementById('download-pdf').addEventListener('click', function () {
+            // To handle multiple report cards, we need to process all of them.
+            // We create a temporary container to hold all report cards for PDF generation.
+            const container = document.createElement('div');
+            const elements = document.querySelectorAll('.report-card');
+            elements.forEach(el => container.appendChild(el.cloneNode(true)));
+
+            const opt = {
+                margin: 0,
+                filename: 'report_cards.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().from(container).set(opt).save();
+        });
+    </script>
 </body>
 </html>
