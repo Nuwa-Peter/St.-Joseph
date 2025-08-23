@@ -91,12 +91,23 @@ $terms = ["Term 1", "Term 2", "Term 3"];
 
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="term_ends_on" class="form-label">This Term Ends On</label>
-                    <input type="date" name="term_ends_on" id="term_ends_on" class="form-control" required>
+                    <label for="next_term_begins" class="form-label">Next Term Begins On</label>
+                    <input type="date" name="next_term_begins" id="next_term_begins" class="form-control" required>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="next_term_begins_on" class="form-label">Next Term Begins On</label>
-                    <input type="date" name="next_term_begins_on" id="next_term_begins_on" class="form-control" required>
+                    <label for="next_term_ends" class="form-label">Next Term Ends On</label>
+                    <input type="date" name="next_term_ends" id="next_term_ends" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="class_teacher_remarks" class="form-label">Class Teacher's Remarks</label>
+                    <textarea name="class_teacher_remarks" id="class_teacher_remarks" class="form-control" rows="3">A promising term, continue to work hard.</textarea>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="headteacher_remarks" class="form-label">Head Teacher's Remarks</label>
+                    <textarea name="headteacher_remarks" id="headteacher_remarks" class="form-control" rows="3">A satisfactory performance. Keep up the good effort.</textarea>
                 </div>
             </div>
 

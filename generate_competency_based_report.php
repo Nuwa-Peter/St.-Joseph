@@ -21,6 +21,15 @@ $student_id = $_POST['student_id'] ?? null;
 $class_level_id = $_POST['class_level_id'] ?? null;
 $grading_scale_id = $_POST['grading_scale_id'] ?? null;
 
+// Safely get optional POST variables
+$next_term_begins = $_POST['next_term_begins'] ?? '';
+$next_term_ends = $_POST['next_term_ends'] ?? '';
+$class_teacher_remarks = $_POST['class_teacher_remarks'] ?? 'No remarks provided.';
+$headteacher_remarks = $_POST['headteacher_remarks'] ?? 'No remarks provided.';
+$academic_year = $_POST['academic_year'] ?? '';
+$term = $_POST['term'] ?? '';
+
+
 if (!$generation_scope || !$class_level_id || !$grading_scale_id) {
     showError("Missing required parameters. Please fill out the entire form.");
 }
@@ -48,7 +57,6 @@ if (empty($student_ids)) {
 }
 
 // --- Fetch shared data ---
-// 2. Fetch grading scale (once for all reports)
 $grade_boundaries = [];
 $stmt_grades = $conn->prepare("SELECT grade_name, min_score, max_score, comment FROM grade_boundaries WHERE grading_scale_id = ? ORDER BY max_score DESC");
 $stmt_grades->bind_param("i", $grading_scale_id);
@@ -81,9 +89,8 @@ function getTeacherInitials($name) {
 }
 
 // --- Main Loop ---
-// Iterate through each student and generate their report card
 foreach ($student_ids as $current_student_id) {
-    // 1. Fetch student details
+    // Fetch student details
     $stmt_student = $conn->prepare("SELECT u.*, cl.name as class_name, s.name as stream_name, s.id as stream_id FROM users u
                                    LEFT JOIN stream_user su ON u.id = su.user_id
                                    LEFT JOIN streams s ON su.stream_id = s.id
@@ -100,7 +107,7 @@ foreach ($student_ids as $current_student_id) {
         continue;
     }
 
-    // 3. Fetch subjects and marks for the current student
+    // Fetch subjects and marks for the current student
     $sql_marks = "
         SELECT
             sub.id AS subject_id, sub.name AS subject_name,
@@ -143,25 +150,19 @@ foreach ($student_ids as $current_student_id) {
     $stmt_marks->close();
 
     // Final Calculations & Variable Mapping
-    $report_title = strtoupper($student_result['class_name'] . ' END OF ' . $_POST['term'] . ' RESULTS');
+    $report_title = strtoupper($student_result['class_name'] . ' END OF ' . $term . ' RESULTS');
     $student = [
         "name" => strtoupper($student_result['first_name'] . ' ' . $student_result['last_name']),
-        "scholar_id" => $student_result['unique_id'], "term" => ($_POST['academic_year'] ?? '') . ' ' . ($_POST['term'] ?? ''),
+        "scholar_id" => $student_result['unique_id'], "term" => $academic_year . ' ' . $term,
         "date" => date('d-M-Y'), "class" => $student_result['class_name'] . ' / ' . $student_result['stream_name'],
         "vcode" => 'N/A', "lin" => $student_result['lin'], "state" => ucfirst($student_result['status']), "residence" => 'N/A'
     ];
     $overall_average = ($subject_count > 0) ? round($total_final_score / $subject_count) : 0;
     $level_achievement = "RESULT 1"; // Placeholder
-    $next_term_begins = $_POST['next_term_begins'];
-    $next_term_ends = $_POST['next_term_ends'];
-    $class_teacher_remarks = $_POST['class_teacher_remarks'];
-    $headteacher_remarks = $_POST['headteacher_remarks'];
 
     // Render Template for the current student
     require 'report_card_template.php';
 }
 
 $conn->close();
-// Do not include the main footer here if we are generating printable reports
-// require_once 'includes/footer.php';
 ?>
