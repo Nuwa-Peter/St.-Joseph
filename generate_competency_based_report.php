@@ -3,14 +3,13 @@ session_start();
 require_once 'config.php';
 
 // --- Get Parameters ---
-// In a real scenario, these would come from the form POST in report_card_generator.php
-// For development, we are simulating the POST data if it's not present.
-if (empty($_POST)) {
-    $_POST['student_id'] = 3; // Corresponds to TENDO PRISCILLA in the database dump
-    $_POST['class_level_id'] = 1; // S1
+// Check if the form was submitted. If not, simulate data for direct testing.
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    // Simulate POST data for debugging/testing purposes
+    $_POST['student_id'] = 3;
+    $_POST['class_level_id'] = 1;
     $_POST['academic_year'] = '2025';
     $_POST['term'] = 'Term 2';
-    // This should be selected on the form. Assuming ID 1 is the new competency scale.
     $_POST['grading_scale_id'] = 1;
     $_POST['next_term_begins'] = '15-SEP-2025';
     $_POST['next_term_ends'] = '05-DEC-2025';
@@ -18,14 +17,21 @@ if (empty($_POST)) {
     $_POST['headteacher_remarks'] = "TENDO excels in Mathematics and demonstrates a deep understanding of the material.";
 }
 
-$student_id = $_POST['student_id'];
-$class_level_id = $_POST['class_level_id'];
-$grading_scale_id = $_POST['grading_scale_id'];
+// Validate required POST variables using null coalescing operator for safety
+$student_id = $_POST['student_id'] ?? null;
+$class_level_id = $_POST['class_level_id'] ?? null;
+$grading_scale_id = $_POST['grading_scale_id'] ?? null;
+
+// Ensure required parameters are present before proceeding
+if (!$student_id || !$class_level_id || !$grading_scale_id) {
+    // You can create a more user-friendly error page
+    exit('Error: Missing required parameters. Please generate the report from the form.');
+}
 
 // --- Data Fetching ---
 
 // 1. Fetch student details along with class and stream info
-$stmt_student = $conn->prepare("SELECT u.*, cl.name as class_name, s.name as stream_name FROM users u
+$stmt_student = $conn->prepare("SELECT u.*, cl.name as class_name, s.name as stream_name, s.id as stream_id FROM users u
                                LEFT JOIN stream_user su ON u.id = su.user_id
                                LEFT JOIN streams s ON su.stream_id = s.id
                                LEFT JOIN class_levels cl ON s.class_level_id = cl.id
