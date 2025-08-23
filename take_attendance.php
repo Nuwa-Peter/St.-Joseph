@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sheetHeader.textContent = `Attendance for ${className} on ${attendanceDate}`;
 
         // Fetch student list
-        fetch(`api_get_students_for_class.php?stream_id=${streamId}`)
+        fetch(`api_get_students_for_stream.php?stream_id=${streamId}`)
             .then(response => response.json())
             .then(students => {
                 if (students.error) {
