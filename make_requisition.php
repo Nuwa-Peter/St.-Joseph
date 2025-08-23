@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_requisition']))
     if (empty($errors)) {
         $conn->begin_transaction();
         try {
-            $stmt = $conn->prepare("INSERT INTO requisitions (user_id, item_name, quantity, unit_price, notes, status) VALUES (?, ?, ?, ?, ?, 'pending')");
+            $stmt = $conn->prepare("INSERT INTO requisitions (user_id, item_name, quantity, unit_price, notes, status, created_at) VALUES (?, ?, ?, ?, ?, 'pending', NOW())");
 
             foreach ($items as $item) {
                 $item_name = trim($item['name']);

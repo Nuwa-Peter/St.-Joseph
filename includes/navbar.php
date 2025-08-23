@@ -39,6 +39,9 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">Daily Class Attendance</h6></li>
                         <li><a class="dropdown-item" href="class_attendance.php">Take Daily Attendance</a></li>
+                        <?php if ($is_admin): ?>
+                        <li><a class="dropdown-item" href="view_class_attendance.php">View Class Attendance Report</a></li>
+                        <?php endif; ?>
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">Exams Attendance</h6></li>
                         <li><a class="dropdown-item" href="exam_attendance.php">Take Exams Attendance</a></li>
