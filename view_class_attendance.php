@@ -162,40 +162,35 @@ lass="bi bi-search me-2"></i>Filter</button>
                     </thead>
                     <tbody>
                         <?php if (empty($attendance_records)): ?>
-                            <tr><td colspan="7" class="text-center">No records f
-ound for the selected filters.</td></tr>
+                            <tr>
+                                <td colspan="7" class="text-center">No records found for the selected filters.</td>
+                            </tr>
                         <?php else: ?>
                             <?php foreach($attendance_records as $record): ?>
                                 <tr>
-                                    <td><?php echo date("d-M-Y", strtotime($reco
-rd['date'])); ?></td>
-                                    <td><?php echo htmlspecialchars($record['fir
-st_name'] . ' ' . $record['last_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($record['uni
-que_id']); ?></td>
-                                    <td><?php echo htmlspecialchars($record['cla
-ss_name'] . ' ' . $record['stream_name']); ?></td>
+                                    <td><?php echo date("d-M-Y", strtotime($record['date'])); ?></td>
+                                    <td><?php echo htmlspecialchars($record['first_name'] . ' ' . $record['last_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($record['unique_id']); ?></td>
+                                    <td><?php echo htmlspecialchars($record['class_name'] . ' ' . $record['stream_name']); ?></td>
                                     <td>
-                                         <?php
-                                        $status = htmlspecialchars($record['stat
-us']);
-                                        $badge_class = 'bg-secondary';
-                                        if ($status === 'present') $badge_class
-= 'bg-success';
-                                        if ($status === 'absent') $badge_class =
- 'bg-danger';
-                                        if ($status === 'late') $badge_class = '
-bg-warning text-dark';
-                                        if ($status === 'excused') $badge_class
-= 'bg-info text-dark';
-                                        echo "<span class='badge " . $badge_clas
-s . "'>" . ucfirst($status) . "</span>";
+                                        <?php
+                                            $status = htmlspecialchars($record['status']);
+                                            $badge_class = 'bg-secondary';
+                                            if ($status === 'present') {
+                                                $badge_class = 'bg-success';
+                                            } elseif ($status === 'absent') {
+                                                $badge_class = 'bg-danger';
+                                            } elseif ($status === 'late') {
+                                                $badge_class = 'bg-warning text-dark';
+                                            } elseif ($status === 'excused') {
+                                                $badge_class = 'bg-info text-dark';
+                                            }
+                                            $status_text = ucfirst($status);
+                                            echo "<span class='badge {$badge_class}'>{$status_text}</span>";
                                         ?>
                                     </td>
-                                    <td><?php echo htmlspecialchars($record['not
-es']); ?></td>
-                                    <td><?php echo htmlspecialchars($record['rec
-order_fname'] . ' ' . $record['recorder_lname']); ?></td>
+                                    <td><?php echo htmlspecialchars($record['notes']); ?></td>
+                                    <td><?php echo htmlspecialchars($record['recorder_fname'] . ' ' . $record['recorder_lname']); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>

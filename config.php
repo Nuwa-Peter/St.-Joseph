@@ -1,5 +1,8 @@
 <?php
 
+// Set the default timezone for the application
+date_default_timezone_set('Africa/Kampala');
+
 // Database configuration
 define('DB_HOST', 'localhost');
 define('DB_USERNAME', 'root');
