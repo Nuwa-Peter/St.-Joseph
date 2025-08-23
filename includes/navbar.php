@@ -37,6 +37,10 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                         <li><a class="dropdown-item" href="student_assignments.php">Student Assignments</a></li>
                         <li><a class="dropdown-item" href="grading_scales.php">Grading Scales</a></li>
                         <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Attendance</h6></li>
+                        <li><a class="dropdown-item" href="take_attendance.php">Take Attendance</a></li>
+                        <li><a class="dropdown-item" href="view_attendance.php">View Attendance Report</a></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">Examinations</h6></li>
                         <li><a class="dropdown-item" href="set_exam.php">Set Exams</a></li>
                         <li><a class="dropdown-item" href="marks_entry.php">Marks Entry</a></li>
