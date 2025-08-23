@@ -222,6 +222,12 @@
             color: #6c757d;
         }
 
+        @media print {
+            .report-card {
+                page-break-after: always;
+                box-shadow: none;
+            }
+        }
     </style>
 </head>
 <body>
