@@ -101,7 +101,12 @@ $terms = ["Term 1", "Term 2", "Term 3"];
             </div>
 
             <hr>
-            <button type="submit" class="btn btn-primary"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Generate Report Cards</button>
+            <button type="submit" class="btn btn-secondary" formaction="generate_report_pdf.php" name="generate_old_report">
+                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Generate Old Report Card (PDF)
+            </button>
+            <button type="submit" class="btn btn-primary" formaction="generate_competency_based_report.php" name="generate_new_report">
+                <i class="bi bi-award-fill me-2"></i>Generate New Competency-Based Report
+            </button>
         </form>
     </div>
 </div>
