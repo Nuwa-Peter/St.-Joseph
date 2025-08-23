@@ -69,33 +69,17 @@ require_once 'includes/header.php';
                 </div>
                 <div class="col-md-3">
                     <label for="attendance-date" class="form-label">Date</label>
-                    <input type="date" id="attendance-date" class="form-control" value="<?php echo date('Y-m-d'); ?>">
+                    <input type="date" id="attendance-date" class="form-control" value="<?php echo date('Y-m-d'); ?>" readonly>
                 </div>
                 <div class="col-md-2">
-                    <button id="fetch-students-btn" class="btn btn-primary w-100">Fetch Students</button>
+                    <button id="fetch-students-btn" class="btn btn-primary w-100">Load Class</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="attendance-sheet-container" class="mt-4 d-none">
-        <form id="attendance-form" action="save_class_attendance.php" method="post">
-            <input type="hidden" name="stream_id" id="form-stream-id">
-            <input type="hidden" name="attendance_date" id="form-attendance-date">
-
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 id="attendance-sheet-header" class="mb-0"></h5>
-                    <button type="submit" class="btn btn-success"><i class="bi bi-save me-2"></i>Save Attendance</button>
-                </div>
-                <div class="card-body">
-                    <div id="student-list-container" class="table-responsive">
-                        <!-- Student list will be loaded here by JavaScript -->
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
+    <!-- This container will hold either the attendance form or a "locked" message -->
+    <div id="attendance-display-area" class="mt-4"></div>
 </div>
 
 <script>
@@ -103,61 +87,75 @@ document.addEventListener('DOMContentLoaded', function() {
     const fetchBtn = document.getElementById('fetch-students-btn');
     const streamSelect = document.getElementById('stream-select');
     const dateInput = document.getElementById('attendance-date');
-    const sheetContainer = document.getElementById('attendance-sheet-container');
-    const studentListContainer = document.getElementById('student-list-container');
-    const sheetHeader = document.getElementById('attendance-sheet-header');
+    const displayArea = document.getElementById('attendance-display-area');
 
     fetchBtn.addEventListener('click', function() {
         const streamId = streamSelect.value;
         const attendanceDate = dateInput.value;
         const selectedOption = streamSelect.options[streamSelect.selectedIndex];
-        const className = selectedOption.getAttribute('data-classname');
+        const className = selectedOption ? selectedOption.getAttribute('data-classname') : '';
 
-        if (!streamId || !attendanceDate) {
-            alert('Please select a class and a date.');
+        if (!streamId) {
+            alert('Please select a class.');
             return;
         }
 
-        document.getElementById('form-stream-id').value = streamId;
-        document.getElementById('form-attendance-date').value = attendanceDate;
-        sheetHeader.textContent = `Attendance for ${className} on ${attendanceDate}`;
+        // 1. Check if attendance has already been taken
+        fetch(`api_check_attendance_status.php?stream_id=${streamId}&date=${attendanceDate}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                if (data.status === 'taken') {
+                    // Display locked message
+                    displayArea.innerHTML = generateLockedMessage(className, attendanceDate);
+                } else {
+                    // 2. Fetch student list and display attendance form
+                    fetchStudentsAndBuildSheet(streamId, attendanceDate, className);
+                }
+            })
+            .catch(error => {
+                displayArea.innerHTML = `<div class="alert alert-danger">Error checking attendance status: ${error.message}</div>`;
+            });
+    });
 
+    function fetchStudentsAndBuildSheet(streamId, attendanceDate, className) {
         fetch(`api_get_students_for_stream.php?stream_id=${streamId}`)
             .then(response => response.json())
             .then(students => {
                 if (students.error) {
                     throw new Error(students.error);
                 }
-                buildAttendanceSheet(students);
-                sheetContainer.classList.remove('d-none');
+                displayArea.innerHTML = generateAttendanceForm(students, streamId, attendanceDate, className);
             })
             .catch(error => {
-                studentListContainer.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
-                sheetContainer.classList.remove('d-none');
+                displayArea.innerHTML = `<div class="alert alert-danger">Error fetching students: ${error.message}</div>`;
             });
-    });
+    }
 
-    function buildAttendanceSheet(students) {
-        let tableHtml = `
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Student Name</th>
-                        <th>Student ID</th>
-                        <th class="text-center">Present</th>
-                        <th class="text-center">Absent</th>
-                        <th class="text-center">Late</th>
-                        <th class="text-center">Excused</th>
-                    </tr>
-                </thead>
-                <tbody>
+    function generateLockedMessage(className, attendanceDate) {
+        return `
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Attendance Locked</h5>
+                </div>
+                <div class="card-body text-center">
+                    <i class="bi bi-lock-fill fs-1 text-warning"></i>
+                    <p class="fs-5 mt-3">Attendance for <strong>${className}</strong> on <strong>${attendanceDate}</strong> has already been recorded.</p>
+                    <p>It can be taken again tomorrow.</p>
+                </div>
+            </div>
         `;
+    }
 
+    function generateAttendanceForm(students, streamId, attendanceDate, className) {
+        let studentRows = '';
         if (students.length === 0) {
-            tableHtml += '<tr><td colspan="6" class="text-center">No students found in this class.</td></tr>';
+            studentRows = '<tr><td colspan="6" class="text-center">No students found in this class.</td></tr>';
         } else {
             students.forEach(student => {
-                tableHtml += `
+                studentRows += `
                     <tr>
                         <td>${student.first_name} ${student.last_name}</td>
                         <td>${student.unique_id}</td>
@@ -170,8 +168,38 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        tableHtml += '</tbody></table>';
-        studentListContainer.innerHTML = tableHtml;
+        return `
+            <form id="attendance-form" action="save_class_attendance.php" method="post">
+                <input type="hidden" name="stream_id" value="${streamId}">
+                <input type="hidden" name="attendance_date" value="${attendanceDate}">
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Attendance for ${className} on ${attendanceDate}</h5>
+                        <button type="submit" class="btn btn-success"><i class="bi bi-save me-2"></i>Save Attendance</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Student ID</th>
+                                        <th class="text-center">Present</th>
+                                        <th class="text-center">Absent</th>
+                                        <th class="text-center">Late</th>
+                                        <th class="text-center">Excused</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${studentRows}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        `;
     }
 });
 </script>
