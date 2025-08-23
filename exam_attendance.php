@@ -44,7 +44,7 @@ require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
-    <h1 class="my-4"><i class="bi bi-calendar-check me-2"></i>Take Attendance</h1>
+    <h1 class="my-4"><i class="bi bi-calendar-check me-2"></i>Take Exams Attendance</h1>
 
     <?php if ($success_message): ?>
         <div class="alert alert-success"><?php echo $success_message; ?></div>
@@ -55,7 +55,7 @@ require_once 'includes/header.php';
 
     <div class="card">
         <div class="card-header">
-            Select Class and Date
+            Select Class and Exam Date
         </div>
         <div class="card-body">
             <div class="row g-3 align-items-end">
@@ -71,7 +71,7 @@ require_once 'includes/header.php';
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label for="attendance-date" class="form-label">Date</label>
+                    <label for="attendance-date" class="form-label">Exam Date</label>
                     <input type="date" id="attendance-date" class="form-control" value="<?php echo date('Y-m-d'); ?>">
                 </div>
                 <div class="col-md-2">
@@ -82,7 +82,7 @@ require_once 'includes/header.php';
     </div>
 
     <div id="attendance-sheet-container" class="mt-4 d-none">
-        <form id="attendance-form" action="save_attendance.php" method="post">
+        <form id="attendance-form" action="save_exam_attendance.php" method="post">
             <input type="hidden" name="stream_id" id="form-stream-id">
             <input type="hidden" name="attendance_date" id="form-attendance-date">
 

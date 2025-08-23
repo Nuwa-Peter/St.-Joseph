@@ -15,6 +15,14 @@ $jobby->add('SendLeaveAlerts', [
     'enabled' => true,
 ]);
 
+// Job to send reminders to take daily attendance.
+$jobby->add('SendAttendanceReminders', [
+    'command' => 'php ' . __DIR__ . '/tasks/send_attendance_reminders.php',
+    'schedule' => '0 14 * * 1-5', // Run at 2:00 PM on every day-of-week from Monday to Friday.
+    'output' => __DIR__ . '/logs/scheduler.log', // Append to the same log
+    'enabled' => true,
+]);
+
 
 // --- Run the Scheduler ---
 // This command will be executed by the system's master cron job every minute.
