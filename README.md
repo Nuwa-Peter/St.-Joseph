@@ -23,7 +23,7 @@ This is a simplified version of the St. Joseph's Vocational SS Nyamityobora Scho
 
 -   Select the `school_management_simple_db` database from the left-hand menu.
 -   Click on the **Import** tab.
--   Click on the "Choose File" button and select the `database_schema.sql` file from the root of this project.
+-   Click on the "Choose File" button and select the `database.sql` file from the root of this project.
 -   Click the **Go** button at the bottom of the page to start the import process.
 
 ### 4. Configure the Application
@@ -45,6 +45,13 @@ The database includes a default root user that you can use to log in and start u
 -   **Password:** `password`
 
 You can log in with these credentials to get started. It is highly recommended to change the default password after your first login.
+
+## Database Conventions
+
+-   **Primary Keys:** The standard for all primary key `id` columns in this project is `bigint(20) UNSIGNED`.
+-   **Foreign Keys:** All columns that are foreign keys referencing a primary key should also be defined as `bigint(20) UNSIGNED`.
+
+This convention is important for ensuring that foreign key constraints are created successfully.
 
 ---
 *This README provides the essential steps to get the application running. Further development will involve converting more features from the original Laravel application.*

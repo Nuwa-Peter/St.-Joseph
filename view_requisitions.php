@@ -174,7 +174,7 @@ $stmt->close();
                     <thead class="table-dark">
                         <tr>
                             <?php if ($is_admin): ?><th>Requested By</th><?php endif; ?>
-                            <th>Date</th>
+                            <th>Date & Time</th>
                             <th>Item Name</th>
                             <th>Quantity</th>
                             <th class="text-end">Total Price (UGX)</th>
@@ -195,7 +195,7 @@ $stmt->close();
                             ?>
                             <tr>
                                 <?php if ($is_admin): ?><td><?php echo htmlspecialchars($req['requester_name']); ?></td><?php endif; ?>
-                                <td><?php echo date("d-M-Y", strtotime($req['created_at'])); ?></td>
+                                <td><?php echo date("d-M-Y H:i:s", strtotime($req['created_at'])); ?></td>
                                 <td><?php echo htmlspecialchars($req['item_name']); ?></td>
                                 <td><?php echo $req['quantity']; ?></td>
                                 <td class="text-end"><?php echo number_format($req['total_price'], 2); ?></td>

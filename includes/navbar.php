@@ -25,6 +25,22 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                     <a class="nav-link" href="dashboard.php"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
                 </li>
 
+                <!-- Attendance Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="attendanceDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-check-circle-fill me-1"></i> Attendance
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="attendanceDropdown">
+                        <li><h6 class="dropdown-header">Take Attendance</h6></li>
+                        <li><a class="dropdown-item" href="class_attendance.php">Class Attendance</a></li>
+                        <li><a class="dropdown-item" href="exam_attendance.php">Exam Attendance</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">View Reports</h6></li>
+                        <li><a class="dropdown-item" href="view_class_attendance.php">Class Attendance Report</a></li>
+                        <li><a class="dropdown-item" href="view_exam_attendance.php">Exam Attendance Report</a></li>
+                    </ul>
+                </li>
+
                 <!-- Academics Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="academicsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -36,10 +52,6 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                         <li><a class="dropdown-item" href="teacher_assignments.php">Teacher Assignments</a></li>
                         <li><a class="dropdown-item" href="student_assignments.php">Student Assignments</a></li>
                         <li><a class="dropdown-item" href="grading_scales.php">Grading Scales</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><h6 class="dropdown-header">Attendance</h6></li>
-                        <li><a class="dropdown-item" href="take_attendance.php">Take Attendance</a></li>
-                        <li><a class="dropdown-item" href="view_attendance.php">View Attendance Report</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">Examinations</h6></li>
                         <li><a class="dropdown-item" href="set_exam.php">Set Exams</a></li>
@@ -155,7 +167,7 @@ $is_lab_attendant = $user_role === 'lab_attendant';
             <!-- Right-aligned items -->
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
                 <!-- Search Bar -->
-                <li class="nav-item me-2">
+                <li class="nav-item me-2 search-bar-container">
                      <div class="input-group">
                         <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
                         <input class="form-control form-control-sm" type="search" id="live-search-input" placeholder="Search" aria-label="Search" autocomplete="off">

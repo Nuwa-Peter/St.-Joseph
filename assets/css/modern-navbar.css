@@ -57,3 +57,7 @@
     right: 0;
     left: auto;
 }
+
+.search-bar-container {
+    max-width: 250px;
+}
