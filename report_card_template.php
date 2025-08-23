@@ -266,9 +266,16 @@
         <div class="header">
             <img src="<?php echo htmlspecialchars($school_logo_url); ?>" alt="School Logo" class="logo">
             <div class="school-info">
-                <h1>ST JOSEPH VOC. SEC SCHOOL - NYAMITYOBORA</h1>
-                <p><b>SCH.ID:</b> 1002215 | <b>TEL:</b> 0704050747 | <b>Email:</b> st.josephthejust@gmail.com | <b>P.O BOX</b> 406 MBARARA</p>
-                <p class="motto">"WITHOUT JESUS WHAT CAN THE WORLD GIVE YOU"</p>
+                <h1><?php echo htmlspecialchars($school_settings['school_name']); ?></h1>
+                <p>
+                    <?php if (!empty($school_settings['school_id'])): ?>
+                        <b>SCH.ID:</b> <?php echo htmlspecialchars($school_settings['school_id']); ?> |
+                    <?php endif; ?>
+                    <b>TEL:</b> <?php echo htmlspecialchars($school_settings['school_tel']); ?> |
+                    <b>Email:</b> <?php echo htmlspecialchars($school_settings['school_email']); ?> |
+                    <b>P.O BOX</b> <?php echo htmlspecialchars($school_settings['school_po_box']); ?>
+                </p>
+                <p class="motto">"<?php echo htmlspecialchars($school_settings['school_motto']); ?>"</p>
             </div>
         </div>
 

@@ -10,6 +10,27 @@ function showError($message) {
     exit;
 }
 
+// --- Fetch School Settings ---
+$school_settings = [];
+$settings_sql = "SELECT setting_key, setting_value FROM school_settings";
+$settings_result = $conn->query($settings_sql);
+if ($settings_result) {
+    while ($row = $settings_result->fetch_assoc()) {
+        $school_settings[$row['setting_key']] = $row['setting_value'];
+    }
+}
+// Provide fallbacks in case settings are not in DB, to prevent errors
+$school_settings = array_merge([
+    'school_name' => 'ST JOSEPH VOC. SEC SCHOOL - NYAMITYOBORA',
+    'school_motto' => 'WITHOUT JESUS WHAT CAN THE WORLD GIVE YOU!',
+    'school_id' => '1002215',
+    'school_tel' => '0704050747',
+    'school_email' => 's.josephthejust@gmail.com',
+    'school_po_box' => 'P.O BOX 406 MBARARA',
+    'school_logo_path' => 'images/logo.png'
+], $school_settings);
+
+
 // --- Get Parameters ---
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     showError("This page should be accessed via the report generation form.");
@@ -67,7 +88,7 @@ while ($row = $result_grades->fetch_assoc()) {
 }
 $stmt_grades->close();
 
-$school_logo_url = 'images/logo.png'; // Use local path consistent with TCPDF implementation
+$school_logo_url = $school_settings['school_logo_path'];
 
 // --- Helper Functions ---
 function calculateGrade($score, $boundaries) {
