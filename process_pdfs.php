@@ -7,6 +7,34 @@ require_once 'config.php';
 
 echo "<pre>"; // Use preformatted text for better log readability in the browser
 
+function curl_download($url, $output_file) {
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($ch, CURLOPT_ENCODING, "");
+    curl_setopt($ch, CURLOPT_AUTOREFERER, 1);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 120);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+    curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); // May be needed for some servers
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+    // Set a common user agent
+    curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+    $data = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($http_code == 200 && $data) {
+        file_put_contents($output_file, $data);
+        return true;
+    }
+    return false;
+}
+
+
 // --- Helper Functions ---
 
 function get_or_create_subject_id($name, $conn) {
@@ -103,7 +131,7 @@ foreach ($pdf_list as $index => $pdf_info) {
 
     // 1. Download PDF
     echo "Downloading...";
-    if (copy($pdf_info['url'], $temp_pdf_file)) {
+    if (curl_download($pdf_info['url'], $temp_pdf_file)) {
         echo " OK\n";
     } else {
         echo " FAILED. Skipping.\n";
@@ -113,11 +141,13 @@ foreach ($pdf_list as $index => $pdf_info) {
     // 2. Convert to Text
     echo "Converting to text...";
     // Use -layout to preserve some of the original document structure
-    $command = "pdftotext -layout " . escapeshellarg($temp_pdf_file) . " " . escapeshellarg($temp_txt_file);
-    shell_exec($command);
+    // Redirect stderr to stdout (2>&1) to capture any error messages from pdftotext
+    $command = "pdftotext -layout " . escapeshellarg($temp_pdf_file) . " " . escapeshellarg($temp_txt_file) . " 2>&1";
+    $shell_output = shell_exec($command);
 
     if (!file_exists($temp_txt_file) || filesize($temp_txt_file) === 0) {
         echo " FAILED. PDF might be an image or unreadable. Skipping.\n";
+        echo "pdftotext output: " . htmlspecialchars($shell_output) . "\n";
         @unlink($temp_pdf_file);
         continue;
     }
