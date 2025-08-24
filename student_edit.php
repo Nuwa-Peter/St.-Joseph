@@ -85,7 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             $sql_user = "UPDATE users SET first_name=?, last_name=?, lin=?, gender=?, phone_number=?, date_of_birth=?, student_type=?, photo=?, updated_at=NOW() WHERE id=?";
             $stmt_user = $conn->prepare($sql_user);
-            $stmt_user->bind_param("sssssssi", $first_name, $last_name, $lin, $gender, $phone_number, $date_of_birth, $student_type, $photo_path, $student_id);
+            $stmt_user->bind_param("ssssssssi", $first_name, $last_name, $lin, $gender, $phone_number, $date_of_birth, $student_type, $photo_path, $student_id);
             $stmt_user->execute();
             $stmt_user->close();
 
