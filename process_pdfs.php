@@ -37,53 +37,55 @@ function curl_download($url, $output_file) {
     return false;
 }
 
-function get_or_create_subject_id($name, $conn) {
-    $cleaned_name = trim(preg_replace('/(Teacher(s)?(\s*Guide)?|Learner(s)?(\s*Book)?|Syllabus|Prototype|Textbook|\d{4}(\.\d{1,2}\.\d{1,2})?)/i', '', $name));
-    $cleaned_name = trim(preg_replace('/(&#8217;)|(&#038;)/', "'", $cleaned_name));
-    $cleaned_name = trim(preg_replace('/[0-9-.]+$/', '', $cleaned_name));
-    $cleaned_name = trim($cleaned_name);
+function find_subject_id($inferred_name, $existing_subjects) {
+    $cleaned_name = strtoupper(trim(preg_replace('/(&#8217;)|(&#038;)/', "'", $inferred_name)));
 
-    if (empty($cleaned_name)) {
-        $cleaned_name = 'Uncategorized';
-    }
-
-    $stmt = $conn->prepare("SELECT id FROM subjects WHERE name = ?");
-    $stmt->bind_param("s", $cleaned_name);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($row = $result->fetch_assoc()) {
-        $stmt->close();
-        return $row['id'];
-    }
-    $stmt->close();
-
-    echo "Creating new subject: " . htmlspecialchars($cleaned_name) . "\n";
-    $code = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $cleaned_name), 0, 4));
-
-    $original_code = $code;
-    $counter = 1;
-    while (true) {
-        $stmt_check = $conn->prepare("SELECT id FROM subjects WHERE code = ?");
-        $stmt_check->bind_param("s", $code);
-        $stmt_check->execute();
-        if ($stmt_check->get_result()->num_rows == 0) {
-            $stmt_check->close();
-            break;
+    // Direct match first
+    foreach ($existing_subjects as $subject) {
+        if (strtoupper($subject['name']) === $cleaned_name) {
+            return $subject['id'];
         }
-        $stmt_check->close();
-        $counter++;
-        $code = substr($original_code, 0, 3) . $counter;
     }
 
-    $stmt_insert = $conn->prepare("INSERT INTO subjects (name, code, created_at, updated_at) VALUES (?, ?, NOW(), NOW())");
-    $stmt_insert->bind_param("ss", $cleaned_name, $code);
-    $stmt_insert->execute();
-    $new_id = $stmt_insert->insert_id;
-    $stmt_insert->close();
+    // Keyword matching
+    $keywords = [
+        'HISTORY' => 'HISTORY',
+        'POLITICAL EDUCATION' => 'HISTORY',
+        'GEOGRAPHY' => 'GEOGRAPHY',
+        'ECONOMICS' => 'ECONOMICS',
+        'ENTREPRENEURSHIP' => 'ENTREPRENEURSHIP',
+        'BIOLOGY' => 'BIOLOGY',
+        'CHEMISTRY' => 'CHEMISTRY',
+        'PHYSICS' => 'PHYSICS',
+        'MATHEMATICS' => 'MATHEMATICS',
+        'MTC' => 'MATHEMATICS',
+        'ENGLISH' => 'ENGLISH',
+        'LITERATURE' => 'LITERATURE',
+        'KISWAHILI' => 'KISWAHILI',
+        'AGRICULTURE' => 'AGRICULTURE',
+        'ISLAMIC' => 'IRE',
+        'IRE' => 'IRE',
+        'CHRISTIAN' => 'CRE',
+        'CRE' => 'CRE',
+        'ART' => 'ART AND DESIGN',
+        'ICT' => 'ICT',
+        'PHYSICAL EDUCATION' => 'PHYSICAL EDUCATION',
+        'GENERAL SCIENCE' => 'GENERAL SCIENCE'
+    ];
 
-    return $new_id;
+    foreach ($keywords as $keyword => $subject_name) {
+        if (strpos($cleaned_name, $keyword) !== false) {
+            foreach ($existing_subjects as $subject) {
+                if (strtoupper($subject['name']) === $subject_name) {
+                    return $subject['id'];
+                }
+            }
+        }
+    }
+
+    return null; // No match found
 }
+
 
 function get_class_level_id($name, $conn) {
     $name = trim($name);
@@ -99,13 +101,18 @@ function get_class_level_id($name, $conn) {
         return $row['id'];
     }
     $stmt->close();
-    echo "Warning: Class Level '" . htmlspecialchars($name) . "' not found. Setting to NULL.\n";
     return null;
 }
 
 // --- Main Processing Logic ---
 
 echo "Starting PDF processing and database population...\n\n";
+
+// 1. Fetch existing subjects and class levels to use for mapping
+$existing_subjects = $conn->query("SELECT id, name FROM subjects")->fetch_all(MYSQLI_ASSOC);
+$existing_class_levels = $conn->query("SELECT id, name FROM class_levels")->fetch_all(MYSQLI_ASSOC);
+$class_level_map = array_column($existing_class_levels, 'id', 'name');
+
 
 $json_file = 'ncdc_pdfs.json';
 if (!file_exists($json_file)) die("ERROR: ncdc_pdfs.json not found.");
@@ -114,10 +121,6 @@ if (json_last_error() !== JSON_ERROR_NONE) die("ERROR: Invalid JSON. Error: " . 
 
 echo "Found " . count($pdf_list) . " PDFs to process.\n\n";
 
-// For demonstration, process a small subset.
-// $pdf_list = array_slice($pdf_list, 12, 5);
-// echo "NOTE: Processing a small subset of 5 PDFs for testing purposes.\n\n";
-
 $parser = new \Smalot\PdfParser\Parser();
 
 foreach ($pdf_list as $index => $pdf_info) {
@@ -125,9 +128,16 @@ foreach ($pdf_list as $index => $pdf_info) {
         continue;
     }
 
+    $subject_id = find_subject_id($pdf_info['inferred_subject'], $existing_subjects);
+    $class_level_id = $class_level_map[$pdf_info['inferred_class_level']] ?? null;
+
+    if ($subject_id === null || $class_level_id === null) {
+        echo "Skipping document: " . htmlspecialchars($pdf_info['original_text']) . " (Could not map Subject or Class Level)\n";
+        continue;
+    }
+
     echo "--------------------------------------------------\n";
-    echo "Processing PDF " . ($index + 1) . ": " . htmlspecialchars($pdf_info['original_text']) . "\n";
-    echo "URL: " . htmlspecialchars($pdf_info['url']) . "\n";
+    echo "Processing: " . htmlspecialchars($pdf_info['original_text']) . " [Subject ID: $subject_id, Class ID: $class_level_id]\n";
 
     $temp_pdf_file = 'temp_download.pdf';
 
@@ -138,7 +148,7 @@ foreach ($pdf_list as $index => $pdf_info) {
     }
     echo " OK\n";
 
-    echo "Parsing PDF with PHP library...";
+    echo "Parsing PDF...";
     try {
         $pdf = $parser->parseFile($temp_pdf_file);
         $text_content = $pdf->getText();
@@ -150,25 +160,20 @@ foreach ($pdf_list as $index => $pdf_info) {
         continue;
     }
 
-    $subject_id = get_or_create_subject_id($pdf_info['inferred_subject'], $conn);
-    $class_level_id = get_class_level_id($pdf_info['inferred_class_level'], $conn);
-
-    if ($class_level_id === null) {
-        echo "Cannot process this document because its class level ('" . htmlspecialchars($pdf_info['inferred_class_level']) . "') is not in the database. Skipping.\n";
-        @unlink($temp_pdf_file);
-        continue;
-    }
-
     // New parsing logic
     $lines = explode("\n", $text_content);
     $topics = [];
+    $keywords_to_find = ['CHAPTER', 'THEME', 'SUB-CHAPTER', 'INTRODUCTION', 'PREFACE', 'ACKNOWLEDGEMENTS', 'GLOSSARY', 'REFERENCES'];
+
     foreach ($lines as $line) {
         $trimmed_line = trim($line);
-        if (preg_match('/^(CHAPTER\s+\d+|THEME:|SUB-CHAPTER\s+\d\.\d|INTRODUCTION|PREFACE|ACKNOWLEDGEMENTS|GLOSSARY|REFERENCES)/i', $trimmed_line)) {
-            // Further clean the title
-            $title = trim(preg_replace('/\s*\.{3,}\s*\d*$/', '', $trimmed_line));
-            if (strlen($title) > 5 && strlen($title) < 100) { // Basic sanity check
-                 $topics[] = $title;
+        foreach ($keywords_to_find as $keyword) {
+            if (str_starts_with(strtoupper($trimmed_line), $keyword)) {
+                 $title = trim(preg_replace('/\s*\.{3,}\s*\d*$/', '', $trimmed_line));
+                 if (strlen($title) > 4 && strlen($title) < 100) {
+                     $topics[] = $title;
+                 }
+                 break;
             }
         }
     }
@@ -182,21 +187,19 @@ foreach ($pdf_list as $index => $pdf_info) {
 
     echo "  - Found " . count($topics) . " potential topics. Inserting into database...\n";
 
+    $inserted_count = 0;
     foreach($topics as $topic_title) {
-        $conn->begin_transaction();
         try {
             $stmt = $conn->prepare("INSERT INTO curriculum_topics (subject_id, class_level_id, title) VALUES (?, ?, ?)");
             $stmt->bind_param("iis", $subject_id, $class_level_id, $topic_title);
             $stmt->execute();
-            $topic_id = $stmt->insert_id;
             $stmt->close();
-            $conn->commit();
-            echo "    -> Inserted topic: " . htmlspecialchars($topic_title) . "\n";
+            $inserted_count++;
         } catch (Exception $e) {
-            $conn->rollback();
-            echo "    -> FAILED to insert topic '" . htmlspecialchars($topic_title) . "'. Error: " . $e->getMessage() . "\n";
+            // Ignore duplicate topic errors for now
         }
     }
+    echo "    -> Successfully inserted $inserted_count new topics.\n";
 
     unlink($temp_pdf_file);
     sleep(1);
