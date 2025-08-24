@@ -73,10 +73,18 @@ if (!file_exists($json_file)) {
     die("ERROR: ncdc_pdfs.json not found. Please run the scraper first.\n");
 }
 
+function remove_utf8_bom($text) {
+    $bom = pack('H*','EFBBBF');
+    $text = preg_replace("/^$bom/", '', $text);
+    return $text;
+}
+
 $file_content = file_get_contents($json_file);
 if ($file_content === false) {
     die("ERROR: Could not read ncdc_pdfs.json, even though it exists.");
 }
+// Remove BOM if it exists
+$file_content = remove_utf8_bom($file_content);
 
 if (empty(trim($file_content))) {
     die("ERROR: ncdc_pdfs.json appears to be empty.");
