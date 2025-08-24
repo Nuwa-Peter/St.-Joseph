@@ -63,6 +63,13 @@ $exam_types = ['AOI', 'CA', 'Beginning of Term', 'Midterm', 'End of Term'];
     <h2>Set Examinations</h2>
 </div>
 
+<?php if (isset($_GET['success'])): ?>
+    <div class="alert alert-success"><?php echo htmlspecialchars($_GET['success']); ?></div>
+<?php endif; ?>
+<?php if (isset($_GET['error'])): ?>
+    <div class="alert alert-danger"><?php echo htmlspecialchars($_GET['error']); ?></div>
+<?php endif; ?>
+
 <div class="row">
     <div class="col-md-4">
         <div class="card">
@@ -126,7 +133,8 @@ $exam_types = ['AOI', 'CA', 'Beginning of Term', 'Midterm', 'End of Term'];
                                         <td><?php echo htmlspecialchars($paper['name']); ?></td>
                                         <td><?php echo htmlspecialchars($paper['exam_type']); ?></td>
                                         <td>
-                                            <a href="#" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure? Deleting an exam will also delete all marks entered for it.');">Delete</a>
+                                            <a href="exam_edit.php?id=<?php echo $paper['id']; ?>" class="btn btn-sm btn-primary">Edit</a>
+                                            <a href="exam_delete.php?id=<?php echo $paper['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure? Deleting an exam will also delete all marks entered for it.');">Delete</a>
                                         </td>
                                     </tr>
                                 <?php endwhile; ?>
