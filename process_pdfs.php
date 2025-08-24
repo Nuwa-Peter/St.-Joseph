@@ -3,9 +3,13 @@
 set_time_limit(1800); // 30 minutes
 ini_set('memory_limit', '512M');
 
+// Include Composer's autoloader
+require_once 'vendor/autoload.php';
 require_once 'config.php';
 
 echo "<pre>"; // Use preformatted text for better log readability in the browser
+
+// --- Helper Functions ---
 
 function curl_download($url, $output_file) {
     $ch = curl_init();
@@ -18,9 +22,8 @@ function curl_download($url, $output_file) {
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 120);
     curl_setopt($ch, CURLOPT_TIMEOUT, 120);
     curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); // May be needed for some servers
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-    // Set a common user agent
     curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
 
     $data = curl_exec($ch);
@@ -34,17 +37,12 @@ function curl_download($url, $output_file) {
     return false;
 }
 
-
-// --- Helper Functions ---
-
 function get_or_create_subject_id($name, $conn) {
-    $name = trim($name);
+    $name = trim(preg_replace('/(&#8217;)|(&#038;)/', "'", $name)); // Clean HTML entities
     if (empty($name)) {
-        // Fallback for empty subject names
         $name = 'Uncategorized';
     }
 
-    // Check if subject exists
     $stmt = $conn->prepare("SELECT id FROM subjects WHERE name = ?");
     $stmt->bind_param("s", $name);
     $stmt->execute();
@@ -56,10 +54,9 @@ function get_or_create_subject_id($name, $conn) {
     }
     $stmt->close();
 
-    // If not, create it
     echo "Creating new subject: " . htmlspecialchars($name) . "\n";
     $stmt = $conn->prepare("INSERT INTO subjects (name, code, created_at, updated_at) VALUES (?, ?, NOW(), NOW())");
-    $code = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 4)); // Generate a simple code
+    $code = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 4));
     $stmt->bind_param("ss", $name, $code);
     $stmt->execute();
     $new_id = $stmt->insert_id;
@@ -71,7 +68,7 @@ function get_or_create_subject_id($name, $conn) {
 function get_class_level_id($name, $conn) {
     $name = trim($name);
     if (empty($name) || $name === 'Uncategorized') {
-        return null; // Return null if class level is not specified
+        return null;
     }
 
     $stmt = $conn->prepare("SELECT id FROM class_levels WHERE name = ?");
@@ -85,8 +82,6 @@ function get_class_level_id($name, $conn) {
     }
     $stmt->close();
 
-    // Unlike subjects, we probably shouldn't create new class levels on the fly.
-    // We'll return null and handle it in the main logic.
     echo "Warning: Class Level '" . htmlspecialchars($name) . "' not found in database. Setting to NULL.\n";
     return null;
 }
@@ -103,17 +98,16 @@ if (!file_exists($json_file)) {
 
 $pdf_list = json_decode(file_get_contents($json_file), true);
 if (json_last_error() !== JSON_ERROR_NONE) {
-    // It's better to die with a more specific error if possible.
     die("ERROR: Invalid JSON in ncdc_pdfs.json. Error: " . json_last_error_msg());
 }
 
 echo "Found " . count($pdf_list) . " PDFs to process.\n\n";
 
 // For demonstration, let's process only a small subset first.
-// Remove or comment out this line to process all files.
 $pdf_list = array_slice($pdf_list, 12, 5);
 echo "NOTE: Processing a small subset of 5 PDFs for testing purposes.\n\n";
 
+$parser = new \Smalot\PdfParser\Parser();
 
 foreach ($pdf_list as $index => $pdf_info) {
     // User requested to only process secondary school curriculum
@@ -127,7 +121,6 @@ foreach ($pdf_list as $index => $pdf_info) {
     echo "URL: " . htmlspecialchars($pdf_info['url']) . "\n";
 
     $temp_pdf_file = 'temp_download.pdf';
-    $temp_txt_file = 'temp_download.txt';
 
     // 1. Download PDF
     echo "Downloading...";
@@ -138,64 +131,52 @@ foreach ($pdf_list as $index => $pdf_info) {
         continue;
     }
 
-    // 2. Convert to Text
-    echo "Converting to text...";
-    // Use -layout to preserve some of the original document structure
-    // Redirect stderr to stdout (2>&1) to capture any error messages from pdftotext
-    $command = "pdftotext -layout " . escapeshellarg($temp_pdf_file) . " " . escapeshellarg($temp_txt_file) . " 2>&1";
-    $shell_output = shell_exec($command);
-
-    if (!file_exists($temp_txt_file) || filesize($temp_txt_file) === 0) {
-        echo " FAILED. PDF might be an image or unreadable. Skipping.\n";
-        echo "pdftotext output: " . htmlspecialchars($shell_output) . "\n";
+    // 2. Convert to Text using PHP library
+    echo "Parsing PDF with PHP library...";
+    try {
+        $pdf = $parser->parseFile($temp_pdf_file);
+        $text_content = $pdf->getText();
+        if (empty(trim($text_content))) {
+            throw new Exception("Extracted text is empty.");
+        }
+        echo " OK\n";
+    } catch (Exception $e) {
+        echo " FAILED. Library could not parse PDF. Error: " . $e->getMessage() . ". Skipping.\n";
         @unlink($temp_pdf_file);
         continue;
     }
-    echo " OK\n";
 
     // 3. Parse Text and Insert into DB
-    $text_content = file_get_contents($temp_txt_file);
-
-    // This is a very simplified parser. A real-world one would be much more complex.
-    // It looks for "CHAPTER X" as a topic separator.
     $chapters = preg_split('/(CHAPTER\s+\d+(\.\d)?)/', $text_content, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
     if (count($chapters) <= 1) {
         echo "Could not find any chapters in the document. Skipping.\n";
         @unlink($temp_pdf_file);
-        @unlink($temp_txt_file);
         continue;
     }
 
     $subject_id = get_or_create_subject_id($pdf_info['inferred_subject'], $conn);
     $class_level_id = get_class_level_id($pdf_info['inferred_class_level'], $conn);
 
-    // If class_level_id is null, we can't proceed as it's a required field.
     if ($class_level_id === null) {
         echo "Cannot process this document because its class level ('" . htmlspecialchars($pdf_info['inferred_class_level']) . "') is not in the database. Skipping.\n";
         @unlink($temp_pdf_file);
-        @unlink($temp_txt_file);
         continue;
     }
 
-    // Loop through the captured chapters
     for ($c = 0; $c < count($chapters); $c += 2) {
-        $chapter_title_marker = $chapters[$c];
         $chapter_content = $chapters[$c + 1] ?? '';
 
-        // Extract the actual title from the content block
         $lines = explode("\n", $chapter_content);
-        $topic_title = trim($lines[0]); // Assume the first line after "CHAPTER X" is the title
+        $topic_title = trim(array_shift($lines)); // Get first line as title and remove it
         $topic_theme = '';
 
-        // Try to find a theme
         if (preg_match('/THEME:\s*(.*)/i', $chapter_content, $theme_match)) {
             $topic_theme = trim($theme_match[1]);
         }
 
         echo "  - Parsing Topic: " . htmlspecialchars($topic_title) . "\n";
 
-        // Insert into database
         $conn->begin_transaction();
         try {
             $stmt = $conn->prepare("INSERT INTO curriculum_topics (subject_id, class_level_id, title, theme) VALUES (?, ?, ?, ?)");
@@ -203,9 +184,6 @@ foreach ($pdf_list as $index => $pdf_info) {
             $stmt->execute();
             $topic_id = $stmt->insert_id;
             $stmt->close();
-
-            // This is where more detailed parsing for activities, outcomes etc. would go.
-            // For now, we have created the topic.
 
             $conn->commit();
             echo "    -> Successfully inserted topic with ID: $topic_id\n";
@@ -216,13 +194,10 @@ foreach ($pdf_list as $index => $pdf_info) {
         }
     }
 
-
     // 4. Cleanup
     unlink($temp_pdf_file);
-    unlink($temp_txt_file);
 
-    // Be a good bot
-    sleep(2);
+    sleep(1); // Be a good bot
 }
 
 echo "\n\nProcessing finished.\n";
