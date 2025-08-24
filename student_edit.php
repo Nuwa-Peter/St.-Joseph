@@ -1,54 +1,14 @@
 <?php
 session_start();
 require_once 'config.php';
-require_once 'includes/header.php';
 
-// ... (PHP logic is the same)
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
-    exit;
-}
-
-$errors = [];
-$student_id = 0;
-$first_name = $last_name = $username = $lin = $email = $phone_number = $date_of_birth = $gender = $student_type = $class_level_id = $stream_id = "";
-$photo_current = "";
-
-if (isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
-    $student_id = trim($_GET["id"]);
-    $sql = "SELECT u.*, s.class_level_id, su.stream_id FROM users u LEFT JOIN stream_user su ON u.id = su.user_id LEFT JOIN streams s ON su.stream_id = s.id WHERE u.id = ? AND u.role = 'student'";
-    if ($stmt = $conn->prepare($sql)) {
-        $stmt->bind_param("i", $student_id);
-        if ($stmt->execute()) {
-            $result = $stmt->get_result();
-            if ($result->num_rows == 1) {
-                $student = $result->fetch_assoc();
-                $first_name = $student['first_name'];
-                $last_name = $student['last_name'];
-                $username = $student['username'];
-                $lin = $student['lin'];
-                $phone_number = $student['phone_number'];
-                $date_of_birth = $student['date_of_birth'];
-                $gender = $student['gender'];
-                $student_type = $student['student_type'];
-                $class_level_id = $student['class_level_id'];
-                $stream_id = $student['stream_id'];
-                $photo_current = $student['photo'];
-            } else { exit("Student not found."); }
-        }
-        $stmt->close();
-    }
-} else { exit("No student ID specified."); }
-
-$class_levels_sql = "SELECT id, name FROM class_levels ORDER BY name ASC";
-$class_levels_result = $conn->query($class_levels_sql);
-
-
+// --- HANDLE POST REQUEST (FORM SUBMISSION) ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $errors = [];
     $student_id = $_POST['id'];
     $first_name = trim($_POST['first_name']);
     $last_name = trim($_POST['last_name']);
-    $username = trim($_POST['username_readonly']);
+    $username = trim($_POST['username_readonly']); // Username is not editable, but needed for photo path
     $lin = trim($_POST['lin']);
     $phone_number = trim($_POST['phone_number']);
     $date_of_birth = trim($_POST['date_of_birth']);
@@ -56,6 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $student_type = trim($_POST['student_type']);
     $class_level_id = trim($_POST['class_level_id']);
     $stream_id = trim($_POST['stream_id']);
+    $photo_current = $_POST['photo_current']; // Get current photo path from hidden input
 
     if (empty($first_name)) $errors['first_name'] = "First name is required.";
     if (empty($last_name)) $errors['last_name'] = "Last name is required.";
@@ -75,12 +36,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if (!is_dir($target_dir)) mkdir($target_dir, 0755, true);
                 $photo_path = $target_dir . $username . '_' . uniqid() . '.png';
                 file_put_contents($photo_path, $data);
-            } elseif (isset($_FILES['photo']) && $_FILES['photo']['error'] == 0) {
-                $target_dir = "uploads/photos/";
-                if (!is_dir($target_dir)) mkdir($target_dir, 0755, true);
-                $file_ext = pathinfo($_FILES["photo"]["name"], PATHINFO_EXTENSION);
-                $photo_path = $target_dir . $username . '_' . uniqid() . '.' . $file_ext;
-                move_uploaded_file($_FILES["photo"]["tmp_name"], $photo_path);
             }
 
             $sql_user = "UPDATE users SET first_name=?, last_name=?, lin=?, gender=?, phone_number=?, date_of_birth=?, student_type=?, photo=?, updated_at=NOW() WHERE id=?";
@@ -96,20 +51,70 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt_stream->close();
 
             $conn->commit();
-            header("location: students.php");
+            header("location: students.php?update_success=1");
             exit();
         } catch (Exception $e) {
             $conn->rollback();
             $errors['db'] = "Database error: " . $e->getMessage();
         }
     }
+    // If we are here, it means there were validation errors. We will fall through to display the form again with the errors.
 }
+
+// --- HANDLE GET REQUEST (DISPLAY FORM) ---
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    header("location: login.php");
+    exit;
+}
+
+// Initialize variables for the form
+if ($_SERVER["REQUEST_METHOD"] != "POST") {
+    $errors = [];
+    $student_id = 0;
+    $first_name = $last_name = $username = $lin = $email = $phone_number = $date_of_birth = $gender = $student_type = $class_level_id = $stream_id = "";
+    $photo_current = "";
+
+    if (isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
+        $student_id = trim($_GET["id"]);
+        $sql = "SELECT u.*, s.class_level_id, su.stream_id FROM users u LEFT JOIN stream_user su ON u.id = su.user_id LEFT JOIN streams s ON su.stream_id = s.id WHERE u.id = ? AND u.role = 'student'";
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param("i", $student_id);
+            if ($stmt->execute()) {
+                $result = $stmt->get_result();
+                if ($result->num_rows == 1) {
+                    $student = $result->fetch_assoc();
+                    $first_name = $student['first_name'];
+                    $last_name = $student['last_name'];
+                    $username = $student['username'];
+                    $lin = $student['lin'];
+                    $phone_number = $student['phone_number'];
+                    $date_of_birth = $student['date_of_birth'];
+                    $gender = $student['gender'];
+                    $student_type = $student['student_type'];
+                    $class_level_id = $student['class_level_id'];
+                    $stream_id = $student['stream_id'];
+                    $photo_current = $student['photo'];
+                } else { exit("Student not found."); }
+            }
+            $stmt->close();
+        }
+    } else { exit("No student ID specified."); }
+}
+
+// Fetch data needed for form dropdowns
+$class_levels_sql = "SELECT id, name FROM class_levels ORDER BY name ASC";
+$class_levels_result = $conn->query($class_levels_sql);
+
+
+// --- RENDER PAGE ---
+require_once 'includes/header.php';
 ?>
 
 <h2>Edit Student</h2>
 <form id="student-form" action="<?php echo htmlspecialchars(basename($_SERVER['REQUEST_URI'])); ?>" method="post" enctype="multipart/form-data">
     <input type="hidden" name="id" value="<?php echo $student_id; ?>">
     <input type="hidden" name="username_readonly" value="<?php echo htmlspecialchars($username); ?>">
+    <input type="hidden" name="photo_current" value="<?php echo htmlspecialchars($photo_current); ?>">
     <input type="hidden" name="cropped_photo_data" id="cropped-photo-data">
     <div class="card">
         <div class="card-header">Student Details</div>
