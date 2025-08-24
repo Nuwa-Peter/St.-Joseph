@@ -38,13 +38,17 @@ function curl_download($url, $output_file) {
 }
 
 function get_or_create_subject_id($name, $conn) {
-    $name = trim(preg_replace('/(&#8217;)|(&#038;)/', "'", $name)); // Clean HTML entities
-    if (empty($name)) {
-        $name = 'Uncategorized';
+    // Clean the name more aggressively
+    $cleaned_name = trim(preg_replace('/(Teacher(s)?(\s*Guide)?|Learner(s)?(\s*Book)?|Syllabus|Prototype|Textbook)/i', '', $name));
+    $cleaned_name = trim(preg_replace('/(&#8217;)|(&#038;)/', "'", $cleaned_name));
+    $cleaned_name = trim($cleaned_name);
+
+    if (empty($cleaned_name)) {
+        $cleaned_name = 'Uncategorized';
     }
 
     $stmt = $conn->prepare("SELECT id FROM subjects WHERE name = ?");
-    $stmt->bind_param("s", $name);
+    $stmt->bind_param("s", $cleaned_name);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -54,10 +58,27 @@ function get_or_create_subject_id($name, $conn) {
     }
     $stmt->close();
 
-    echo "Creating new subject: " . htmlspecialchars($name) . "\n";
+    echo "Creating new subject: " . htmlspecialchars($cleaned_name) . "\n";
+    $code = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $cleaned_name), 0, 4));
+
+    // Handle potential duplicate codes
+    $original_code = $code;
+    $counter = 1;
+    while (true) {
+        $stmt = $conn->prepare("SELECT id FROM subjects WHERE code = ?");
+        $stmt->bind_param("s", $code);
+        $stmt->execute();
+        if ($stmt->get_result()->num_rows == 0) {
+            $stmt->close();
+            break;
+        }
+        $stmt->close();
+        $counter++;
+        $code = $original_code . $counter;
+    }
+
     $stmt = $conn->prepare("INSERT INTO subjects (name, code, created_at, updated_at) VALUES (?, ?, NOW(), NOW())");
-    $code = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $name), 0, 4));
-    $stmt->bind_param("ss", $name, $code);
+    $stmt->bind_param("ss", $cleaned_name, $code);
     $stmt->execute();
     $new_id = $stmt->insert_id;
     $stmt->close();
@@ -86,20 +107,14 @@ function get_class_level_id($name, $conn) {
     return null;
 }
 
-
 // --- Main Processing Logic ---
 
 echo "Starting PDF processing and database population...\n\n";
 
 $json_file = 'ncdc_pdfs.json';
-if (!file_exists($json_file)) {
-    die("ERROR: ncdc_pdfs.json not found. Please run the scraper first.\n");
-}
-
+if (!file_exists($json_file)) die("ERROR: ncdc_pdfs.json not found.");
 $pdf_list = json_decode(file_get_contents($json_file), true);
-if (json_last_error() !== JSON_ERROR_NONE) {
-    die("ERROR: Invalid JSON in ncdc_pdfs.json. Error: " . json_last_error_msg());
-}
+if (json_last_error() !== JSON_ERROR_NONE) die("ERROR: Invalid JSON in ncdc_pdfs.json. Error: " . json_last_error_msg());
 
 echo "Found " . count($pdf_list) . " PDFs to process.\n\n";
 
@@ -110,7 +125,6 @@ echo "NOTE: Processing a small subset of 5 PDFs for testing purposes.\n\n";
 $parser = new \Smalot\PdfParser\Parser();
 
 foreach ($pdf_list as $index => $pdf_info) {
-    // User requested to only process secondary school curriculum
     if (str_starts_with($pdf_info['inferred_class_level'], 'P')) {
         echo "Skipping Primary level document: " . htmlspecialchars($pdf_info['original_text']) . "\n";
         continue;
@@ -122,23 +136,18 @@ foreach ($pdf_list as $index => $pdf_info) {
 
     $temp_pdf_file = 'temp_download.pdf';
 
-    // 1. Download PDF
     echo "Downloading...";
-    if (curl_download($pdf_info['url'], $temp_pdf_file)) {
-        echo " OK\n";
-    } else {
+    if (!curl_download($pdf_info['url'], $temp_pdf_file)) {
         echo " FAILED. Skipping.\n";
         continue;
     }
+    echo " OK\n";
 
-    // 2. Convert to Text using PHP library
     echo "Parsing PDF with PHP library...";
     try {
         $pdf = $parser->parseFile($temp_pdf_file);
         $text_content = $pdf->getText();
-        if (empty(trim($text_content))) {
-            throw new Exception("Extracted text is empty.");
-        }
+        if (empty(trim($text_content))) throw new Exception("Extracted text is empty.");
         echo " OK\n";
     } catch (Exception $e) {
         echo " FAILED. Library could not parse PDF. Error: " . $e->getMessage() . ". Skipping.\n";
@@ -146,15 +155,7 @@ foreach ($pdf_list as $index => $pdf_info) {
         continue;
     }
 
-    // 3. Parse Text and Insert into DB
-    $chapters = preg_split('/(CHAPTER\s+\d+(\.\d)?)/', $text_content, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-
-    if (count($chapters) <= 1) {
-        echo "Could not find any chapters in the document. Skipping.\n";
-        @unlink($temp_pdf_file);
-        continue;
-    }
-
+    // --- New, Smarter Parsing Logic ---
     $subject_id = get_or_create_subject_id($pdf_info['inferred_subject'], $conn);
     $class_level_id = get_class_level_id($pdf_info['inferred_class_level'], $conn);
 
@@ -164,30 +165,71 @@ foreach ($pdf_list as $index => $pdf_info) {
         continue;
     }
 
-    for ($c = 0; $c < count($chapters); $c += 2) {
-        $chapter_content = $chapters[$c + 1] ?? '';
+    // 1. Find the Table of Contents
+    $toc = [];
+    $lines = explode("\n", $text_content);
+    $in_toc = false;
+    foreach ($lines as $line) {
+        if (strtoupper(trim($line)) === 'CONTENTS') {
+            $in_toc = true;
+            continue;
+        }
+        if ($in_toc && preg_match('/^(CHAPTER|SUB-CHAPTER)\s+\d/i', trim($line))) {
+            // Stop when we hit the first chapter after the contents page
+            break;
+        }
+        if ($in_toc) {
+            // Match lines that look like "CHAPTER 1 ................... 1"
+            if (preg_match('/^(CHAPTER\s+\d+(\.\d)?)\s*(.*?)\s*\.{3,}\s*(\d+)/i', $line, $matches)) {
+                $title = trim($matches[3]);
+                if (!empty($title)) $toc[] = $title;
+            }
+        }
+    }
 
-        $lines = explode("\n", $chapter_content);
-        $topic_title = trim(array_shift($lines)); // Get first line as title and remove it
-        $topic_theme = '';
+    if (empty($toc)) {
+        echo "Could not parse a table of contents. Skipping document.\n";
+        @unlink($temp_pdf_file);
+        continue;
+    }
 
-        if (preg_match('/THEME:\s*(.*)/i', $chapter_content, $theme_match)) {
-            $topic_theme = trim($theme_match[1]);
+    echo "  - Found " . count($toc) . " topics in Table of Contents.\n";
+
+    // 2. Extract content for each topic found in the TOC
+    for ($i = 0; $i < count($toc); $i++) {
+        $current_title = $toc[$i];
+        $next_title = isset($toc[$i + 1]) ? $toc[$i + 1] : null;
+
+        // Find the start position of the current topic's content
+        $start_pos = strpos($text_content, $current_title);
+        if ($start_pos === false) continue;
+        $start_pos += strlen($current_title);
+
+        // Find the end position
+        $end_pos = false;
+        if ($next_title) {
+            $end_pos = strpos($text_content, $next_title, $start_pos);
         }
 
-        echo "  - Parsing Topic: " . htmlspecialchars($topic_title) . "\n";
+        $topic_content = ($end_pos !== false)
+            ? substr($text_content, $start_pos, $end_pos - $start_pos)
+            : substr($text_content, $start_pos);
 
+        echo "  - Parsing Topic: " . htmlspecialchars($current_title) . "\n";
+
+        // Database Insertion
         $conn->begin_transaction();
         try {
-            $stmt = $conn->prepare("INSERT INTO curriculum_topics (subject_id, class_level_id, title, theme) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("iiss", $subject_id, $class_level_id, $topic_title, $topic_theme);
+            // For now, we are just inserting the topic title. The content extraction
+            // for activities etc. would go here.
+            $stmt = $conn->prepare("INSERT INTO curriculum_topics (subject_id, class_level_id, title) VALUES (?, ?, ?)");
+            $stmt->bind_param("iis", $subject_id, $class_level_id, $current_title);
             $stmt->execute();
             $topic_id = $stmt->insert_id;
             $stmt->close();
 
             $conn->commit();
             echo "    -> Successfully inserted topic with ID: $topic_id\n";
-
         } catch (Exception $e) {
             $conn->rollback();
             echo "    -> FAILED to insert topic. Error: " . $e->getMessage() . "\n";
@@ -197,7 +239,7 @@ foreach ($pdf_list as $index => $pdf_info) {
     // 4. Cleanup
     unlink($temp_pdf_file);
 
-    sleep(1); // Be a good bot
+    sleep(1);
 }
 
 echo "\n\nProcessing finished.\n";
