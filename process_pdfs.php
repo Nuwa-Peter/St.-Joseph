@@ -73,9 +73,22 @@ if (!file_exists($json_file)) {
     die("ERROR: ncdc_pdfs.json not found. Please run the scraper first.\n");
 }
 
-$pdf_list = json_decode(file_get_contents($json_file), true);
+$file_content = file_get_contents($json_file);
+if ($file_content === false) {
+    die("ERROR: Could not read ncdc_pdfs.json, even though it exists.");
+}
+
+if (empty(trim($file_content))) {
+    die("ERROR: ncdc_pdfs.json appears to be empty.");
+}
+
+echo "Successfully read ncdc_pdfs.json. First 500 characters:\n<hr>";
+echo htmlspecialchars(substr($file_content, 0, 500));
+echo "\n<hr>\n";
+
+$pdf_list = json_decode($file_content, true);
 if (json_last_error() !== JSON_ERROR_NONE) {
-    die("ERROR: Invalid JSON in ncdc_pdfs.json.\n");
+    die("ERROR: Invalid JSON in ncdc_pdfs.json. DECODING FAILED with error: " . json_last_error_msg());
 }
 
 echo "Found " . count($pdf_list) . " PDFs to process.\n\n";
