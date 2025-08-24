@@ -49,6 +49,7 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                     <ul class="dropdown-menu" aria-labelledby="academicsDropdown">
                         <li><a class="dropdown-item" href="class_levels.php">Classes & Streams</a></li>
                         <li><a class="dropdown-item" href="subjects.php">Subjects</a></li>
+                        <li><a class="dropdown-item" href="lesson_planner.php">Lesson Planner</a></li>
                         <?php if ($is_admin): ?>
                         <li><a class="dropdown-item" href="assign_subjects_to_stream.php">Assign Subjects to Stream</a></li>
                         <?php endif; ?>
