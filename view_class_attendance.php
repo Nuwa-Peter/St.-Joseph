@@ -74,11 +74,27 @@ $stmt->close();
 
 require_once 'includes/header.php';
 ?>
-
+<style>
+    @media print {
+        body > .navbar,
+        body > main > .footer,
+        .filter-card,
+        .print-btn {
+            display: none;
+        }
+        .container-fluid {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    }
+</style>
 <div class="container-fluid">
-    <h1 class="my-4"><i class="bi bi-calendar-check me-2"></i>Daily Class Attendance Report</h1>
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <h1 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Daily Class Attendance Report</h1>
+        <button class="btn btn-secondary print-btn" onclick="window.print()"><i class="bi bi-printer-fill me-2"></i>Print Report</button>
+    </div>
 
-    <div class="card">
+    <div class="card filter-card">
         <div class="card-header">
             <i class="bi bi-filter me-2"></i>Filters
         </div>

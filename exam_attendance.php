@@ -49,15 +49,14 @@ nce</h1>
                 <div class="col-md-4">
                     <label for="stream-select" class="form-label">Class</label>
                     <select id="stream-select" class="form-select">
-                        <option value="">Select a class...</option>
-                        <?php foreach ($streams as $stream): ?>
-                            <option value="<?php echo $stream['id']; ?>" data-cl
-assname="<?php echo htmlspecialchars($stream['class_name'] . ' ' . $stream['stre
-am_name']); ?>">
-                                <?php echo htmlspecialchars($stream['class_name'
-] . ' ' . $stream['stream_name']); ?>
-                            </option>
-                        <?php endforeach; ?>
+                        <option value="">Select a class...</option
+                        <?php
+                            foreach ($streams as $stream) {
+                                $stream_id = $stream['id'];
+                                $display_name = htmlspecialchars($stream['class_name'] . ' ' . $stream['stream_name']);
+                                echo "<option value='{$stream_id}' data-classname='{$display_name}'>{$display_name}</option>";
+                            }
+                        ?>
                     </select>
                 </div>
                 <div class="col-md-3">
