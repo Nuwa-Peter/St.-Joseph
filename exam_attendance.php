@@ -30,8 +30,7 @@ require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
-    <h1 class="my-4"><i class="bi bi-calendar-check me-2"></i>Take Exams Attenda
-nce</h1>
+    <h1 class="my-4"><i class="bi bi-calendar-check me-2"></i>Take Exam Attendance</h1>
 
     <?php if ($success_message): ?>
         <div class="alert alert-success"><?php echo $success_message; ?></div>
@@ -66,8 +65,7 @@ abel>
  value="<?php echo date('Y-m-d'); ?>">
                 </div>
                 <div class="col-md-2">
-                    <button id="fetch-students-btn" class="btn btn-primary w-100
-">Fetch Students</button>
+                    <button id="fetch-students-btn" class="btn btn-primary w-100">Load Students</button>
                 </div>
             </div>
         </div>
