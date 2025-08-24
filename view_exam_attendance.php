@@ -2,14 +2,9 @@
 session_start();
 require_once 'config.php';
 
-// Ensure user is logged in and is an admin with appropriate permissions
-$allowed_roles = ['headteacher', 'root'];
+// Ensure user is logged in and is a teacher or admin
+$allowed_roles = ['teacher', 'headteacher', 'root'];
 if (!isset($_SESSION["loggedin"]) || !in_array($_SESSION['role'], $allowed_roles)) {
-    // Redirect class teachers to their specific view
-    if (isset($_SESSION["loggedin"]) && $_SESSION['role'] === 'teacher') {
-        header("location: class_attendance.php");
-        exit;
-    }
     header("location: dashboard.php");
     exit;
 }
@@ -24,26 +19,20 @@ $streams = $conn->query($streams_sql)->fetch_all(MYSQLI_ASSOC);
 // --- Handle Filters and Fetch Attendance Data ---
 $filter_stream_id = $_GET['stream_id'] ?? '';
 $filter_student_id = $_GET['student_id'] ?? '';
-$filter_start_date = $_GET['start_date'] ?? date('Y-m-d'); // Default to today
-$filter_end_date = $_GET['end_date'] ?? date('Y-m-d');   // Default to today
+$filter_start_date = $_GET['start_date'] ?? date('Y-m-d', strtotime('-7 days'));
+$filter_end_date = $_GET['end_date'] ?? date('Y-m-d');
 
-// This query now correctly uses the `attendances` table and the `stream_id` we added.
-$sql = "SELECT a.date, a.status, a.notes,
-               u.first_name, u.last_name, u.unique_id,
-               s.name as stream_name, cl.name as class_name,
-               rec.first_name as recorder_fname, rec.last_name as recorder_lname
+$sql = "SELECT a.date, a.status, u.first_name, u.last_name, u.unique_id, s.name as stream_name, cl.name as class_name
         FROM attendances a
         JOIN users u ON a.user_id = u.id
-        LEFT JOIN streams s ON a.stream_id = s.id
+        LEFT JOIN stream_user su ON u.id = su.user_id
+        LEFT JOIN streams s ON su.stream_id = s.id
         LEFT JOIN class_levels cl ON s.class_level_id = cl.id
-        LEFT JOIN users rec ON a.recorded_by_id = rec.id
         WHERE 1=1";
-
 $params = [];
 $types = '';
-
 if (!empty($filter_stream_id)) {
-    $sql .= " AND a.stream_id = ?";
+    $sql .= " AND s.id = ?";
     $params[] = $filter_stream_id;
     $types .= 'i';
 }
@@ -62,7 +51,7 @@ if (!empty($filter_end_date)) {
     $params[] = $filter_end_date;
     $types .= 's';
 }
-$sql .= " ORDER BY a.date DESC, cl.name ASC, s.name ASC, u.last_name ASC";
+$sql .= " ORDER BY a.date DESC, u.last_name ASC";
 $stmt = $conn->prepare($sql);
 if (!empty($params)) {
     $stmt->bind_param($types, ...$params);
@@ -76,16 +65,16 @@ require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
-    <h1 class="my-4"><i class="bi bi-calendar-check me-2"></i>Daily Class Attendance Report</h1>
+    <h1 class="my-4"><i class="bi bi-file-earmark-text me-2"></i>Exams Attendance Report</h1>
 
     <div class="card">
         <div class="card-header">
-            <i class="bi bi-filter me-2"></i>Filters
+            Filters
         </div>
         <div class="card-body">
-            <form action="view_class_attendance.php" method="get" id="filter-form">
-                <div class="row g-3 align-items-end">
-                    <div class="col-12 mb-2">
+            <form action="view_exam_attendance.php" method="get" id="filter-form">
+                <div class="row g-3">
+                    <div class="col-12 mb-3">
                         <label class="form-label">Quick Date Filters</label><br>
                         <div class="btn-group" role="group" aria-label="Quick Date Filters">
                             <button type="button" class="btn btn-sm btn-outline-secondary" id="filter-today">Today</button>
@@ -106,9 +95,9 @@ require_once 'includes/header.php';
                     </div>
                     <div class="col-md-3">
                         <label for="student_search" class="form-label">Student</label>
-                        <input type="text" class="form-control" id="student_search" placeholder="Search by name or ID...">
+                        <input type="text" class="form-control" id="student_search" placeholder="Search by name...">
                         <input type="hidden" name="student_id" id="student_id" value="<?php echo htmlspecialchars($filter_student_id); ?>">
-                        <div id="student-search-results-report" class="list-group position-absolute" style="z-index: 1000; width: calc(100% - 1rem);"></div>
+                        <div id="student-search-results-report" class="list-group" style="position: absolute; z-index: 1000; width: calc(100% - 1rem);"></div>
                     </div>
                     <div class="col-md-2">
                         <label for="start_date" class="form-label">From</label>
@@ -118,8 +107,8 @@ require_once 'includes/header.php';
                         <label for="end_date" class="form-label">To</label>
                         <input type="date" name="end_date" id="end_date" class="form-control" value="<?php echo htmlspecialchars($filter_end_date); ?>">
                     </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search me-2"></i>Filter</button>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Filter</button>
                     </div>
                 </div>
             </form>
@@ -128,11 +117,11 @@ require_once 'includes/header.php';
 
     <div class="card mt-4">
         <div class="card-header">
-            <i class="bi bi-list-ul me-2"></i>Attendance Records
+            Attendance Records
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover table-striped table-sm">
+                <table class="table table-hover table-striped">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -140,13 +129,11 @@ require_once 'includes/header.php';
                             <th>Student ID</th>
                             <th>Class</th>
                             <th>Status</th>
-                            <th>Notes</th>
-                            <th>Recorded By</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($attendance_records)): ?>
-                            <tr><td colspan="7" class="text-center">No records found for the selected filters.</td></tr>
+                            <tr><td colspan="5" class="text-center">No records found for the selected filters.</td></tr>
                         <?php else: ?>
                             <?php foreach($attendance_records as $record): ?>
                                 <tr>
@@ -165,8 +152,6 @@ require_once 'includes/header.php';
                                         echo "<span class='badge " . $badge_class . "'>" . ucfirst($status) . "</span>";
                                         ?>
                                     </td>
-                                    <td><?php echo htmlspecialchars($record['notes']); ?></td>
-                                    <td><?php echo htmlspecialchars($record['recorder_fname'] . ' ' . $record['recorder_lname']); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -179,7 +164,6 @@ require_once 'includes/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // --- Quick Date Filter Logic ---
     const startDateInput = document.getElementById('start_date');
     const endDateInput = document.getElementById('end_date');
     const filterForm = document.getElementById('filter-form');
@@ -193,10 +177,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('filter-week').addEventListener('click', function() {
         const today = new Date();
-        const dayOfWeek = today.getDay(); // Sunday - 0, Monday - 1, ...
-        // Adjust to make Monday the first day of the week
+        const dayOfWeek = today.getDay();
         const firstDayOfWeek = new Date(today.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1) )).toISOString().slice(0, 10);
-        const lastDayOfWeek = new Date(new Date(firstDayOfWeek).setDate(new Date(firstDayOfWeek).getDate() + 6)).toISOString().slice(0,10);
+
+        const lastDay = new Date(firstDayOfWeek);
+        const lastDayOfWeek = new Date(lastDay.setDate(lastDay.getDate() + 6)).toISOString().slice(0, 10);
 
         startDateInput.value = firstDayOfWeek;
         endDateInput.value = lastDayOfWeek;
@@ -212,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
         filterForm.submit();
     });
 
-    // --- Live Student Search Logic ---
+    // JS for live student search in filter
     const searchInput = document.getElementById('student_search');
     const resultsContainer = document.getElementById('student-search-results-report');
     const studentIdInput = document.getElementById('student_id');
@@ -220,61 +205,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchInput.addEventListener('input', () => {
         clearTimeout(debounceTimer);
-        const query = searchInput.value.trim();
-
-        // Clear previous results and hidden ID
-        resultsContainer.innerHTML = '';
         studentIdInput.value = '';
-
-        if (query.length < 2) return;
-
         debounceTimer = setTimeout(() => {
-            fetch(`api_search_users.php?role=student&q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        data.forEach(student => {
-                            const item = document.createElement('a');
-                            item.href = '#';
-                            item.className = 'list-group-item list-group-item-action';
-                            item.textContent = `${student.first_name} ${student.last_name} (${student.unique_id})`;
-                            item.dataset.studentId = student.id;
-                            item.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                searchInput.value = item.textContent;
-                                studentIdInput.value = item.dataset.studentId;
-                                resultsContainer.innerHTML = '';
+            const query = searchInput.value;
+            if (query.length > 1) {
+                fetch(`api_search_users.php?role=student&q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        resultsContainer.innerHTML = '';
+                        if (data.length > 0) {
+                            data.forEach(student => {
+                                const item = document.createElement('a');
+                                item.href = '#';
+                                item.className = 'list-group-item list-group-item-action';
+                                item.textContent = `${student.first_name} ${student.last_name}`;
+                                item.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    searchInput.value = item.textContent;
+                                    studentIdInput.value = student.id;
+                                    resultsContainer.innerHTML = '';
+                                });
+                                resultsContainer.appendChild(item);
                             });
-                            resultsContainer.appendChild(item);
-                        });
-                    } else {
-                        const noResult = document.createElement('span');
-                        noResult.className = 'list-group-item';
-                        noResult.textContent = 'No students found';
-                        resultsContainer.appendChild(noResult);
-                    }
-                })
-                .catch(error => console.error('Error fetching students:', error));
+                        }
+                    });
+            } else {
+                resultsContainer.innerHTML = '';
+            }
         }, 300);
     });
 
-    // Hide search results when clicking outside
     document.addEventListener('click', function(e) {
-        if (!resultsContainer.contains(e.target) && e.target !== searchInput) {
+        if (searchInput && !searchInput.contains(e.target)) {
             resultsContainer.innerHTML = '';
         }
     });
-
-    // Pre-fill student search box if a student_id is in the URL
-    if (studentIdInput.value) {
-        fetch(`api_get_user.php?id=${studentIdInput.value}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.id) {
-                     searchInput.value = `${data.first_name} ${data.last_name} (${data.unique_id})`;
-                }
-            });
-    }
 });
 </script>
 
