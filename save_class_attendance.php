@@ -14,9 +14,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stream_id = $_POST['stream_id'] ?? 0;
     $attendance_date = $_POST['attendance_date'] ?? '';
     $attendance_data = $_POST['attendance'] ?? [];
+    $notes_data = $_POST['notes'] ?? [];
 
-    if (empty($stream_id) || empty($attendance_date) || empty($attendance_data))
- {
+    if (empty($stream_id) || empty($attendance_date) || empty($attendance_data)) {
         $_SESSION['class_attendance_error'] = "Invalid data submitted.";
         header("location: class_attendance.php");
         exit;
@@ -46,15 +46,16 @@ E stream_id = ?");
         $delete_stmt->execute();
         $delete_stmt->close();
 
-        // Add stream_id to the insert statement
-        $insert_sql = "INSERT INTO attendances (user_id, stream_id, date, status, recorded_by_id) VALUES (?, ?, ?, ?, ?)";
+        // Add stream_id and notes to the insert statement
+        $insert_sql = "INSERT INTO attendances (user_id, stream_id, date, status, notes, recorded_by_id) VALUES (?, ?, ?, ?, ?, ?)";
         $insert_stmt = $conn->prepare($insert_sql);
         $recorded_by = $_SESSION['id'];
 
         foreach ($attendance_data as $student_id => $status) {
             if (in_array($student_id, $student_ids) && !empty($status)) {
-                 $insert_stmt->bind_param("iissi", $student_id, $stream_id, $attendance_date, $status, $recorded_by);
-                 $insert_stmt->execute();
+                $note = $notes_data[$student_id] ?? ''; // Get the note for the student, default to empty string
+                $insert_stmt->bind_param("iisssi", $student_id, $stream_id, $attendance_date, $status, $note, $recorded_by);
+                $insert_stmt->execute();
             }
         }
         $insert_stmt->close();

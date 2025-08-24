@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="text-center"><input class="form-check-input" type="radio" name="attendance[${student.id}]" value="absent"></td>
                         <td class="text-center"><input class="form-check-input" type="radio" name="attendance[${student.id}]" value="late"></td>
                         <td class="text-center"><input class="form-check-input" type="radio" name="attendance[${student.id}]" value="excused"></td>
+                        <td><input type="text" name="notes[${student.id}]" class="form-control form-control-sm" placeholder="Add a note..."></td>
                     </tr>
                 `;
             });
@@ -177,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <th class="text-center">Absent</th>
                                         <th class="text-center">Late</th>
                                         <th class="text-center">Excused</th>
+                                        <th>Notes</th>
                                     </tr>
                                 </thead>
                                 <tbody>
