@@ -1,24 +1,18 @@
 <?php
-//header('Content-Type: application/json'); // Temporarily disable JSON header for debugging
+header('Content-Type: application/json');
 require_once 'config.php';
 session_start();
 
-// --- Start Debug Output ---
-header('Content-Type: text/plain');
-echo "--- API DEBUG MODE ---\n\n";
-
 // Security check: ensure user is logged in
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    echo "Error: Unauthorized. User not logged in.\n";
+    echo json_encode(['error' => 'Unauthorized']);
     exit;
 }
-echo "User is logged in. Role: " . ($_SESSION['role'] ?? 'N/A') . "\n";
 
 $stream_id = $_GET['stream_id'] ?? null;
-echo "Attempting to fetch students for stream_id: " . htmlspecialchars($stream_id) . "\n";
 
 if (!$stream_id) {
-    echo "Error: Stream ID is required.\n";
+    echo json_encode(['error' => 'Stream ID is required.']);
     exit;
 }
 
@@ -36,38 +30,22 @@ $sql = "
     ORDER BY u.last_name, u.first_name
 ";
 
-echo "SQL Query:\n" . $sql . "\n\n";
-
 $students = [];
 if ($stmt = $conn->prepare($sql)) {
-    echo "Statement prepared successfully.\n";
     $stmt->bind_param("i", $stream_id);
-    echo "Parameters bound successfully (stream_id = " . htmlspecialchars($stream_id) . ").\n";
-
-    if ($stmt->execute()) {
-        echo "Statement executed successfully.\n";
-        $result = $stmt->get_result();
-        $num_rows = $result->num_rows;
-        echo "Query returned " . $num_rows . " student(s).\n\n";
-
-        while ($row = $result->fetch_assoc()) {
-            $students[] = $row;
-        }
-
-        echo "--- Found Students ---\n";
-        print_r($students);
-
-    } else {
-        echo "Error: Statement execution failed: " . $stmt->error . "\n";
+    $stmt->execute();
+    $result = $stmt->get_result();
+    while ($row = $result->fetch_assoc()) {
+        $students[] = $row;
     }
     $stmt->close();
 } else {
-    echo "Error: Failed to prepare statement: " . $conn->error . "\n";
+    // In a production environment, log this error instead of echoing it.
+    error_log("Failed to prepare statement: " . $conn->error);
+    echo json_encode(['error' => 'A database error occurred.']);
     exit;
 }
 
+echo json_encode($students);
 $conn->close();
-
-// Temporarily commenting out the JSON output
-// echo json_encode($students);
 ?>
