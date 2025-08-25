@@ -1,6 +1,6 @@
 <?php
 // Increase execution time and memory limit for this long-running script
-set_time_limit(1800); // 30 minutes
+set_time_limit(3600); // 60 minutes
 ini_set('memory_limit', '512M');
 
 // Include Composer's autoloader
@@ -37,112 +37,110 @@ function curl_download($url, $output_file) {
     return false;
 }
 
-function find_subject_id($inferred_name, $existing_subjects) {
-    $cleaned_name = strtoupper(trim(preg_replace('/(&#8217;)|(&#038;)/', "'", $inferred_name)));
+function get_or_create_subject_id($name, $conn) {
+    $cleaned_name = trim($name);
+    if (empty($cleaned_name)) return null;
 
-    // Direct match first
-    foreach ($existing_subjects as $subject) {
-        if (strtoupper($subject['name']) === $cleaned_name) {
-            return $subject['id'];
-        }
-    }
-
-    // Keyword matching
-    $keywords = [
-        'HISTORY' => 'HISTORY',
-        'POLITICAL EDUCATION' => 'HISTORY',
-        'GEOGRAPHY' => 'GEOGRAPHY',
-        'ECONOMICS' => 'ECONOMICS',
-        'ENTREPRENEURSHIP' => 'ENTREPRENEURSHIP',
-        'BIOLOGY' => 'BIOLOGY',
-        'CHEMISTRY' => 'CHEMISTRY',
-        'PHYSICS' => 'PHYSICS',
-        'MATHEMATICS' => 'MATHEMATICS',
-        'MTC' => 'MATHEMATICS',
-        'ENGLISH' => 'ENGLISH',
-        'LITERATURE' => 'LITERATURE',
-        'KISWAHILI' => 'KISWAHILI',
-        'AGRICULTURE' => 'AGRICULTURE',
-        'ISLAMIC' => 'IRE',
-        'IRE' => 'IRE',
-        'CHRISTIAN' => 'CRE',
-        'CRE' => 'CRE',
-        'ART' => 'ART AND DESIGN',
-        'ICT' => 'ICT',
-        'PHYSICAL EDUCATION' => 'PHYSICAL EDUCATION',
-        'GENERAL SCIENCE' => 'GENERAL SCIENCE'
-    ];
-
-    foreach ($keywords as $keyword => $subject_name) {
-        if (strpos($cleaned_name, $keyword) !== false) {
-            foreach ($existing_subjects as $subject) {
-                if (strtoupper($subject['name']) === $subject_name) {
-                    return $subject['id'];
-                }
-            }
-        }
-    }
-
-    return null; // No match found
-}
-
-
-function get_class_level_id($name, $conn) {
-    $name = trim($name);
-    if (empty($name) || $name === 'Uncategorized') {
-        return null;
-    }
-    $stmt = $conn->prepare("SELECT id FROM class_levels WHERE name = ?");
-    $stmt->bind_param("s", $name);
+    $stmt = $conn->prepare("SELECT id FROM subjects WHERE name = ?");
+    $stmt->bind_param("s", $cleaned_name);
     $stmt->execute();
     $result = $stmt->get_result();
+
     if ($row = $result->fetch_assoc()) {
         $stmt->close();
         return $row['id'];
     }
     $stmt->close();
-    return null;
+
+    echo "Creating new subject: " . htmlspecialchars($cleaned_name) . "\n";
+    $code = strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $cleaned_name), 0, 4));
+
+    $original_code = $code;
+    $counter = 1;
+    while (true) {
+        $stmt_check = $conn->prepare("SELECT id FROM subjects WHERE code = ?");
+        $stmt_check->bind_param("s", $code);
+        $stmt_check->execute();
+        if ($stmt_check->get_result()->num_rows == 0) {
+            $stmt_check->close();
+            break;
+        }
+        $stmt_check->close();
+        $counter++;
+        $code = substr($original_code, 0, 3) . $counter;
+    }
+
+    $stmt_insert = $conn->prepare("INSERT INTO subjects (name, code, created_at, updated_at) VALUES (?, ?, NOW(), NOW())");
+    $stmt_insert->bind_param("ss", $cleaned_name, $code);
+    $stmt_insert->execute();
+    $new_id = $stmt_insert->insert_id;
+    $stmt_insert->close();
+
+    return $new_id;
+}
+
+function get_class_level_ids($name, $class_level_map) {
+    $name = trim($name);
+    $ids = [];
+
+    if (strtoupper($name) === 'A LEVEL') {
+        if (isset($class_level_map['S5'])) $ids[] = $class_level_map['S5'];
+        if (isset($class_level_map['S6'])) $ids[] = $class_level_map['S6'];
+    } elseif (strtoupper($name) === 'S1-S4') {
+        if (isset($class_level_map['S1'])) $ids[] = $class_level_map['S1'];
+        if (isset($class_level_map['S2'])) $ids[] = $class_level_map['S2'];
+        if (isset($class_level_map['S3'])) $ids[] = $class_level_map['S3'];
+        if (isset($class_level_map['S4'])) $ids[] = $class_level_map['S4'];
+    } else {
+        if (isset($class_level_map[$name])) $ids[] = $class_level_map[$name];
+    }
+    return $ids;
 }
 
 // --- Main Processing Logic ---
 
-echo "Starting PDF processing and database population...\n\n";
+echo "Starting FINAL PDF processing using human-verified map...\n\n";
 
-// 1. Fetch existing subjects and class levels to use for mapping
-$existing_subjects = $conn->query("SELECT id, name FROM subjects")->fetch_all(MYSQLI_ASSOC);
+// 1. Fetch existing class levels to use for mapping
 $existing_class_levels = $conn->query("SELECT id, name FROM class_levels")->fetch_all(MYSQLI_ASSOC);
 $class_level_map = array_column($existing_class_levels, 'id', 'name');
 
-
-$json_file = 'ncdc_pdfs.json';
-if (!file_exists($json_file)) die("ERROR: ncdc_pdfs.json not found.");
-$pdf_list = json_decode(file_get_contents($json_file), true);
-if (json_last_error() !== JSON_ERROR_NONE) die("ERROR: Invalid JSON. Error: " . json_last_error_msg());
-
-echo "Found " . count($pdf_list) . " PDFs to process.\n\n";
+$map_file = 'curriculum_map.csv';
+if (!file_exists($map_file)) die("ERROR: curriculum_map.csv not found.");
 
 $parser = new \Smalot\PdfParser\Parser();
+$file_handle = fopen($map_file, "r");
 
-foreach ($pdf_list as $index => $pdf_info) {
-    if (str_starts_with($pdf_info['inferred_class_level'], 'P')) {
-        continue;
-    }
+// Read header row
+fgetcsv($file_handle);
 
-    $subject_id = find_subject_id($pdf_info['inferred_subject'], $existing_subjects);
-    $class_level_id = $class_level_map[$pdf_info['inferred_class_level']] ?? null;
+while (($data = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
+    if (count($data) < 3) continue;
 
-    if ($subject_id === null || $class_level_id === null) {
-        echo "Skipping document: " . htmlspecialchars($pdf_info['original_text']) . " (Could not map Subject or Class Level)\n";
-        continue;
+    $url = trim($data[0]);
+    $subject_name = trim($data[1]);
+    $class_level_str = trim($data[2]);
+
+    if (empty($subject_name) || empty($class_level_str)) {
+        continue; // Skip rows that were not mapped by the user
     }
 
     echo "--------------------------------------------------\n";
-    echo "Processing: " . htmlspecialchars($pdf_info['original_text']) . " [Subject ID: $subject_id, Class ID: $class_level_id]\n";
+    echo "Processing: " . htmlspecialchars($url) . "\n";
+    echo "Mapping to Subject: '" . htmlspecialchars($subject_name) . "', Class(es): '" . htmlspecialchars($class_level_str) . "'\n";
+
+    $subject_id = get_or_create_subject_id($subject_name, $conn);
+    $class_level_ids = get_class_level_ids($class_level_str, $class_level_map);
+
+    if (empty($subject_id) || empty($class_level_ids)) {
+        echo "Could not map Subject or Class Level from map file. Skipping.\n";
+        continue;
+    }
 
     $temp_pdf_file = 'temp_download.pdf';
 
     echo "Downloading...";
-    if (!curl_download($pdf_info['url'], $temp_pdf_file)) {
+    if (!curl_download($url, $temp_pdf_file)) {
         echo " FAILED. Skipping.\n";
         continue;
     }
@@ -160,7 +158,6 @@ foreach ($pdf_list as $index => $pdf_info) {
         continue;
     }
 
-    // New parsing logic
     $lines = explode("\n", $text_content);
     $topics = [];
     $keywords_to_find = ['CHAPTER', 'THEME', 'SUB-CHAPTER', 'INTRODUCTION', 'PREFACE', 'ACKNOWLEDGEMENTS', 'GLOSSARY', 'REFERENCES'];
@@ -185,18 +182,22 @@ foreach ($pdf_list as $index => $pdf_info) {
         continue;
     }
 
-    echo "  - Found " . count($topics) . " potential topics. Inserting into database...\n";
+    echo "  - Found " . count($topics) . " topics. Inserting for " . count($class_level_ids) . " class level(s)...\n";
 
     $inserted_count = 0;
-    foreach($topics as $topic_title) {
-        try {
-            $stmt = $conn->prepare("INSERT INTO curriculum_topics (subject_id, class_level_id, title) VALUES (?, ?, ?)");
-            $stmt->bind_param("iis", $subject_id, $class_level_id, $topic_title);
-            $stmt->execute();
-            $stmt->close();
-            $inserted_count++;
-        } catch (Exception $e) {
-            // Ignore duplicate topic errors for now
+    foreach ($class_level_ids as $class_level_id) {
+        foreach($topics as $topic_title) {
+            try {
+                $stmt = $conn->prepare("INSERT INTO curriculum_topics (subject_id, class_level_id, title) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE title=title;");
+                $stmt->bind_param("iis", $subject_id, $class_level_id, $topic_title);
+                $stmt->execute();
+                if ($stmt->affected_rows > 0) {
+                    $inserted_count++;
+                }
+                $stmt->close();
+            } catch (Exception $e) {
+                // Error inserting, maybe log it but continue
+            }
         }
     }
     echo "    -> Successfully inserted $inserted_count new topics.\n";
@@ -204,6 +205,8 @@ foreach ($pdf_list as $index => $pdf_info) {
     unlink($temp_pdf_file);
     sleep(1);
 }
+
+fclose($file_handle);
 
 echo "\n\nProcessing finished.\n";
 echo "</pre>";
