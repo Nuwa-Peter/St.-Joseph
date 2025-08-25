@@ -14,6 +14,11 @@ body {
     background-color: var(--background-color);
     color: var(--text-color);
     font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+}
+
+main {
+    font-size: 1rem; /* 16px */
 }
 
 .navbar {
