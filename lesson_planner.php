@@ -125,7 +125,62 @@ document.addEventListener('DOMContentLoaded', function() {
     classLevelSelect.addEventListener('change', fetchTopics);
     subjectSelect.addEventListener('change', fetchTopics);
 
-    // TODO: Add event listener for topicSelect to fetch and display details
+    topicSelect.addEventListener('change', function() {
+        const topicId = this.value;
+        detailsContainer.innerHTML = '<p class="text-muted">Loading details...</p>';
+
+        if (!topicId) {
+            detailsContainer.innerHTML = '<p class="text-muted">Select a topic to view its details.</p>';
+            return;
+        }
+
+        fetch(`api_get_topic_details.php?topic_id=${topicId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    detailsContainer.innerHTML = `<p class="text-danger">Error: ${data.error}</p>`;
+                    return;
+                }
+
+                let html = '<h4>Learning Outcomes</h4>';
+                if (data.outcomes && data.outcomes.length > 0) {
+                    html += '<ul>';
+                    data.outcomes.forEach(outcome => {
+                        html += `<li>${escapeHtml(outcome.outcome_text)}</li>`;
+                    });
+                    html += '</ul>';
+                } else {
+                    html += '<p>No learning outcomes specified.</p>';
+                }
+
+                html += '<h4 class="mt-4">Suggested Activities</h4>';
+                if (data.activities && data.activities.length > 0) {
+                    data.activities.forEach(activity => {
+                        html += `<h5>${escapeHtml(activity.activity_title)}</h5>`;
+                        html += `<p><strong>Instructions:</strong> ${escapeHtml(activity.instructions || '')}</p>`;
+                        html += `<p><strong>Possible Responses:</strong> ${escapeHtml(activity.possible_responses || '')}</p>`;
+                    });
+                } else {
+                    html += '<p>No activities specified.</p>';
+                }
+
+                detailsContainer.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error fetching topic details:', error);
+                detailsContainer.innerHTML = '<p class="text-danger">Failed to load details.</p>';
+            });
+    });
+
+    function escapeHtml(unsafe) {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
 });
 </script>
 
