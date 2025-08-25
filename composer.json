@@ -13,6 +13,7 @@
         "phpoffice/phpspreadsheet": "^2.1",
         "endroid/qr-code": "^4.0",
         "hellogerard/jobby": "^3.5",
-        "smalot/pdfparser": "^2.0"
+        "smalot/pdfparser": "^2.0",
+        "vlucas/phpdotenv": "^5.6"
     }
 }
