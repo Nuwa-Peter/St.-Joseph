@@ -10,13 +10,19 @@
     }
     ?>
     <form action="login.php" method="post">
-        <div class="form-floating mb-3">
-            <input type="text" name="login_identifier" class="form-control <?php echo (!empty($login_err)) ? 'is-invalid' : ''; ?>" id="login_identifier" placeholder="Username or Email" value="<?php echo htmlspecialchars($login_identifier); ?>" required>
-            <label for="login_identifier">Username or Email</label>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+            <div class="form-floating">
+                <input type="text" name="login_identifier" class="form-control <?php echo (!empty($login_err)) ? 'is-invalid' : ''; ?>" id="login_identifier" placeholder="Username or Email" value="<?php echo htmlspecialchars($login_identifier); ?>" required>
+                <label for="login_identifier">Username or Email</label>
+            </div>
         </div>
-        <div class="form-floating mb-3">
-            <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>" id="password" placeholder="Password" required>
-            <label for="password">Password</label>
+        <div class="input-group mb-3">
+            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+            <div class="form-floating">
+                <input type="password" name="password" class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>" id="password" placeholder="Password" required>
+                <label for="password">Password</label>
+            </div>
         </div>
         <div class="d-grid">
             <button type="submit" class="btn btn-primary btn-lg">Login</button>

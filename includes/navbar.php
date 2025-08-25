@@ -13,7 +13,7 @@ $is_lab_attendant = $user_role === 'lab_attendant';
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="dashboard.php">
-            <img src="images/logo.png" alt="Logo" style="height: 40px; border-radius: 50%;">
+            <img src="images/logo.png" alt="Logo" class="navbar-logo">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>

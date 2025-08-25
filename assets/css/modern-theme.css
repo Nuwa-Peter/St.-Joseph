@@ -26,6 +26,28 @@ body {
     box-shadow: var(--box-shadow);
 }
 
+.navbar-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.input-group .form-floating {
+    flex-grow: 1;
+}
+
+.input-group-text {
+    background-color: var(--primary-color);
+    color: white;
+    border: 1px solid var(--primary-color);
+}
+
+.logo {
+    max-width: 150px;
+    height: auto;
+}
+
 .btn-primary {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
