@@ -65,6 +65,37 @@ try {
     $update_stmt->execute();
     $update_stmt->close();
 
+    // --- Create Notifications for all Staff Members ---
+    // 1. Get sender's name
+    $sender_name = $_SESSION['name'];
+
+    // 2. Get all staff members
+    $staff_ids = [];
+    $staff_sql = "SELECT id FROM users WHERE role != 'student'";
+    $staff_result = $conn->query($staff_sql);
+    while ($row = $staff_result->fetch_assoc()) {
+        $staff_ids[] = $row['id'];
+    }
+
+    // 3. Create a unique list, excluding the sender
+    if (($key = array_search($current_user_id, $staff_ids)) !== false) {
+        unset($staff_ids[$key]);
+    }
+
+    // 4. Insert notifications for each staff member
+    if (!empty($staff_ids)) {
+        $notify_sql = "INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)";
+        $notify_stmt = $conn->prepare($notify_sql);
+        $notification_message = "New message from " . $sender_name;
+        $notification_link = "messages.php?conversation_id=" . $conversation_id;
+
+        foreach ($staff_ids as $staff_id) {
+            $notify_stmt->bind_param("iss", $staff_id, $notification_message, $notification_link);
+            $notify_stmt->execute();
+        }
+        $notify_stmt->close();
+    }
+
     // Commit transaction
     $conn->commit();
 

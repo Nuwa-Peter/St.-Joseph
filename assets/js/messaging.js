@@ -129,7 +129,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const currentMessageCount = messageList.querySelectorAll('.message-bubble').length;
-            if (messages.length > currentMessageCount || !isPolling) {
+            if (messages.length > currentMessageCount) {
+                if (isPolling) {
+                    const lastMessage = messages[messages.length - 1];
+                    if (lastMessage.sender_id != currentUserId) {
+                        createMessagingToast(`New message from ${lastMessage.first_name} ${lastMessage.last_name}`);
+                    }
+                }
                 messageList.innerHTML = '';
                 messages.forEach(msg => {
                     appendMessage(msg);
@@ -271,6 +277,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Event Listeners ---
     messageForm.addEventListener('submit', handleSendMessage);
     userSearchInput.addEventListener('input', handleUserSearch);
+
+
+    /**
+     * Creates and shows a toast notification.
+     * @param {string} message
+     */
+    function createMessagingToast(message) {
+        const toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) return;
+
+        const toastEl = document.createElement('div');
+        toastEl.className = 'toast';
+        toastEl.setAttribute('role', 'alert');
+        toastEl.setAttribute('aria-live', 'assertive');
+        toastEl.setAttribute('aria-atomic', 'true');
+        toastEl.innerHTML = `
+            <div class="toast-header">
+                <i class="bi bi-chat-dots-fill me-2 text-primary"></i>
+                <strong class="me-auto">New Message</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">${message}</div>
+        `;
+        toastContainer.appendChild(toastEl);
+        const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+        toast.show();
+    }
 
 
     // --- Initial Load ---
