@@ -146,6 +146,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <a href="users.php" class="btn btn-secondary">Cancel</a>
 </form>
 
+<hr class="my-4">
+
+<?php
+// --- Admin Password Reset ---
+// Only show this section to authorized users
+$authorized_roles = ['headteacher', 'root', 'director'];
+if (in_array($_SESSION['role'], $authorized_roles)):
+?>
+    <h4 class="mb-3">Reset User Password</h4>
+    <form action="admin_update_password.php" method="post" class="needs-validation" novalidate>
+        <input type="hidden" name="user_id" value="<?php echo $user_id; ?>">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="new_password" class="form-label">New Password</label>
+                <input type="password" name="new_password" id="new_password" class="form-control" required>
+                <div class="invalid-feedback">
+                    A new password is required.
+                </div>
+            </div>
+            <div class="col-md-6 align-self-end">
+                <button type="submit" class="btn btn-warning">Set New Password</button>
+            </div>
+        </div>
+        <small class="form-text text-muted">This will immediately change the user's password. The user will be notified if they are currently logged in.</small>
+    </form>
+<?php endif; ?>
+
 <?php
 $conn->close();
 require_once 'includes/footer.php';

@@ -110,3 +110,15 @@ footer {
     padding: 5px;
     background-color: #fff;
 }
+.navbar-search-input { max-width: 200px; }
+
+/* Sticky Footer Styles */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex-grow: 1;
+}
