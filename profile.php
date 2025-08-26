@@ -142,6 +142,19 @@ require_once 'includes/header.php';
 
 <h2>User Profile</h2>
 
+<?php
+// Display success or error messages
+if (isset($_GET['update_success'])) {
+    echo "<div class='alert alert-success'>Profile updated successfully.</div>";
+}
+if (isset($_SESSION['profile_errors'])) {
+    foreach ($_SESSION['profile_errors'] as $error) {
+        echo "<div class='alert alert-danger'>".htmlspecialchars($error)."</div>";
+    }
+    unset($_SESSION['profile_errors']); // Clear errors after displaying
+}
+?>
+
 <div class="row">
     <div class="col-md-4">
         <div class="card mb-3">
@@ -174,29 +187,43 @@ require_once 'includes/header.php';
         </div>
     </div>
     <div class="col-md-8">
-        <div class="card mb-3">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-sm-3"><h6 class="mb-0">Full Name</h6></div>
-                    <div class="col-sm-9 text-secondary"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-3"><h6 class="mb-0">Email</h6></div>
-                    <div class="col-sm-9 text-secondary"><?php echo htmlspecialchars($user['email']); ?></div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-3"><h6 class="mb-0">Username</h6></div>
-                    <div class="col-sm-9 text-secondary"><?php echo htmlspecialchars($user['username']); ?></div>
-                </div>
-                <hr>
-                <div class="row">
-                    <div class="col-sm-3"><h6 class="mb-0">Role</h6></div>
-                    <div class="col-sm-9 text-secondary"><?php echo htmlspecialchars(ucfirst($user['role'])); ?></div>
+        <form action="update_profile.php" method="post">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-3"><h6 class="mb-0">Full Name</h6></div>
+                        <div class="col-sm-9 text-secondary"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></div>
+                    </div>
+                    <hr>
+                    <div class="row align-items-center">
+                        <div class="col-sm-3"><h6 class="mb-0">Email</h6></div>
+                        <div class="col-sm-9 text-secondary">
+                            <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user['email']); ?>" <?php echo !$is_own_profile ? 'readonly' : ''; ?>>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row align-items-center">
+                        <div class="col-sm-3"><h6 class="mb-0">Username</h6></div>
+                        <div class="col-sm-9 text-secondary">
+                            <input type="text" name="username" class="form-control" value="<?php echo htmlspecialchars($user['username']); ?>" <?php echo !$is_own_profile ? 'readonly' : ''; ?>>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-3"><h6 class="mb-0">Role</h6></div>
+                        <div class="col-sm-9 text-secondary"><?php echo htmlspecialchars(ucfirst($user['role'])); ?></div>
+                    </div>
+                    <?php if ($is_own_profile): ?>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <button type="submit" name="update_profile" class="btn btn-info">Update Profile</button>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
-        </div>
+        </form>
 
         <?php if ($is_own_profile): ?>
         <div class="card">

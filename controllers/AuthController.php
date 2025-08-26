@@ -62,6 +62,28 @@ class AuthController {
 
                                     // Role-based redirection
                                     if ($role === 'parent') {
+                                        // --- Parent Login Notification ---
+                                        $admin_roles_to_notify = ['root', 'director', 'headteacher'];
+                                        $admin_ids = [];
+                                        $sql_admins = "SELECT id FROM users WHERE role IN ('" . implode("','", $admin_roles_to_notify) . "')";
+                                        $result_admins = $conn->query($sql_admins);
+                                        while($row = $result_admins->fetch_assoc()) {
+                                            $admin_ids[] = $row['id'];
+                                        }
+
+                                        if(!empty($admin_ids)) {
+                                            $notification_message = "Parent " . $name . " has logged in.";
+                                            $notification_link = "profile.php?id=" . $id;
+                                            $notify_sql = "INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)";
+                                            $notify_stmt = $conn->prepare($notify_sql);
+                                            foreach($admin_ids as $admin_id) {
+                                                $notify_stmt->bind_param("iss", $admin_id, $notification_message, $notification_link);
+                                                $notify_stmt->execute();
+                                            }
+                                            $notify_stmt->close();
+                                        }
+                                        // --- End Notification ---
+
                                         header("location: parent_dashboard.php");
                                     } else {
                                         header("location: dashboard.php");

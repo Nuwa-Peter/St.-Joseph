@@ -55,37 +55,57 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // Validate email
-    if (empty($email)) {
-        $errors['email'] = "Email is required.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors['email'] = "Invalid email format.";
-    } else {
-        $sql = "SELECT id FROM users WHERE email = ?";
-        if($stmt = $conn->prepare($sql)){
-            $stmt->bind_param("s", $email);
-            $stmt->execute();
-            $stmt->store_result();
-            if($stmt->num_rows > 0) $errors['email'] = "This email is already taken.";
-            $stmt->close();
+    // Validate email only if it is not empty
+    if (!empty($email)) {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = "Invalid email format.";
+        } else {
+            $sql = "SELECT id FROM users WHERE email = ?";
+            if($stmt = $conn->prepare($sql)){
+                $stmt->bind_param("s", $email);
+                $stmt->execute();
+                $stmt->store_result();
+                if($stmt->num_rows > 0) $errors['email'] = "This email is already taken.";
+                $stmt->close();
+            }
         }
     }
 
     // Check input errors before inserting in database
     if (empty($errors)) {
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $sql = "INSERT INTO users (first_name, last_name, username, email, password, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        $conn->begin_transaction();
+        try {
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $email_to_insert = !empty($email) ? $email : null;
+            $sql = "INSERT INTO users (first_name, last_name, username, email, password, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())";
 
-        if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("ssssss", $first_name, $last_name, $username, $email, $hashed_password, $role);
-            if ($stmt->execute()) {
-                // Redirect to user list page on success
-                header("location: users.php");
-                exit();
-            } else {
-                $errors['db'] = "Database error: " . $stmt->error;
-            }
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssssss", $first_name, $last_name, $username, $email_to_insert, $hashed_password, $role);
+            $stmt->execute();
+            $new_user_id = $stmt->insert_id;
             $stmt->close();
+
+            // If the role is parent, link the selected students
+            if ($role === 'parent' && !empty($_POST['linked_student_ids'])) {
+                $linked_student_ids = explode(',', $_POST['linked_student_ids']);
+                $link_sql = "INSERT INTO parent_student (parent_id, student_id, created_at, updated_at) VALUES (?, ?, NOW(), NOW())";
+                $link_stmt = $conn->prepare($link_sql);
+                foreach ($linked_student_ids as $student_id) {
+                    if (is_numeric($student_id)) {
+                        $link_stmt->bind_param("ii", $new_user_id, $student_id);
+                        $link_stmt->execute();
+                    }
+                }
+                $link_stmt->close();
+            }
+
+            $conn->commit();
+            header("location: users.php");
+            exit();
+
+        } catch (Exception $e) {
+            $conn->rollback();
+            $errors['db'] = "An error occurred: " . $e->getMessage();
         }
     }
 }
@@ -139,11 +159,116 @@ require_once 'includes/header.php';
             <?php if(isset($errors['role'])): ?><div class="invalid-feedback"><?php echo $errors['role']; ?></div><?php endif; ?>
         </div>
     </div>
-    <button type="submit" class="btn btn-primary">Create User</button>
-    <a href="users.php" class="btn btn-secondary">Cancel</a>
+    <div id="parent-linking-section" class="card mt-4" style="display: none;">
+        <div class="card-header">
+            <h5>Link Children to Parent</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="student_search" class="form-label">Search for a student to link:</label>
+                <input type="text" class="form-control" id="student_search" placeholder="Start typing student name...">
+                <div id="student-search-results" class="list-group mt-2"></div>
+            </div>
+            <h6>Students to be linked:</h6>
+            <ul id="students-to-link-list" class="list-group">
+                <!-- Selected students will be added here by JavaScript -->
+            </ul>
+            <input type="hidden" name="linked_student_ids" id="linked_student_ids">
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-4">Create User</button>
+    <a href="users.php" class="btn btn-secondary mt-4">Cancel</a>
 </form>
 
 <?php
 $conn->close();
+?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.querySelector('select[name="role"]');
+    const parentLinkingSection = document.getElementById('parent-linking-section');
+    const studentSearchInput = document.getElementById('student_search');
+    const studentSearchResults = document.getElementById('student-search-results');
+    const studentsToLinkList = document.getElementById('students-to-link-list');
+    const linkedStudentIdsInput = document.getElementById('linked_student_ids');
+
+    let linkedStudentIds = [];
+
+    // Show/hide the linking section based on role
+    roleSelect.addEventListener('change', function() {
+        if (this.value === 'parent') {
+            parentLinkingSection.style.display = 'block';
+        } else {
+            parentLinkingSection.style.display = 'none';
+        }
+    });
+
+    // Student search logic
+    studentSearchInput.addEventListener('input', async function() {
+        const query = this.value.trim();
+        studentSearchResults.innerHTML = '';
+        if (query.length < 2) return;
+
+        try {
+            const response = await fetch(`api_live_search.php?q=${query}&context=student`);
+            const users = await response.json();
+
+            if (users.length > 0) {
+                users.forEach(user => {
+                    if (user.role === 'student' && !linkedStudentIds.includes(user.id)) {
+                        const userItem = document.createElement('a');
+                        userItem.href = '#';
+                        userItem.className = 'list-group-item list-group-item-action';
+                        userItem.textContent = `${user.first_name} ${user.last_name} (ID: ${user.id})`;
+                        userItem.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            addStudentToLinkList(user.id, this.textContent);
+                            studentSearchInput.value = '';
+                            studentSearchResults.innerHTML = '';
+                        });
+                        studentSearchResults.appendChild(userItem);
+                    }
+                });
+            } else {
+                studentSearchResults.innerHTML = '<div class="list-group-item">No students found.</div>';
+            }
+        } catch (error) {
+            console.error('Error searching for students:', error);
+        }
+    });
+
+    function addStudentToLinkList(id, name) {
+        linkedStudentIds.push(id);
+
+        const listItem = document.createElement('li');
+        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+        listItem.textContent = name;
+        listItem.dataset.studentId = id;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn-close';
+        removeBtn.addEventListener('click', function() {
+            const index = linkedStudentIds.indexOf(id);
+            if (index > -1) {
+                linkedStudentIds.splice(index, 1);
+            }
+            listItem.remove();
+            updateHiddenInput();
+        });
+
+        listItem.appendChild(removeBtn);
+        studentsToLinkList.appendChild(listItem);
+        updateHiddenInput();
+    }
+
+    function updateHiddenInput() {
+        linkedStudentIdsInput.value = linkedStudentIds.join(',');
+    }
+
+});
+</script>
+<?php
 require_once 'includes/footer.php';
 ?>
