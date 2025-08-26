@@ -168,7 +168,7 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                 <li class="nav-item me-2">
                     <div class="search-container">
                         <i class="bi bi-search"></i>
-                        <input class="form-control form-control-sm" type="search" id="live-search-input" placeholder="Search..." aria-label="Search" autocomplete="off">
+                        <input class="form-control form-control-sm" type="search" id="live-search-input" placeholder="Search..." aria-label="Search" autocomplete="off" style="width: 250px;">
                     </div>
                     <div class="list-group" id="live-search-results"></div>
                 </li>
