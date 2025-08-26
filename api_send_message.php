@@ -1,5 +1,4 @@
 <?php
-// NOTE: This script will not work until the messaging tables are created in the database.
 header('Content-Type: application/json');
 session_start();
 
@@ -22,7 +21,7 @@ $conversation_id = isset($data['conversation_id']) ? (int)$data['conversation_id
 $content = isset($data['content']) ? trim($data['content']) : '';
 
 if ($conversation_id === 0 || empty($content)) {
-    echo json_encode(['error' => 'Missing conversation ID or content.']);
+    echo json_encode(['error' => 'Client Error: Missing conversation ID or content.']);
     exit;
 }
 
@@ -33,6 +32,9 @@ try {
     // Security Check: Ensure the current user is part of this conversation.
     $check_sql = "SELECT COUNT(*) FROM conversation_participants WHERE conversation_id = ? AND user_id = ?";
     $check_stmt = $conn->prepare($check_sql);
+    if (!$check_stmt) {
+        throw new Exception("Security check preparation failed: " . $conn->error);
+    }
     $check_stmt->bind_param("ii", $conversation_id, $current_user_id);
     $check_stmt->execute();
     $check_stmt->bind_result($count);
@@ -40,14 +42,19 @@ try {
     $check_stmt->close();
 
     if ($count == 0) {
-        throw new Exception('Access denied.');
+        throw new Exception('Security Error: You are not a participant in this conversation.');
     }
 
     // Insert the new message
     $insert_sql = "INSERT INTO messages (conversation_id, sender_id, content) VALUES (?, ?, ?)";
     $insert_stmt = $conn->prepare($insert_sql);
+    if (!$insert_stmt) {
+        throw new Exception("Message insert preparation failed: " . $conn->error);
+    }
     $insert_stmt->bind_param("iis", $conversation_id, $current_user_id, $content);
-    $insert_stmt->execute();
+    if (!$insert_stmt->execute()) {
+        throw new Exception("Message insert execution failed: " . $insert_stmt->error);
+    }
     $new_message_id = $insert_stmt->insert_id;
     $insert_stmt->close();
 
@@ -74,9 +81,8 @@ try {
 
 } catch (Exception $e) {
     $conn->rollback();
-    // Use a generic error message for security. Log the actual error on the server.
     error_log('Message sending failed: ' . $e->getMessage());
-    echo json_encode(['error' => 'Could not send message. The database may not be set up yet or another error occurred.']);
+    echo json_encode(['error' => 'Failed to send message.', 'details' => $e->getMessage()]);
 }
 
 $conn->close();

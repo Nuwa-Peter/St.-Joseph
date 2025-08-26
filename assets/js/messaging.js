@@ -21,17 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Main Functions ---
 
     /**
-     * Ensures the Staff Members group chat exists.
-     */
-    async function ensureStaffGroupExists() {
-        try {
-            await fetch('api_get_or_create_staff_group.php');
-        } catch (error) {
-            console.error('Error ensuring staff group exists:', error);
-        }
-    }
-
-    /**
      * Fetches conversations and renders them in the side panel.
      */
     async function loadConversations() {
@@ -199,11 +188,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 messageInput.value = '';
                 loadConversations(); // Reload convos to show updated last message
             } else {
-                console.error('Error sending message:', result.error);
-                alert('Failed to send message.');
+                console.error('Error sending message:', result.error, result.details);
+                alert('Failed to send message: ' + (result.details || result.error));
             }
         } catch (error) {
             console.error('Error sending message:', error);
+            alert('A network error occurred while trying to send the message.');
         }
     }
 
@@ -284,10 +274,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- Initial Load ---
-    async function initialize() {
-        await ensureStaffGroupExists();
-        loadConversations();
-    }
-
-    initialize();
+    loadConversations();
 });
