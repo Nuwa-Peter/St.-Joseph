@@ -4,3 +4,5 @@ composer.phar
 composer
 composer-setup.php
 composer.lock
+*.pdf
+*.rar

@@ -165,10 +165,10 @@ $is_lab_attendant = $user_role === 'lab_attendant';
             <!-- Right-aligned items -->
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
                 <!-- Search Bar -->
-                <li class="nav-item me-2 search-bar-container">
-                     <div class="input-group">
-                        <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
-                        <input class="form-control form-control-sm" type="search" id="live-search-input" placeholder="Search" aria-label="Search" autocomplete="off">
+                <li class="nav-item me-2">
+                    <div class="search-container">
+                        <i class="bi bi-search"></i>
+                        <input class="form-control form-control-sm" type="search" id="live-search-input" placeholder="Search..." aria-label="Search" autocomplete="off">
                     </div>
                     <div class="list-group" id="live-search-results"></div>
                 </li>

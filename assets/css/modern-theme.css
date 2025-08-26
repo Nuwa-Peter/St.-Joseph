@@ -13,7 +13,7 @@
 body {
     background-color: var(--background-color);
     color: var(--text-color);
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Inter', sans-serif;
 }
 
 .navbar {
@@ -28,6 +28,22 @@ body {
     border: none;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
+}
+
+.search-container {
+    position: relative;
+}
+
+.search-container .bi-search {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+}
+
+.search-container .form-control {
+    padding-left: 35px;
 }
 
 .navbar-logo {
