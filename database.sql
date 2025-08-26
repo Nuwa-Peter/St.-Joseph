@@ -1677,3 +1677,43 @@ CREATE TABLE IF NOT EXISTS `messages` (
   CONSTRAINT `fk_messages_convo` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Tables for Homework & Assignment Management
+--
+
+CREATE TABLE `assignments` (
+  `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` VARCHAR(255) NOT NULL,
+  `description` TEXT NULL,
+  `stream_id` BIGINT(20) UNSIGNED NOT NULL,
+  `subject_id` BIGINT(20) UNSIGNED NOT NULL,
+  `teacher_id` BIGINT(20) UNSIGNED NOT NULL,
+  `due_date` DATETIME NULL,
+  `file_path` VARCHAR(255) NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`id`),
+  KEY `assignments_stream_id_foreign` (`stream_id`),
+  KEY `assignments_subject_id_foreign` (`subject_id`),
+  KEY `assignments_teacher_id_foreign` (`teacher_id`),
+  CONSTRAINT `assignments_stream_id_foreign` FOREIGN KEY (`stream_id`) REFERENCES `streams` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `assignments_subject_id_foreign` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `assignments_teacher_id_foreign` FOREIGN KEY (`teacher_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `assignment_submissions` (
+  `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `assignment_id` BIGINT(20) UNSIGNED NOT NULL,
+  `student_id` BIGINT(20) UNSIGNED NOT NULL,
+  `submission_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  `file_path` VARCHAR(255) NOT NULL,
+  `grade` VARCHAR(255) NULL,
+  `feedback` TEXT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `assignment_student_unique` (`assignment_id`, `student_id`),
+  CONSTRAINT `assignment_submissions_assignment_id_foreign` FOREIGN KEY (`assignment_id`) REFERENCES `assignments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `assignment_submissions_student_id_foreign` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -40,13 +40,25 @@ $admin_roles = ['root', 'headteacher', 'director']; // Assuming director is an a
 
     } elseif ($user_role === 'teacher') {
         // --- Teacher Dashboard ---
+        echo '<div class="row">';
+        echo '<div class="col-lg-8">';
         include 'widgets/teacher_classes.php';
-        // You can include other teacher-specific widgets here
+        echo '</div>';
+        echo '<div class="col-lg-4">';
+        include 'widgets/upcoming_assignments.php';
+        echo '</div>';
+        echo '</div>';
 
     } elseif ($user_role === 'student') {
         // --- Student Dashboard ---
+        echo '<div class="row">';
+        echo '<div class="col-lg-8">';
         include 'widgets/student_grades_summary.php';
-        // You can include other student-specific widgets here
+        echo '</div>';
+        echo '<div class="col-lg-4">';
+        include 'widgets/upcoming_assignments.php';
+        echo '</div>';
+        echo '</div>';
 
     } else {
         // --- Default Dashboard for other roles ---

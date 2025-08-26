@@ -49,9 +49,14 @@ $is_parent = $user_role === 'parent';
                         <i class="bi bi-journal-bookmark me-1"></i> Academics
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="academicsDropdown">
+                        <?php $is_student = $_SESSION['role'] === 'student'; ?>
+                        <?php if ($is_student): ?>
+                            <li><a class="dropdown-item" href="student_assignments_view.php">My Assignments</a></li>
+                        <?php endif; ?>
                         <li><a class="dropdown-item" href="class_levels.php">Classes & Streams</a></li>
                         <li><a class="dropdown-item" href="subjects.php">Subjects</a></li>
                         <li><a class="dropdown-item" href="lesson_planner.php">Lesson Planner</a></li>
+                        <li><a class="dropdown-item" href="assignments.php">Assignments</a></li>
                         <?php if ($is_admin): ?>
                         <li><a class="dropdown-item" href="assign_subjects_to_stream.php">Assign Subjects to Stream</a></li>
                         <?php endif; ?>
