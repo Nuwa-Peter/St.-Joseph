@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             // Using the existing live search API
-            const response = await fetch(`api_live_search.php?query=${query}&context=user`);
+            const response = await fetch(`api_live_search.php?q=${query}`);
             const users = await response.json();
 
             userSearchResults.innerHTML = '';
