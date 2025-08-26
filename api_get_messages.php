@@ -45,17 +45,24 @@ if ($update_stmt = $conn->prepare($update_sql)) {
 }
 // We don't stop if this fails, as fetching is the primary goal.
 
-// Fetch all messages for the conversation, joining with users to get sender details.
+// Fetch all messages for the conversation, joining with users to get sender details
+// and also joining with the messages table again to get the content of any replied-to message.
 $messages_sql = "
     SELECT
         m.id,
         m.sender_id,
         m.content,
         m.created_at,
+        m.reply_to_message_id,
         u.first_name,
-        u.last_name
+        u.last_name,
+        replied_to.content AS replied_to_content,
+        replied_to_sender.first_name AS replied_to_sender_first_name,
+        replied_to_sender.last_name AS replied_to_sender_last_name
     FROM messages m
     JOIN users u ON m.sender_id = u.id
+    LEFT JOIN messages replied_to ON m.reply_to_message_id = replied_to.id
+    LEFT JOIN users replied_to_sender ON replied_to.sender_id = replied_to_sender.id
     WHERE m.conversation_id = ?
     ORDER BY m.created_at ASC;
 ";

@@ -19,6 +19,7 @@ $data = json_decode(file_get_contents('php://input'), true);
 
 $conversation_id = isset($data['conversation_id']) ? (int)$data['conversation_id'] : 0;
 $content = isset($data['content']) ? trim($data['content']) : '';
+$reply_to_message_id = isset($data['reply_to_message_id']) ? (int)$data['reply_to_message_id'] : null;
 
 if ($conversation_id === 0 || empty($content)) {
     echo json_encode(['error' => 'Client Error: Missing conversation ID or content.']);
@@ -46,12 +47,12 @@ try {
     }
 
     // Insert the new message
-    $insert_sql = "INSERT INTO messages (conversation_id, sender_id, content) VALUES (?, ?, ?)";
+    $insert_sql = "INSERT INTO messages (conversation_id, sender_id, content, reply_to_message_id) VALUES (?, ?, ?, ?)";
     $insert_stmt = $conn->prepare($insert_sql);
     if (!$insert_stmt) {
         throw new Exception("Message insert preparation failed: " . $conn->error);
     }
-    $insert_stmt->bind_param("iis", $conversation_id, $current_user_id, $content);
+    $insert_stmt->bind_param("iisi", $conversation_id, $current_user_id, $content, $reply_to_message_id);
     if (!$insert_stmt->execute()) {
         throw new Exception("Message insert execution failed: " . $insert_stmt->error);
     }

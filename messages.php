@@ -41,6 +41,15 @@ require_once 'includes/header.php';
                     <!-- Messages will be loaded here by JS -->
                 </div>
                 <div class="p-3 bg-light border-top">
+                    <div id="reply-context-container" class="d-none alert alert-secondary p-2 mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-truncate">
+                                <small class="text-muted">Replying to:</small>
+                                <em id="reply-context-text"></em>
+                            </div>
+                            <button type="button" class="btn-close btn-sm" id="cancel-reply-btn" aria-label="Close"></button>
+                        </div>
+                    </div>
                     <form id="message-form">
                         <div class="input-group">
                             <input type="text" id="message-input" class="form-control" placeholder="Type a message..." autocomplete="off" disabled>

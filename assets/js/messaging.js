@@ -19,7 +19,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentConversationId = null;
     let currentConversationInfo = { name: '', isGroup: false };
+    let replyingToMessageId = null;
     let messagePollingInterval = null;
+
+    const replyContextContainer = document.getElementById('reply-context-container');
+    const replyContextText = document.getElementById('reply-context-text');
+    const cancelReplyBtn = document.getElementById('cancel-reply-btn');
+
 
     // --- Main Functions ---
 
@@ -167,12 +173,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
         messageWrapper.className = `d-flex flex-column mb-3 ${isCurrentUser ? 'align-items-end' : 'align-items-start'}`;
 
+        const replyButtonHtml = `
+            <button class="btn btn-sm btn-outline-secondary ms-2 reply-message-btn" data-message-id="${message.id}" title="Reply to Message">
+                <i class="bi bi-reply-fill"></i>
+            </button>`;
+
         const deleteButtonHtml = isAdmin ?
-            `<button class="btn btn-sm btn-outline-danger ms-2 delete-message-btn" data-message-id="${message.id}" title="Delete Message">
+            `<button class="btn btn-sm btn-outline-danger ms-1 delete-message-btn" data-message-id="${message.id}" title="Delete Message">
                 <i class="bi bi-trash-fill"></i>
             </button>` : '';
 
+        const replyContextHtml = message.reply_to_message_id ? `
+            <div class="reply-context p-2 mb-1 rounded" style="background-color: #f0f0f0; border-left: 3px solid #0d6efd;">
+                <div class="fw-bold small">${message.replied_to_sender_first_name} ${message.replied_to_sender_last_name}</div>
+                <div class="text-muted small text-truncate">${message.replied_to_content}</div>
+            </div>
+        ` : '';
+
         messageWrapper.innerHTML = `
+            ${replyContextHtml}
             <div class="sender-name small text-muted mb-1">
                 ${isCurrentUser ? 'You' : `${message.first_name} ${message.last_name}`}
             </div>
@@ -183,7 +202,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                 </div>
-                ${deleteButtonHtml}
+                <div class="message-actions d-flex">
+                    ${replyButtonHtml}
+                    ${deleteButtonHtml}
+                </div>
             </div>
         `;
         messageList.appendChild(messageWrapper);
@@ -199,7 +221,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const messageData = {
             conversation_id: currentConversationId,
-            content: content
+            content: content,
+            reply_to_message_id: replyingToMessageId
         };
 
         try {
@@ -214,6 +237,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 appendMessage(result.message);
                 scrollToBottom();
                 messageInput.value = '';
+                // Hide and reset reply context
+                replyingToMessageId = null;
+                replyContextContainer.classList.add('d-none');
                 loadConversations(); // Reload convos to show updated last message
             } else {
                 console.error('Error sending message:', result.error, result.details);
@@ -300,15 +326,31 @@ document.addEventListener('DOMContentLoaded', function() {
     messageForm.addEventListener('submit', handleSendMessage);
     userSearchInput.addEventListener('input', handleUserSearch);
 
-    // Use event delegation for delete buttons on dynamically added messages
+    // Use event delegation for delete and reply buttons on dynamically added messages
     messageList.addEventListener('click', function(e) {
-        const deleteButton = e.target.closest('.delete-message-btn');
-        if (deleteButton) {
-            const messageId = deleteButton.dataset.messageId;
+        const targetButton = e.target.closest('button');
+        if (!targetButton) return;
+
+        if (targetButton.classList.contains('delete-message-btn')) {
+            const messageId = targetButton.dataset.messageId;
             if (confirm('Are you sure you want to delete this message permanently?')) {
-                deleteMessage(messageId, deleteButton.closest('.d-flex.flex-column'));
+                deleteMessage(messageId, targetButton.closest('.d-flex.flex-column'));
             }
+        } else if (targetButton.classList.contains('reply-message-btn')) {
+            const messageElement = targetButton.closest('.d-flex.flex-column');
+            const messageContent = messageElement.querySelector('.message-content').textContent;
+
+            replyingToMessageId = targetButton.dataset.messageId;
+            replyContextText.textContent = messageContent;
+            replyContextContainer.classList.remove('d-none');
+            messageInput.focus();
         }
+    });
+
+    // Event listener for cancelling a reply
+    cancelReplyBtn.addEventListener('click', function() {
+        replyingToMessageId = null;
+        replyContextContainer.classList.add('d-none');
     });
 
     /**
