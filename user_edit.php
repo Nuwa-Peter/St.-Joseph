@@ -11,6 +11,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 $errors = [];
 $user_id = 0;
 $first_name = $last_name = $username = $email = $role = $status = "";
+$linked_children = [];
 
 if (isset($_GET['id']) && !empty(trim($_GET['id']))) {
     $user_id = trim($_GET['id']);
@@ -27,6 +28,20 @@ if (isset($_GET['id']) && !empty(trim($_GET['id']))) {
                 $email = $user['email'];
                 $role = $user['role'];
                 $status = $user['status'];
+
+                // If the user is a parent, fetch their linked children
+                if ($role === 'parent') {
+                    $children_sql = "SELECT u.id, u.first_name, u.last_name FROM parent_student ps JOIN users u ON ps.student_id = u.id WHERE ps.parent_id = ?";
+                    if ($children_stmt = $conn->prepare($children_sql)) {
+                        $children_stmt->bind_param("i", $user_id);
+                        $children_stmt->execute();
+                        $children_result = $children_stmt->get_result();
+                        while ($child_row = $children_result->fetch_assoc()) {
+                            $linked_children[] = $child_row;
+                        }
+                        $children_stmt->close();
+                    }
+                }
             } else { exit("User not found."); }
         }
         $stmt->close();
@@ -148,6 +163,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <hr class="my-4">
 
+<?php if ($role === 'parent'): ?>
+<div class="card">
+    <div class="card-header">
+        <h4>Manage Children</h4>
+    </div>
+    <div class="card-body">
+        <h5>Linked Children</h5>
+        <?php if (empty($linked_children)): ?>
+            <p>No children are currently linked to this parent.</p>
+        <?php else: ?>
+            <ul class="list-group mb-3">
+                <?php foreach ($linked_children as $child): ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <?php echo htmlspecialchars($child['first_name'] . ' ' . $child['last_name']); ?>
+                        <a href="unlink_student_from_parent.php?parent_id=<?php echo $user_id; ?>&student_id=<?php echo $child['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to unlink this child?');">Unlink</a>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+
+        <hr>
+
+        <h5>Link New Child</h5>
+        <form action="link_student_to_parent.php" method="post">
+            <input type="hidden" name="parent_id" value="<?php echo $user_id; ?>">
+            <div class="mb-3">
+                <label for="student_search" class="form-label">Search for a student to link:</label>
+                <input type="text" class="form-control" id="student_search" name="student_search" placeholder="Start typing student name...">
+                <div id="student-search-results" class="list-group mt-2"></div>
+                <input type="hidden" name="student_id" id="selected_student_id">
+            </div>
+            <button type="submit" class="btn btn-success" id="link-student-btn" disabled>Link Student</button>
+        </form>
+    </div>
+</div>
+<?php endif; ?>
+
+
+<hr class="my-4">
+
 <?php
 // --- Admin Password Reset ---
 // Only show this section to authorized users
@@ -175,5 +230,59 @@ if (in_array($_SESSION['role'], $authorized_roles)):
 
 <?php
 $conn->close();
+?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const studentSearchInput = document.getElementById('student_search');
+    const studentSearchResults = document.getElementById('student-search-results');
+    const selectedStudentIdInput = document.getElementById('selected_student_id');
+    const linkStudentBtn = document.getElementById('link-student-btn');
+
+    if (studentSearchInput) {
+        studentSearchInput.addEventListener('input', async function() {
+            const query = this.value.trim();
+            studentSearchResults.innerHTML = '';
+            linkStudentBtn.disabled = true;
+
+            if (query.length < 2) {
+                return;
+            }
+
+            try {
+                // Use the existing live search API, but specify a 'student' context
+                const response = await fetch(`api_live_search.php?q=${query}&context=student`);
+                const users = await response.json();
+
+                if (users.length > 0) {
+                    users.forEach(user => {
+                        // Ensure we only show students if the API returns mixed results
+                        if (user.role === 'student') {
+                            const userItem = document.createElement('a');
+                            userItem.href = '#';
+                            userItem.className = 'list-group-item list-group-item-action';
+                            userItem.textContent = `${user.first_name} ${user.last_name} (ID: ${user.id})`;
+                            userItem.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                studentSearchInput.value = this.textContent;
+                                selectedStudentIdInput.value = user.id;
+                                studentSearchResults.innerHTML = '';
+                                linkStudentBtn.disabled = false;
+                            });
+                            studentSearchResults.appendChild(userItem);
+                        }
+                    });
+                } else {
+                    studentSearchResults.innerHTML = '<div class="list-group-item">No students found.</div>';
+                }
+            } catch (error) {
+                console.error('Error searching for students:', error);
+            }
+        });
+    }
+});
+</script>
+
+<?php
 require_once 'includes/footer.php';
 ?>

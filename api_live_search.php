@@ -11,6 +11,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 }
 
 $search_query = $_GET['q'] ?? '';
+$context = $_GET['context'] ?? '';
 $results = [];
 
 // Only search if the query is not empty and has a reasonable length
@@ -24,18 +25,26 @@ if (strlen(trim($search_query)) > 1) {
             FROM
                 users
             WHERE
-                first_name LIKE ? OR
+                (first_name LIKE ? OR
                 last_name LIKE ? OR
                 username LIKE ? OR
                 email LIKE ? OR
-                lin LIKE ?
-            LIMIT 10"; // Limit to 10 suggestions for performance
+                lin LIKE ?)";
+
+    $params = ["%{$search_query}%", "%{$search_query}%", "%{$search_query}%", "%{$search_query}%", "%{$search_query}%"];
+    $types = "sssss";
+
+    if ($context === 'student') {
+        $sql .= " AND role = ?";
+        $params[] = 'student';
+        $types .= "s";
+    }
+
+    $sql .= " LIMIT 10"; // Limit to 10 suggestions for performance
 
     $stmt = $conn->prepare($sql);
     if ($stmt) {
-        $search_term = "%{$search_query}%";
-        $stmt->bind_param("sssss", $search_term, $search_term, $search_term, $search_term, $search_term);
-
+        $stmt->bind_param($types, ...$params);
         $stmt->execute();
         $result = $stmt->get_result();
         $results = $result->fetch_all(MYSQLI_ASSOC);
