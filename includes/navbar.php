@@ -207,7 +207,7 @@ $is_lab_attendant = $user_role === 'lab_attendant';
 </nav>
 
 <!-- Toast Container from original navbar -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+<div class="toast-container position-fixed top-0 end-0 p-3"></div>
 
 <!-- All JS from original navbar -->
 <script>

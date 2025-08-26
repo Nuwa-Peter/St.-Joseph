@@ -10,12 +10,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatAvatar = document.getElementById('chat-avatar');
     const messagingApp = document.getElementById('messaging-app');
     const currentUserId = messagingApp.dataset.userId;
+    const currentUserRole = messagingApp.dataset.userRole;
+    const adminRoles = ['headteacher', 'root', 'director'];
 
     const newUserModal = new bootstrap.Modal(document.getElementById('new-conversation-modal'));
     const userSearchInput = document.getElementById('user-search-input');
     const userSearchResults = document.getElementById('user-search-results');
 
     let currentConversationId = null;
+    let currentConversationInfo = { name: '', isGroup: false };
     let messagePollingInterval = null;
 
     // --- Main Functions ---
@@ -68,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     convoItem.addEventListener('click', (e) => {
                         e.preventDefault();
                         const avatarContent = convo.is_group ? '<i class="bi bi-people-fill"></i>' : initials;
-                        selectConversation(convo.conversation_id, convo.display_name, avatarContent);
+                        selectConversation(convo.conversation_id, convo.display_name, avatarContent, convo.is_group);
                     });
                     conversationList.appendChild(convoItem);
                 });
@@ -84,9 +87,11 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {number} conversationId
      * @param {string} displayName
      * @param {string} avatarContent - Can be initials or an icon's HTML
+     * @param {boolean} isGroup
      */
-    function selectConversation(conversationId, displayName, avatarContent) {
+    function selectConversation(conversationId, displayName, avatarContent, isGroup) {
         currentConversationId = conversationId;
+        currentConversationInfo = { name: displayName, isGroup: isGroup };
 
         // UI updates
         chatWindow.classList.remove('d-none');
@@ -133,7 +138,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isPolling) {
                     const lastMessage = messages[messages.length - 1];
                     if (lastMessage.sender_id != currentUserId) {
-                        createMessagingToast(`New message from ${lastMessage.first_name} ${lastMessage.last_name}`);
+                        let toastMessage = `New message from ${lastMessage.first_name} ${lastMessage.last_name}`;
+                        if (currentConversationInfo.isGroup) {
+                            toastMessage += ` in ${currentConversationInfo.name}`;
+                        }
+                        createMessagingToast(toastMessage);
                     }
                 }
                 messageList.innerHTML = '';
@@ -154,14 +163,27 @@ document.addEventListener('DOMContentLoaded', function() {
     function appendMessage(message) {
         const messageWrapper = document.createElement('div');
         const isCurrentUser = message.sender_id == currentUserId;
+        const isAdmin = adminRoles.includes(currentUserRole);
 
-        messageWrapper.className = `d-flex mb-3 ${isCurrentUser ? 'justify-content-end' : 'justify-content-start'}`;
+        messageWrapper.className = `d-flex flex-column mb-3 ${isCurrentUser ? 'align-items-end' : 'align-items-start'}`;
+
+        const deleteButtonHtml = isAdmin ?
+            `<button class="btn btn-sm btn-outline-danger ms-2 delete-message-btn" data-message-id="${message.id}" title="Delete Message">
+                <i class="bi bi-trash-fill"></i>
+            </button>` : '';
+
         messageWrapper.innerHTML = `
-            <div class="message-bubble p-2 rounded ${isCurrentUser ? 'bg-primary text-white' : 'bg-light'}">
-                <div class="message-content">${message.content}</div>
-                <div class="message-timestamp small text-muted mt-1" style="font-size: 0.75rem;">
-                    ${new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <div class="sender-name small text-muted mb-1">
+                ${isCurrentUser ? 'You' : `${message.first_name} ${message.last_name}`}
+            </div>
+            <div class="d-flex align-items-center">
+                <div class="message-bubble p-2 rounded ${isCurrentUser ? 'bg-primary text-white' : 'bg-light'}">
+                    <div class="message-content">${message.content}</div>
+                    <div class="message-timestamp small text-muted mt-1" style="font-size: 0.75rem;">
+                        ${new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
                 </div>
+                ${deleteButtonHtml}
             </div>
         `;
         messageList.appendChild(messageWrapper);
@@ -277,6 +299,43 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Event Listeners ---
     messageForm.addEventListener('submit', handleSendMessage);
     userSearchInput.addEventListener('input', handleUserSearch);
+
+    // Use event delegation for delete buttons on dynamically added messages
+    messageList.addEventListener('click', function(e) {
+        const deleteButton = e.target.closest('.delete-message-btn');
+        if (deleteButton) {
+            const messageId = deleteButton.dataset.messageId;
+            if (confirm('Are you sure you want to delete this message permanently?')) {
+                deleteMessage(messageId, deleteButton.closest('.d-flex.flex-column'));
+            }
+        }
+    });
+
+    /**
+     * Deletes a message via API call and removes it from the UI.
+     * @param {number} messageId
+     * @param {HTMLElement} messageElement
+     */
+    async function deleteMessage(messageId, messageElement) {
+        try {
+            const response = await fetch('api_delete_message.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message_id: messageId })
+            });
+            const result = await response.json();
+            if (result.success) {
+                messageElement.remove();
+                // Optionally, show a success toast
+                createMessagingToast('Message deleted.');
+            } else {
+                alert('Error deleting message: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting message:', error);
+            alert('A network error occurred while trying to delete the message.');
+        }
+    }
 
 
     /**

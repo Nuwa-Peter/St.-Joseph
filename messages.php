@@ -9,10 +9,10 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 require_once 'includes/header.php';
 ?>
 
-<div class="container-fluid" id="messaging-app" data-user-id="<?php echo htmlspecialchars($_SESSION['id']); ?>" style="height: calc(100vh - 70px);">
-    <div class="row h-100">
+<div class="container mt-4" id="messaging-app" data-user-id="<?php echo htmlspecialchars($_SESSION['id']); ?>" data-user-role="<?php echo htmlspecialchars($_SESSION['role']); ?>">
+    <div class="row" style="height: 75vh; border: 1px solid #dee2e6; border-radius: 0.3rem;">
         <!-- Left Column: Conversations List -->
-        <div class="col-md-4 border-end h-100 d-flex flex-column">
+        <div class="col-md-4 border-end d-flex flex-column">
             <div class="p-3 d-flex justify-content-between align-items-center border-bottom">
                 <h4 class="mb-0">Conversations</h4>
                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#new-conversation-modal">
