@@ -4,19 +4,20 @@ $teacher_id = $_SESSION['id'];
 $assignments = [];
 
 // Fetch all streams and subjects assigned to the logged-in teacher.
-// This assumes a `teacher_assignments` table linking teachers to stream-subject combinations.
-// A more normalized schema might have a `stream_subject` table and a `teacher_id` on that.
-// Let's assume the table is `teacher_assignments` with user_id, stream_id, subject_id.
-$sql = "SELECT
+$sql = "SELECT DISTINCT
+            s.id as subject_id,
+            st.id as stream_id,
+            s.name AS subject_name,
             st.name AS stream_name,
-            sub.name AS subject_name,
             cl.name as class_level_name
-        FROM teacher_assignments ta
-        JOIN streams st ON ta.stream_id = st.id
-        JOIN subjects sub ON ta.subject_id = sub.id
+        FROM paper_stream_user psu
+        JOIN users u ON psu.user_id = u.id
+        JOIN papers p ON psu.paper_id = p.id
+        JOIN subjects s ON p.subject_id = s.id
+        JOIN streams st ON psu.stream_id = st.id
         JOIN class_levels cl ON st.class_level_id = cl.id
-        WHERE ta.user_id = ?
-        ORDER BY cl.name, st.name, sub.name";
+        WHERE psu.user_id = ?
+        ORDER BY cl.name, st.name, s.name";
 
 if ($stmt = $conn->prepare($sql)) {
     $stmt->bind_param("i", $teacher_id);
@@ -47,8 +48,8 @@ if ($stmt = $conn->prepare($sql)) {
                             <span class="fw-bold">Class:</span> <?php echo htmlspecialchars($assignment['class_level_name']); ?> - <?php echo htmlspecialchars($assignment['stream_name']); ?>
                         </p>
                         <small>
-                            <a href="class_attendance.php?stream_id=...">Take Attendance</a> |
-                            <a href="marks_entry.php?stream_id=...&subject_id=...">Enter Marks</a>
+                            <a href="class_attendance.php?stream_id=<?php echo $assignment['stream_id']; ?>">Take Attendance</a> |
+                            <a href="marks_entry.php?stream_id=<?php echo $assignment['stream_id']; ?>&subject_id=<?php echo $assignment['subject_id']; ?>">Enter Marks</a>
                         </small>
                     </div>
                 <?php endforeach; ?>
