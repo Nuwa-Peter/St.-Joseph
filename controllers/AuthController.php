@@ -60,7 +60,12 @@ class AuthController {
                                     $_SESSION["initials"] = $initials;
                                     $_SESSION["role"] = $role;
 
-                                    header("location: dashboard.php");
+                                    // Role-based redirection
+                                    if ($role === 'parent') {
+                                        header("location: parent_dashboard.php");
+                                    } else {
+                                        header("location: dashboard.php");
+                                    }
                                     exit;
                                 } else {
                                     $data['login_err'] = "Invalid username/email or password.";

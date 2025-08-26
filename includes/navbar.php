@@ -9,10 +9,11 @@ $finance_roles = ['bursar', 'headteacher', 'root'];
 $is_admin = in_array($user_role, $admin_roles);
 $is_finance_user = in_array($user_role, $finance_roles);
 $is_lab_attendant = $user_role === 'lab_attendant';
+$is_parent = $user_role === 'parent';
 ?>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="dashboard.php">
+        <a class="navbar-brand" href="<?php echo $is_parent ? 'parent_dashboard.php' : 'dashboard.php'; ?>">
             <img src="images/logo.png" alt="Logo" class="navbar-logo">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,9 +23,10 @@ $is_lab_attendant = $user_role === 'lab_attendant';
             <!-- Main Navigation Links -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link" href="dashboard.php"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+                    <a class="nav-link" href="<?php echo $is_parent ? 'parent_dashboard.php' : 'dashboard.php'; ?>"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
                 </li>
 
+                <?php if (!$is_parent): // Hide most links from parents ?>
                 <!-- Attendance Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="attendanceDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -160,6 +162,7 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                     </ul>
                 </li>
                 <?php endif; ?>
+                <?php endif; // End parent check ?>
             </ul>
 
             <!-- Right-aligned items -->
