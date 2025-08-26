@@ -20,6 +20,10 @@ body {
     box-shadow: var(--box-shadow);
 }
 
+.navbar .nav-link {
+    font-size: 0.9rem;
+}
+
 .card {
     border: none;
     border-radius: var(--border-radius);
