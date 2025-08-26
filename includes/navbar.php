@@ -141,7 +141,7 @@ $is_lab_attendant = $user_role === 'lab_attendant';
                         <li><a class="dropdown-item" href="teachers.php">Teachers</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header">Communications</h6></li>
-                        <li><a class="dropdown-item" href="#">Social Chat</a></li>
+                        <li><a class="dropdown-item" href="messages.php">Social Chat</a></li>
                         <li><a class="dropdown-item" href="#">Bulk SMS</a></li>
                         <li><a class="dropdown-item" href="announcements.php">Announcements</a></li>
                     </ul>
