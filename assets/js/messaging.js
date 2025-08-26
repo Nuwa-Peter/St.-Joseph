@@ -21,6 +21,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Main Functions ---
 
     /**
+     * Ensures the Staff Members group chat exists.
+     */
+    async function ensureStaffGroupExists() {
+        try {
+            await fetch('api_get_or_create_staff_group.php');
+        } catch (error) {
+            console.error('Error ensuring staff group exists:', error);
+        }
+    }
+
+    /**
      * Fetches conversations and renders them in the side panel.
      */
     async function loadConversations() {
@@ -42,16 +53,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     convoItem.href = '#';
                     convoItem.className = 'list-group-item list-group-item-action';
                     convoItem.dataset.conversationId = convo.conversation_id;
-                    convoItem.dataset.participantName = `${convo.first_name} ${convo.last_name}`;
+                    convoItem.dataset.displayName = convo.display_name;
 
-                    const initials = (convo.first_name.charAt(0) + convo.last_name.charAt(0)).toUpperCase();
+                    let initials;
+                    if (convo.is_group) {
+                        initials = convo.display_name.split(' ').map(n => n[0]).join('').toUpperCase();
+                    } else {
+                        // For 1-on-1, display_name is the full name.
+                        const nameParts = convo.display_name.split(' ');
+                        initials = (nameParts[0].charAt(0) + (nameParts[1] ? nameParts[1].charAt(0) : '')).toUpperCase();
+                    }
 
                     convoItem.innerHTML = `
                         <div class="d-flex w-100 justify-content-between">
                             <div class="d-flex align-items-center">
-                                <div class="avatar-initials-sm me-3">${initials}</div>
+                                <div class="avatar-initials-sm me-3">${convo.is_group ? '<i class="bi bi-people-fill"></i>' : initials}</div>
                                 <div class="flex-grow-1">
-                                    <h6 class="mb-1">${convo.first_name} ${convo.last_name}</h6>
+                                    <h6 class="mb-1">${convo.display_name}</h6>
                                     <small class="text-muted text-truncate" style="max-width: 200px;">${convo.last_message || 'No messages yet'}</small>
                                 </div>
                             </div>
@@ -60,7 +78,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                     convoItem.addEventListener('click', (e) => {
                         e.preventDefault();
-                        selectConversation(convo.conversation_id, `${convo.first_name} ${convo.last_name}`, initials);
+                        const avatarContent = convo.is_group ? '<i class="bi bi-people-fill"></i>' : initials;
+                        selectConversation(convo.conversation_id, convo.display_name, avatarContent);
                     });
                     conversationList.appendChild(convoItem);
                 });
@@ -74,17 +93,17 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * Selects a conversation, loads its messages, and displays the chat window.
      * @param {number} conversationId
-     * @param {string} participantName
-     * @param {string} initials
+     * @param {string} displayName
+     * @param {string} avatarContent - Can be initials or an icon's HTML
      */
-    function selectConversation(conversationId, participantName, initials) {
+    function selectConversation(conversationId, displayName, avatarContent) {
         currentConversationId = conversationId;
 
         // UI updates
         chatWindow.classList.remove('d-none');
         noConversationSelected.classList.add('d-none');
-        chatHeader.textContent = participantName;
-        chatAvatar.textContent = initials;
+        chatHeader.textContent = displayName;
+        chatAvatar.innerHTML = avatarContent;
         messageInput.disabled = false;
         sendButton.disabled = false;
 
@@ -265,5 +284,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- Initial Load ---
-    loadConversations();
+    async function initialize() {
+        await ensureStaffGroupExists();
+        loadConversations();
+    }
+
+    initialize();
 });

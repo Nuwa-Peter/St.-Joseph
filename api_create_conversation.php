@@ -24,17 +24,18 @@ if ($recipient_id === 0 || $recipient_id === $current_user_id) {
     exit;
 }
 
-// Check if a conversation between these two users already exists.
-// This query finds conversations that have exactly two participants: the current user and the recipient.
+// Check if a 1-on-1 conversation between these two users already exists.
 $find_sql = "
-    SELECT conversation_id
-    FROM conversation_participants
-    WHERE conversation_id IN (
-        SELECT conversation_id FROM conversation_participants WHERE user_id = ?
-    )
-    AND user_id = ?
-    GROUP BY conversation_id
-    HAVING COUNT(*) = 1 AND (SELECT COUNT(*) FROM conversation_participants WHERE conversation_id = conversation_participants.conversation_id) = 2;
+    SELECT T1.conversation_id
+    FROM conversation_participants AS T1
+    INNER JOIN conversation_participants AS T2 ON T1.conversation_id = T2.conversation_id
+    WHERE T1.user_id = ? AND T2.user_id = ?
+    AND (
+        SELECT COUNT(*)
+        FROM conversation_participants
+        WHERE conversation_id = T1.conversation_id
+    ) = 2
+    LIMIT 1;
 ";
 $existing_conversation_id = null;
 if ($find_stmt = $conn->prepare($find_sql)) {

@@ -13,23 +13,30 @@ require_once 'config.php';
 $current_user_id = $_SESSION['id'];
 
 // This query retrieves all conversations for the current user.
-// It joins to find the other participant's name and fetches the last message for preview.
+// It handles both 1-on-1 chats and group chats.
 $sql = "
     SELECT
         c.id AS conversation_id,
+        c.name AS conversation_name,
+        c.is_group,
         c.updated_at,
-        u.id AS participant_id,
-        u.first_name,
-        u.last_name,
+        CASE
+            WHEN c.is_group = 0 THEN (
+                SELECT CONCAT(u.first_name, ' ', u.last_name)
+                FROM users u
+                JOIN conversation_participants cp_inner ON u.id = cp_inner.user_id
+                WHERE cp_inner.conversation_id = c.id AND cp_inner.user_id != ?
+                LIMIT 1
+            )
+            ELSE c.name
+        END AS display_name,
         (SELECT content FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message,
         (SELECT created_at FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_time,
         (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND sender_id != ? AND read_at IS NULL) AS unread_count
     FROM conversations c
-    JOIN conversation_participants cp ON c.id = cp.conversation_id
-    JOIN users u ON cp.user_id = u.id
     WHERE c.id IN (
         SELECT conversation_id FROM conversation_participants WHERE user_id = ?
-    ) AND cp.user_id != ?
+    )
     ORDER BY c.updated_at DESC;
 ";
 
