@@ -28,8 +28,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->execute();
             $stmt->close();
 
-            // Optional: Notify the user who made the request
-            // (Leaving this out for now to keep it simple, but could be added here)
+            // --- Send notification to the user who made the request ---
+            $req_info_sql = "SELECT user_id, start_date, end_date FROM leave_requests WHERE id = ?";
+            $req_stmt = $conn->prepare($req_info_sql);
+            $req_stmt->bind_param("i", $request_id);
+            $req_stmt->execute();
+            $req_result = $req_stmt->get_result();
+            if($req_info = $req_result->fetch_assoc()) {
+                $requester_id = $req_info['user_id'];
+
+                $message = "Your leave request from " . date("d-M-Y", strtotime($req_info['start_date'])) . " to " . date("d-M-Y", strtotime($req_info['end_date'])) . " has been " . $new_status . ".";
+                $link = "view_my_leave.php";
+                $notify_sql = "INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)";
+                $notify_stmt = $conn->prepare($notify_sql);
+                $notify_stmt->bind_param("iss", $requester_id, $message, $link);
+                $notify_stmt->execute();
+                $notify_stmt->close();
+            }
+            $req_stmt->close();
+            // --- End notification ---
         }
     }
 }

@@ -40,16 +40,61 @@ $stmt->execute();
 $result = $stmt->get_result();
 $requisitions = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
-$conn->close();
+$conn_for_settings = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+$school_settings = [];
+$settings_sql = "SELECT setting_key, setting_value FROM school_settings";
+if ($settings_result = $conn_for_settings->query($settings_sql)) {
+    while ($row = $settings_result->fetch_assoc()) {
+        $school_settings[$row['setting_key']] = $row['setting_value'];
+    }
+}
+$conn_for_settings->close();
+
 
 // --- PDF Generation using TCPDF ---
 
 class MYPDF extends TCPDF {
+    public $school_settings;
+
     // Page header
     public function Header() {
+        // Logo
+        $logo_path = $this->school_settings['school_logo_path'] ?? 'images/logo.png';
+        if (file_exists($logo_path)) {
+            $this->Image($logo_path, 15, 10, 25, 25, 'PNG');
+        }
+
+        // School Info
         $this->SetFont('helvetica', 'B', 16);
-        $this->Cell(0, 15, 'Requisitions Report', 0, false, 'C', 0, '', 0, false, 'M', 'M');
+        $this->SetTextColor(0, 64, 128); // #004080
+        $this->Cell(0, 8, $this->school_settings['school_name'] ?? 'School Name', 0, 1, 'C', 0, '', 0, false, 'T', 'M');
+
+        $this->SetFont('helvetica', '', 9);
+        $this->SetTextColor(0, 0, 0);
+        $contact_info = "TEL: " . ($this->school_settings['school_tel'] ?? '') . " | Email: " . ($this->school_settings['school_email'] ?? '');
+        $this->Cell(0, 6, $contact_info, 0, 1, 'C');
+
+        $this->SetFont('helvetica', 'I', 10);
+        $this->SetTextColor(0, 86, 179); // #0056b3
+        $this->Cell(0, 6, '"' . ($this->school_settings['school_motto'] ?? '') . '"', 0, 1, 'C');
+
+        // Line break
+        $this->Ln(5);
+
+        // Draw a double line
+        $this->SetLineStyle(array('width' => 0.5, 'color' => array(0, 64, 128)));
+        $this->Line(15, $this->GetY(), $this->getPageWidth() - 15, $this->GetY());
+        $this->Ln(0.5);
+        $this->SetLineStyle(array('width' => 0.2, 'color' => array(0, 64, 128)));
+        $this->Line(15, $this->GetY(), $this->getPageWidth() - 15, $this->GetY());
+
+        // Title
+        $this->Ln(5);
+        $this->SetFont('helvetica', 'B', 14);
+        $this->SetTextColor(0, 64, 128);
+        $this->Cell(0, 10, 'Requisitions Report', 0, 1, 'C');
     }
+
     // Page footer
     public function Footer() {
         $this->SetY(-15);
@@ -59,13 +104,15 @@ class MYPDF extends TCPDF {
 }
 
 $pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+$pdf->school_settings = $school_settings; // Pass settings to the PDF object
+
 $pdf->SetCreator(PDF_CREATOR);
 $pdf->SetAuthor('School Management System');
 $pdf->SetTitle('Requisitions Report');
-$pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, 'Requisitions Report', 'Generated on: ' . date('Y-m-d H:i:s'));
+// The Header() method now handles all header data, so SetHeaderData is not needed.
 $pdf->setFooterData(array(0,64,0), array(0,64,128));
-$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
-$pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+$pdf->SetMargins(PDF_MARGIN_LEFT, 45, PDF_MARGIN_RIGHT); // Increase top margin for new header
+$pdf->SetHeaderMargin(5);
 $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
 $pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
 $pdf->AddPage();

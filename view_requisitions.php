@@ -29,8 +29,31 @@ if ($is_admin && $_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt = $conn->prepare("UPDATE requisitions SET status = ?, approved_by = ?, approved_at = NOW() WHERE id = ?");
             $stmt->bind_param("sii", $new_status, $user_id, $requisition_id);
             if ($stmt->execute()) {
-                // Optionally, create a notification for the user who made the request
                 $success_message = "Requisition #" . $requisition_id . " has been " . $new_status . ".";
+
+                // --- Send notification to the user who made the request ---
+                // 1. Get the requester's ID and item name
+                $req_info_sql = "SELECT user_id, item_name FROM requisitions WHERE id = ?";
+                $req_stmt = $conn->prepare($req_info_sql);
+                $req_stmt->bind_param("i", $requisition_id);
+                $req_stmt->execute();
+                $req_result = $req_stmt->get_result();
+                if($req_info = $req_result->fetch_assoc()) {
+                    $requester_id = $req_info['user_id'];
+                    $item_name = $req_info['item_name'];
+
+                    // 2. Create and send notification
+                    $message = "Your requisition for '" . $item_name . "' has been " . $new_status . ".";
+                    $link = "view_requisitions.php";
+                    $notify_sql = "INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)";
+                    $notify_stmt = $conn->prepare($notify_sql);
+                    $notify_stmt->bind_param("iss", $requester_id, $message, $link);
+                    $notify_stmt->execute();
+                    $notify_stmt->close();
+                }
+                $req_stmt->close();
+                // --- End notification ---
+
             } else {
                 $errors[] = "Failed to update requisition status.";
             }
@@ -119,7 +142,7 @@ $stmt->close();
     <div class="d-flex justify-content-between align-items-center my-4">
         <h2 class="text-primary">View Requisitions</h2>
         <div>
-            <a href="export_requisitions_pdf.php" class="btn btn-secondary" target="_blank">
+            <a href="export_requisitions_pdf.php" class="btn btn-pdf" target="_blank">
                 <i class="bi bi-file-earmark-pdf me-2"></i>Export All as PDF
             </a>
             <a href="make_requisition.php" class="btn btn-primary">
@@ -218,7 +241,7 @@ $stmt->close();
                                                 data-status="<?php echo $req['status']; ?>">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        <a href="export_requisitions_pdf.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-secondary" target="_blank" title="Export to PDF"><i class="bi bi-file-earmark-pdf"></i></a>
+                                        <a href="export_requisitions_pdf.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-pdf" target="_blank" title="Export to PDF"><i class="bi bi-file-earmark-pdf"></i></a>
                                         <button type="button" class="btn btn-sm btn-warning edit-btn" title="Edit"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#editRequisitionModal"

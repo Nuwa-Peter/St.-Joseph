@@ -160,3 +160,16 @@ main {
     color: white;
     transform: scale(1.1);
 }
+
+/* Custom PDF Button Style */
+.btn-pdf {
+    background-color: #dc3545; /* Bootstrap's danger red */
+    color: white;
+    border-color: #dc3545;
+}
+
+.btn-pdf:hover {
+    background-color: #c82333; /* A darker red for hover */
+    color: white;
+    border-color: #bd2130;
+}
