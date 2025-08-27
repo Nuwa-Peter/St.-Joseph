@@ -3,9 +3,10 @@ session_start();
 require_once 'config.php';
 require_once 'includes/header.php';
 
-// Allow any logged-in user to see the calendar
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+// Authorization check: only admins can view the calendar page directly
+$admin_roles = ['headteacher', 'root', 'director'];
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $admin_roles)) {
+    header("location: dashboard.php");
     exit;
 }
 ?>

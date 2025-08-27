@@ -3,8 +3,9 @@ header('Content-Type: application/json');
 session_start();
 require_once 'config.php';
 
-// Allow any logged-in user to see calendar events
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+// Authorization check: only admins can fetch event data
+$admin_roles = ['headteacher', 'root', 'director'];
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $admin_roles)) {
     echo json_encode(['error' => 'Unauthorized']);
     exit;
 }

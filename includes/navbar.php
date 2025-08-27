@@ -25,9 +25,6 @@ $is_parent = $user_role === 'parent';
                 <li class="nav-item">
                     <a class="nav-link" href="<?php echo $is_parent ? 'parent_dashboard.php' : 'dashboard.php'; ?>"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="calendar.php"><i class="bi bi-calendar-event me-1"></i>Calendar</a>
-                </li>
 
                 <?php if (!$is_parent): // Hide most links from parents ?>
                 <!-- Attendance Dropdown -->
@@ -141,6 +138,7 @@ $is_parent = $user_role === 'parent';
                         <i class="bi bi-gear me-1"></i> Admin
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                        <li><a class="dropdown-item" href="calendar.php">School Calendar</a></li>
                         <li><a class="dropdown-item" href="events.php">Manage Events</a></li>
                         <li><a class="dropdown-item" href="student_analytics.php">Student Analytics</a></li>
                         <li><a class="dropdown-item" href="admin_leave_requests.php">Manage Leave Requests</a></li>
