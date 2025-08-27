@@ -8,5 +8,12 @@
     <script src="assets/libs/cropperjs/cropper.min.js"></script>
     <!-- FullCalendar JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.11/main.min.js"></script>
+
+    <?php if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
+        <!-- Floating Chat Button -->
+        <a href="messages.php" class="floating-chat-btn">
+            <i class="bi bi-chat-dots-fill"></i>
+        </a>
+    <?php endif; ?>
 </body>
 </html>

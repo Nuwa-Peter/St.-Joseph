@@ -40,23 +40,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_requisition']))
             }
             $stmt->close();
 
-            // --- Generate Notifications for Bursars ---
-            $bursar_ids = [];
-            $bursar_sql = "SELECT id FROM users WHERE role = 'bursar'";
-            if ($bursar_result = $conn->query($bursar_sql)) {
-                while($row = $bursar_result->fetch_assoc()) {
-                    $bursar_ids[] = $row['id'];
+            // --- Generate Notifications for Admins & Bursar ---
+            $users_to_notify_ids = [];
+            $roles_to_notify = ['bursar', 'headteacher', 'root', 'director'];
+            $roles_in_sql = "'" . implode("','", $roles_to_notify) . "'";
+            $notify_user_sql = "SELECT id FROM users WHERE role IN ({$roles_in_sql})";
+
+            if ($notify_user_result = $conn->query($notify_user_sql)) {
+                while($row = $notify_user_result->fetch_assoc()) {
+                    $users_to_notify_ids[] = $row['id'];
                 }
             }
 
-            if (!empty($bursar_ids)) {
+            if (!empty($users_to_notify_ids)) {
                 $requester_name = $_SESSION['name'] ?? 'A user';
                 $message = "A new requisition has been submitted by " . $requester_name . ".";
                 $link = "view_requisitions.php?status=pending";
 
                 $notify_stmt = $conn->prepare("INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)");
-                foreach ($bursar_ids as $bursar_id) {
-                    $notify_stmt->bind_param("iss", $bursar_id, $message, $link);
+                foreach ($users_to_notify_ids as $user_id_to_notify) {
+                    $notify_stmt->bind_param("iss", $user_id_to_notify, $message, $link);
                     $notify_stmt->execute();
                 }
                 $notify_stmt->close();

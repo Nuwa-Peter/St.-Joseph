@@ -22,7 +22,7 @@ $success_message = '';
 if ($is_admin && $_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['update_status'])) {
         $requisition_id = intval($_POST['requisition_id']);
-        $new_status = $_POST['new_status'];
+        $new_status = $_POST['update_status']; // The value of the button is the new status
         $allowed_statuses = ['approved', 'rejected'];
 
         if (in_array($new_status, $allowed_statuses)) {
@@ -118,9 +118,14 @@ $stmt->close();
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center my-4">
         <h2 class="text-primary">View Requisitions</h2>
-        <a href="make_requisition.php" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>Make a New Requisition
-        </a>
+        <div>
+            <a href="export_requisitions_pdf.php" class="btn btn-secondary" target="_blank">
+                <i class="bi bi-file-earmark-pdf me-2"></i>Export All as PDF
+            </a>
+            <a href="make_requisition.php" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-2"></i>Make a New Requisition
+            </a>
+        </div>
     </div>
 
     <?php if (isset($_GET['success']) && $_GET['success'] == '1'): ?>
@@ -213,6 +218,7 @@ $stmt->close();
                                                 data-status="<?php echo $req['status']; ?>">
                                             <i class="bi bi-eye"></i>
                                         </button>
+                                        <a href="export_requisitions_pdf.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-secondary" target="_blank" title="Export to PDF"><i class="bi bi-file-earmark-pdf"></i></a>
                                         <button type="button" class="btn btn-sm btn-warning edit-btn" title="Edit"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#editRequisitionModal"
