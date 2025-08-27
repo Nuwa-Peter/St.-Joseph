@@ -146,6 +146,7 @@ $is_parent = $user_role === 'parent';
                     <ul class="dropdown-menu" aria-labelledby="adminDropdown">
                         <li><a class="dropdown-item" href="calendar.php">School Calendar</a></li>
                         <li><a class="dropdown-item" href="events.php">Manage Events</a></li>
+                        <li><a class="dropdown-item" href="clubs.php">Clubs Management</a></li>
                         <li><a class="dropdown-item" href="student_analytics.php">Student Analytics</a></li>
                         <li><a class="dropdown-item" href="admin_leave_requests.php">Manage Leave Requests</a></li>
                         <?php if ($_SESSION['role'] === 'root'): ?>
