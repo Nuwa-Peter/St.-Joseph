@@ -8,6 +8,10 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     exit;
 }
 
+$user_role = $_SESSION['role'] ?? '';
+$admin_roles = ['root', 'headteacher', 'director', 'librarian'];
+$is_admin = in_array($user_role, $admin_roles);
+
 $history_sql = "
     SELECT
         bc.id,
@@ -20,13 +24,26 @@ $history_sql = "
     FROM book_checkouts bc
     JOIN books b ON bc.book_id = b.id
     JOIN users u ON bc.user_id = u.id
-    ORDER BY bc.checkout_date DESC
 ";
-$history_result = $conn->query($history_sql);
+
+if (!$is_admin) {
+    $history_sql .= " WHERE bc.user_id = ?";
+}
+
+$history_sql .= " ORDER BY bc.checkout_date DESC";
+
+$stmt = $conn->prepare($history_sql);
+
+if (!$is_admin) {
+    $stmt->bind_param("i", $_SESSION['id']);
+}
+
+$stmt->execute();
+$history_result = $stmt->get_result();
 ?>
 
 <h2>Checkout History</h2>
-<p>A complete log of all book checkout transactions.</p>
+<p><?php echo $is_admin ? 'A complete log of all book checkout transactions.' : 'Your personal book checkout history.'; ?></p>
 
 <table class="table table-bordered table-striped">
     <thead>
