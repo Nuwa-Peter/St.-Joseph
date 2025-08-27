@@ -429,7 +429,7 @@ CREATE TABLE `invoices` (
 --
 
 CREATE TABLE `leave_requests` (
-  `id` int(10) UNSIGNED NOT NULL,
+  `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `start_date` date NOT NULL,
   `end_date` date NOT NULL,
@@ -645,7 +645,7 @@ CREATE TABLE `room_assignments` (
 --
 
 CREATE TABLE `school_settings` (
-  `id` int(11) NOT NULL,
+  `id` bigint(20) UNSIGNED NOT NULL,
   `setting_key` varchar(255) NOT NULL,
   `setting_value` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1304,7 +1304,7 @@ ALTER TABLE `invoices`
 -- AUTO_INCREMENT for table `leave_requests`
 --
 ALTER TABLE `leave_requests`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `marks`
@@ -1370,7 +1370,7 @@ ALTER TABLE `room_assignments`
 -- AUTO_INCREMENT for table `school_settings`
 --
 ALTER TABLE `school_settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `streams`
