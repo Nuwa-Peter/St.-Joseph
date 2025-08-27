@@ -49,6 +49,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bind_param("si", $hashed_password, $user_id_to_update);
 
             if ($stmt->execute()) {
+                // --- Send notification to admins ---
+                $admin_roles_to_notify = ['root', 'director', 'headteacher'];
+                $admin_ids = [];
+                $sql_admins = "SELECT id FROM users WHERE role IN ('" . implode("','", $admin_roles_to_notify) . "')";
+                $result_admins = $conn->query($sql_admins);
+                while($row = $result_admins->fetch_assoc()) {
+                    if ($row['id'] != $_SESSION['id']) {
+                        $admin_ids[] = $row['id'];
+                    }
+                }
+
+                if(!empty($admin_ids)) {
+                    $editor_name = $_SESSION['name'];
+                    // Get the user's name for the message
+                    $user_info_sql = "SELECT first_name, last_name FROM users WHERE id = ?";
+                    $user_stmt = $conn->prepare($user_info_sql);
+                    $user_stmt->bind_param("i", $user_id_to_update);
+                    $user_stmt->execute();
+                    $user_result = $user_stmt->get_result()->fetch_assoc();
+                    $user_name = $user_result['first_name'] . ' ' . $user_result['last_name'];
+                    $user_stmt->close();
+
+                    $message = "Password for user '" . $user_name . "' was reset by " . $editor_name . ".";
+                    $link = "user_edit.php?id=" . $user_id_to_update;
+                    $notify_sql = "INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)";
+                    $notify_stmt = $conn->prepare($notify_sql);
+                    foreach($admin_ids as $admin_id) {
+                        $notify_stmt->bind_param("iss", $admin_id, $message, $link);
+                        $notify_stmt->execute();
+                    }
+                    $notify_stmt->close();
+                }
+                // --- End notification ---
+
                 // Success: Redirect back to the edit page with a success message
                 header("location: user_edit.php?id=" . $user_id_to_update . "&password_reset_success=1");
                 exit();

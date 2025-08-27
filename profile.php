@@ -127,6 +127,30 @@ if (isset($_POST['change_password'])) {
             $stmt_update->bind_param("si", $hashed_new_password, $user_id);
             if ($stmt_update->execute()) {
                 $success_message = "Your password has been changed successfully.";
+
+                // --- Send notification to admins ---
+                $admin_roles_to_notify = ['root', 'director', 'headteacher'];
+                $admin_ids = [];
+                $sql_admins = "SELECT id FROM users WHERE role IN ('" . implode("','", $admin_roles_to_notify) . "')";
+                $result_admins = $conn->query($sql_admins);
+                while($row = $result_admins->fetch_assoc()) {
+                    $admin_ids[] = $row['id'];
+                }
+
+                if(!empty($admin_ids)) {
+                    $user_name = $_SESSION['name'];
+                    $message = "User '" . $user_name . "' changed their own password.";
+                    $link = "profile.php?id=" . $_SESSION['id'];
+                    $notify_sql = "INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)";
+                    $notify_stmt = $conn->prepare($notify_sql);
+                    foreach($admin_ids as $admin_id) {
+                        $notify_stmt->bind_param("iss", $admin_id, $message, $link);
+                        $notify_stmt->execute();
+                    }
+                    $notify_stmt->close();
+                }
+                // --- End notification ---
+
             } else {
                 $password_err = "Something went wrong. Please try again later.";
             }
