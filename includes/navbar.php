@@ -4,9 +4,11 @@ $user_role = $_SESSION['role'] ?? '';
 
 // Define role groups for easier checking
 $admin_roles = ['root', 'headteacher'];
+$teacher_roles = ['root', 'headteacher', 'teacher'];
 $finance_roles = ['bursar', 'headteacher', 'root'];
 
 $is_admin = in_array($user_role, $admin_roles);
+$is_teacher_or_admin = in_array($user_role, $teacher_roles);
 $is_finance_user = in_array($user_role, $finance_roles);
 $is_lab_attendant = $user_role === 'lab_attendant';
 $is_parent = $user_role === 'parent';
@@ -82,6 +84,10 @@ $is_parent = $user_role === 'parent';
                     <ul class="dropdown-menu" aria-labelledby="studentsDropdown">
                         <li><a class="dropdown-item" href="students.php">All Students</a></li>
                         <li><a class="dropdown-item" href="student_create.php">Add Student</a></li>
+                        <?php if ($is_teacher_or_admin): ?>
+                        <li><a class="dropdown-item" href="discipline.php">Discipline Logs</a></li>
+                        <?php endif; ?>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="student_import_export.php">Import/Export</a></li>
                         <li><a class="dropdown-item" href="unregistered_students.php">Unregistered Students</a></li>
                     </ul>
