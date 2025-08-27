@@ -105,6 +105,19 @@ $is_parent = $user_role === 'parent';
                     </ul>
                 </li>
 
+                <!-- Resources Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-calendar-check-fill me-1"></i> Resources
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="resourcesDropdown">
+                         <li><a class="dropdown-item" href="bookings.php">Book a Resource</a></li>
+                         <?php if ($is_admin): ?>
+                            <li><a class="dropdown-item" href="resources.php">Manage Resources</a></li>
+                         <?php endif; ?>
+                    </ul>
+                </li>
+
                 <!-- Files Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="filesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -147,6 +160,8 @@ $is_parent = $user_role === 'parent';
                         <li><a class="dropdown-item" href="calendar.php">School Calendar</a></li>
                         <li><a class="dropdown-item" href="events.php">Manage Events</a></li>
                         <li><a class="dropdown-item" href="clubs.php">Clubs Management</a></li>
+                        <li><a class="dropdown-item" href="dormitories.php">Manage Dormitories</a></li>
+                        <li><a class="dropdown-item" href="room_assignments.php">Room Assignments</a></li>
                         <li><a class="dropdown-item" href="student_analytics.php">Student Analytics</a></li>
                         <li><a class="dropdown-item" href="admin_leave_requests.php">Manage Leave Requests</a></li>
                         <?php if ($_SESSION['role'] === 'root'): ?>
@@ -186,7 +201,7 @@ $is_parent = $user_role === 'parent';
                         <i class="bi bi-search"></i>
                         <input class="form-control form-control-sm navbar-search-input" type="search" id="live-search-input" placeholder="Search..." aria-label="Search" autocomplete="off">
                     </div>
-                    <div class="list-group" id="live-search-results"></div>
+                    <div class="list-group position-absolute" id="live-search-results" style="z-index: 1050; width: 300px;"></div>
                 </li>
                 <!-- Notifications Dropdown -->
                 <li class="nav-item dropdown mx-2">

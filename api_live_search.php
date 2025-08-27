@@ -11,7 +11,6 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
 }
 
 $search_query = $_GET['q'] ?? '';
-$context = $_GET['context'] ?? '';
 $results = [];
 
 // Only search if the query is not empty and has a reasonable length
@@ -33,12 +32,6 @@ if (strlen(trim($search_query)) > 1) {
 
     $params = ["%{$search_query}%", "%{$search_query}%", "%{$search_query}%", "%{$search_query}%", "%{$search_query}%"];
     $types = "sssss";
-
-    if ($context === 'student') {
-        $sql .= " AND role = ?";
-        $params[] = 'student';
-        $types .= "s";
-    }
 
     $sql .= " LIMIT 10"; // Limit to 10 suggestions for performance
 

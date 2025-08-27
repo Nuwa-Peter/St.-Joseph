@@ -53,7 +53,12 @@ $conn->close();
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></h3>
-        <a href="student_edit.php?id=<?php echo $student['id']; ?>" class="btn btn-primary">Edit Student</a>
+        <div>
+            <?php if (isset($_SESSION['role']) && in_array($_SESSION['role'], ['root', 'headteacher', 'nurse'])): // Added 'nurse' for future use ?>
+                <a href="health_record.php?student_id=<?php echo $student['id']; ?>" class="btn btn-info"><i class="bi bi-heart-pulse-fill me-1"></i>Health Record</a>
+            <?php endif; ?>
+            <a href="student_edit.php?id=<?php echo $student['id']; ?>" class="btn btn-primary"><i class="bi bi-pencil-fill me-1"></i>Edit Student</a>
+        </div>
     </div>
     <div class="card-body">
         <div class="row">
