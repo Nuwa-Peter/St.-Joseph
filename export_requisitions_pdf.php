@@ -40,15 +40,17 @@ $stmt->execute();
 $result = $stmt->get_result();
 $requisitions = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
-$conn_for_settings = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+
+// Fetch school settings using the same connection
 $school_settings = [];
 $settings_sql = "SELECT setting_key, setting_value FROM school_settings";
-if ($settings_result = $conn_for_settings->query($settings_sql)) {
+if ($settings_result = $conn->query($settings_sql)) {
     while ($row = $settings_result->fetch_assoc()) {
         $school_settings[$row['setting_key']] = $row['setting_value'];
     }
 }
-$conn_for_settings->close();
+
+$conn->close(); // Now close the single connection
 
 
 // --- PDF Generation using TCPDF ---

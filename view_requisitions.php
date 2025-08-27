@@ -22,17 +22,30 @@ $success_message = '';
 if ($is_admin && $_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['update_status'])) {
         $requisition_id = intval($_POST['requisition_id']);
-        $new_status = $_POST['update_status']; // The value of the button is the new status
+        $new_status = $_POST['update_status'];
+        $rejection_reason = trim($_POST['rejection_reason']);
         $allowed_statuses = ['approved', 'rejected'];
 
         if (in_array($new_status, $allowed_statuses)) {
-            $stmt = $conn->prepare("UPDATE requisitions SET status = ?, approved_by = ?, approved_at = NOW() WHERE id = ?");
-            $stmt->bind_param("sii", $new_status, $user_id, $requisition_id);
+            $sql = "UPDATE requisitions SET status = ?, approved_by = ?, approved_at = NOW()";
+            $types = "sii";
+            $params = [$new_status, $user_id];
+
+            if ($new_status === 'rejected' && !empty($rejection_reason)) {
+                $sql .= ", rejection_reason = ?";
+                $types .= "s";
+                $params[] = $rejection_reason;
+            }
+            $sql .= " WHERE id = ?";
+            $params[] = $requisition_id;
+
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param($types, ...$params);
+
             if ($stmt->execute()) {
                 $success_message = "Requisition #" . $requisition_id . " has been " . $new_status . ".";
 
                 // --- Send notification to the user who made the request ---
-                // 1. Get the requester's ID and item name
                 $req_info_sql = "SELECT user_id, item_name FROM requisitions WHERE id = ?";
                 $req_stmt = $conn->prepare($req_info_sql);
                 $req_stmt->bind_param("i", $requisition_id);
@@ -42,8 +55,10 @@ if ($is_admin && $_SERVER["REQUEST_METHOD"] == "POST") {
                     $requester_id = $req_info['user_id'];
                     $item_name = $req_info['item_name'];
 
-                    // 2. Create and send notification
                     $message = "Your requisition for '" . $item_name . "' has been " . $new_status . ".";
+                    if ($new_status === 'rejected' && !empty($rejection_reason)) {
+                        $message .= " Reason: " . $rejection_reason;
+                    }
                     $link = "view_requisitions.php";
                     $notify_sql = "INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)";
                     $notify_stmt = $conn->prepare($notify_sql);
@@ -287,6 +302,11 @@ $stmt->close();
             <p><strong>Quantity:</strong> <span id="modal_quantity"></span></p>
             <p><strong>Total Price:</strong> UGX <span id="modal_price"></span></p>
             <p><strong>Status:</strong> <span id="modal_status" class="badge"></span></p>
+            <hr>
+            <div class="mb-3">
+                <label for="rejection_reason" class="form-label">Reason for Rejection (if rejecting):</label>
+                <textarea name="rejection_reason" id="rejection_reason" class="form-control" rows="3"></textarea>
+            </div>
         </div>
         <div class="modal-footer justify-content-between">
             <div>
