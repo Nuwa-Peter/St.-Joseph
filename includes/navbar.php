@@ -34,11 +34,11 @@ $is_parent = $user_role === 'parent';
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="academicsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-mortarboard me-1"></i>Academics</a>
                     <ul class="dropdown-menu" aria-labelledby="academicsDropdown">
-                        <li><a class="dropdown-item" href="class_levels.php">Classes</a></li>
-                        <li><a class="dropdown-item" href="subjects.php">Subjects</a></li>
-                        <li><a class="dropdown-item" href="assignments.php">Assignments</a></li>
-                        <li><a class="dropdown-item" href="set_exam.php">Exams</a></li>
-                        <li><a class="dropdown-item" href="grading_scales.php">Grading</a></li>
+                        <li><a class="dropdown-item" href="class_levels.php"><i class="bi bi-collection me-2"></i>Classes</a></li>
+                        <li><a class="dropdown-item" href="subjects.php"><i class="bi bi-journal-text me-2"></i>Subjects</a></li>
+                        <li><a class="dropdown-item" href="assignments.php"><i class="bi bi-file-earmark-text me-2"></i>Assignments</a></li>
+                        <li><a class="dropdown-item" href="set_exam.php"><i class="bi bi-pencil-square me-2"></i>Exams</a></li>
+                        <li><a class="dropdown-item" href="grading_scales.php"><i class="bi bi-patch-check me-2"></i>Grading</a></li>
                     </ul>
                 </li>
 
@@ -46,10 +46,10 @@ $is_parent = $user_role === 'parent';
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="peopleDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-people-fill me-1"></i>People</a>
                     <ul class="dropdown-menu" aria-labelledby="peopleDropdown">
-                        <li><a class="dropdown-item" href="students.php">Students</a></li>
-                        <li><a class="dropdown-item" href="teachers.php">Teachers</a></li>
+                        <li><a class="dropdown-item" href="students.php"><i class="bi bi-person me-2"></i>Students</a></li>
+                        <li><a class="dropdown-item" href="teachers.php"><i class="bi bi-person-video me-2"></i>Teachers</a></li>
                          <?php if ($is_admin): ?>
-                            <li><a class="dropdown-item" href="users.php">User Management</a></li>
+                            <li><a class="dropdown-item" href="users.php"><i class="bi bi-people me-2"></i>User Management</a></li>
                         <?php endif; ?>
                     </ul>
                 </li>
@@ -59,8 +59,8 @@ $is_parent = $user_role === 'parent';
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="financeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-cash-coin me-1"></i>Finance</a>
                     <ul class="dropdown-menu" aria-labelledby="financeDropdown">
-                        <li><a class="dropdown-item" href="invoices.php">Invoices</a></li>
-                        <li><a class="dropdown-item" href="expenses.php">Expenses</a></li>
+                        <li><a class="dropdown-item" href="invoices.php"><i class="bi bi-receipt me-2"></i>Invoices</a></li>
+                        <li><a class="dropdown-item" href="expenses.php"><i class="bi bi-graph-up-arrow me-2"></i>Expenses</a></li>
                     </ul>
                 </li>
                 <?php endif; ?>
@@ -69,8 +69,8 @@ $is_parent = $user_role === 'parent';
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="libraryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-book-half me-1"></i>Library</a>
                     <ul class="dropdown-menu" aria-labelledby="libraryDropdown">
-                         <li><a class="dropdown-item" href="books.php">Books</a></li>
-                         <li><a class="dropdown-item" href="checkouts.php">Checkouts</a></li>
+                         <li><a class="dropdown-item" href="books.php"><i class="bi bi-book me-2"></i>Books</a></li>
+                         <li><a class="dropdown-item" href="checkouts.php"><i class="bi bi-arrow-right-square me-2"></i>Checkouts</a></li>
                     </ul>
                 </li>
 
@@ -78,9 +78,9 @@ $is_parent = $user_role === 'parent';
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-building me-1"></i>Resources</a>
                     <ul class="dropdown-menu" aria-labelledby="resourcesDropdown">
-                         <li><a class="dropdown-item" href="bookings.php">Bookable Resources</a></li>
+                         <li><a class="dropdown-item" href="bookings.php"><i class="bi bi-calendar-plus me-2"></i>Bookable Resources</a></li>
                          <?php if ($is_admin): ?>
-                            <li><a class="dropdown-item" href="dormitories.php">Dormitories</a></li>
+                            <li><a class="dropdown-item" href="dormitories.php"><i class="bi bi-house-door me-2"></i>Dormitories</a></li>
                          <?php endif; ?>
                     </ul>
                 </li>
@@ -88,10 +88,10 @@ $is_parent = $user_role === 'parent';
                 <!-- Communications Dropdown -->
                 <?php if ($is_admin): ?>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="communicationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-megaphone me-1"></i>Communications</a>
+                    <a class="nav-link dropdown-toggle" href="#" id="communicationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-chat-dots me-1"></i>Communications</a>
                     <ul class="dropdown-menu" aria-labelledby="communicationsDropdown">
-                        <li><a class="dropdown-item" href="announcements.php">Announcements</a></li>
-                        <li><a class="dropdown-item" href="bulk_sms.php">Bulk SMS</a></li>
+                        <li><a class="dropdown-item" href="announcements.php"><i class="bi bi-megaphone me-2"></i>Announcements</a></li>
+                        <li><a class="dropdown-item" href="bulk_sms.php"><i class="bi bi-chat-right-text me-2"></i>Bulk SMS</a></li>
                     </ul>
                 </li>
                 <?php endif; ?>
@@ -101,10 +101,10 @@ $is_parent = $user_role === 'parent';
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-gear me-1"></i>Administration</a>
                     <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                         <li><a class="dropdown-item" href="view_class_attendance.php">Attendance</a></li>
-                         <li><a class="dropdown-item" href="admin_leave_requests.php">Leave Requests</a></li>
+                         <li><a class="dropdown-item" href="view_class_attendance.php"><i class="bi bi-check2-square me-2"></i>Attendance</a></li>
+                         <li><a class="dropdown-item" href="admin_leave_requests.php"><i class="bi bi-calendar-event me-2"></i>Leave Requests</a></li>
                          <?php if ($_SESSION['role'] === 'root'): ?>
-                            <li><a class="dropdown-item" href="audit_trail.php">Audit Trail</a></li>
+                            <li><a class="dropdown-item" href="audit_trail.php"><i class="bi bi-file-earmark-zip me-2"></i>Audit Trail</a></li>
                          <?php endif; ?>
                     </ul>
                 </li>
