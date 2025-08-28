@@ -1,147 +1,136 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <title>ID Card</title>
     <style>
-        /* General Styles */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f2f5;
+            background: #e0e0e0;
+            font-family: 'Roboto', sans-serif;
         }
 
-        /* Styles for each ID card page */
-        .page {
-            width: 85.6mm;
-            height: 53.98mm;
-            margin: 20mm auto;
-            page-break-after: always;
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+            justify-content: center;
+        }
+
+        .id-card {
+            width: 53.98mm;
+            height: 85.6mm;
+            background: #fff;
+            border-radius: 5mm;
             overflow: hidden;
-            position: relative;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            background-color: white;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            page-break-inside: avoid;
         }
 
-        /* Card Header */
-        .card-header {
-            background-color: #04174f; /* Dark Navy Blue */
+        .id-card-header {
+            background: #0d47a1; /* Professional Blue */
+            padding: 5mm 4mm;
+            text-align: center;
             color: white;
+        }
+        .id-card-header .school-logo {
+            width: 12mm;
+            height: 12mm;
+            border-radius: 50%;
+            border: 1mm solid white;
+            margin: 0 auto 2mm;
+        }
+        .id-card-header .school-name {
+            font-size: 7pt;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .id-card-body {
+            flex-grow: 1;
             padding: 4mm;
             text-align: center;
-            display: flex;
-            align-items: center;
         }
-        .card-header img {
-            width: 10mm;
-            height: 10mm;
+        .photo-wrapper {
+            width: 30mm;
+            height: 30mm;
+            margin: 0 auto 3mm;
             border-radius: 50%;
-            margin-right: 3mm;
-        }
-        .card-header .school-name {
-            font-size: 8pt;
-            font-weight: bold;
-            line-height: 1.1;
-        }
-
-        /* Card Body */
-        .card-body {
-            text-align: center;
-            padding-top: 4mm;
-            flex-grow: 1;
-        }
-        .photo-container {
-            width: 24mm;
-            height: 24mm;
-            margin: 0 auto;
-            border: 1.5mm solid #04174f;
-            border-radius: 4mm;
             overflow: hidden;
+            border: 2mm solid #e0e0e0;
         }
-        .photo-container img {
+        .photo-wrapper img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
         .user-name {
-            font-size: 9pt;
-            font-weight: bold;
-            margin-top: 3mm;
+            font-size: 11pt;
+            font-weight: 700;
+            color: #333;
         }
         .user-role {
-            font-size: 7pt;
-            color: #555;
+            font-size: 8pt;
+            font-weight: 400;
+            color: #0d47a1;
             text-transform: uppercase;
-        }
-        .user-id {
-            font-size: 7pt;
-            color: #555;
+            margin-top: 1mm;
         }
 
-        /* Card Footer */
-        .card-footer {
-            background-color: #f0f2f5;
-            padding: 2mm;
-            font-size: 5pt;
-            color: #333;
+        .id-card-footer {
+            padding: 3mm;
             text-align: center;
         }
-        .card-footer .dates {
-            display: flex;
-            justify-content: space-around;
+        .user-unique-id {
+            font-size: 8pt;
+            color: #555;
         }
-        .qr-code {
-            position: absolute;
-            bottom: 2mm;
-            right: 2mm;
-            width: 12mm;
-            height: 12mm;
+        .qr-code img {
+            width: 18mm;
+            height: 18mm;
+            margin: 2mm auto 0;
         }
 
-        /* Print-specific styles */
         @media print {
-            body {
-                background-color: white;
+            body { background: #fff; }
+            .card-container {
+                padding: 0;
+                gap: 0;
             }
-            .page {
-                margin: 0;
+            .id-card {
                 box-shadow: none;
-                width: 85.6mm;
-                height: 53.98mm;
+                margin: 0;
+                border-radius: 0;
             }
-            /* Hide the back of the card when printing for simplicity, can be expanded later */
-            .card-back {
-                display: none;
-            }
+            .no-print { display: none; }
         }
     </style>
 </head>
 <body>
-    <!-- This is a template, the main generator file will loop and include this -->
-    <div class="page card-front">
-        <div class="card-header">
-            <img src="<?php echo htmlspecialchars($user['logo_path'] ?? 'images/logo.png'); ?>" alt="School Logo">
+    <!-- This template will be included in a loop -->
+    <div class="id-card">
+        <div class="id-card-header">
+            <img src="<?php echo htmlspecialchars($user['logo_path'] ?? 'images/logo.png'); ?>" alt="Logo" class="school-logo">
             <div class="school-name">ST. JOSEPH'S VSS<br>NYAMITYOBORA</div>
         </div>
-        <div class="card-body">
-            <div class="photo-container">
+        <div class="id-card-body">
+            <div class="photo-wrapper">
                 <img src="<?php echo htmlspecialchars($user['photo_path']); ?>" alt="User Photo">
             </div>
             <div class="user-name"><?php echo htmlspecialchars(strtoupper($user['first_name'] . ' ' . $user['last_name'])); ?></div>
             <div class="user-role"><?php echo htmlspecialchars(strtoupper($user['role'])); ?></div>
-            <div class="user-id">ID: <?php echo htmlspecialchars($user['unique_id'] ?? 'N/A'); ?></div>
         </div>
-        <div class="card-footer">
-            <div class="dates">
-                <span><strong>Issued:</strong> <?php echo htmlspecialchars($issue_date); ?></span>
-                <span><strong>Expires:</strong> <?php echo htmlspecialchars($expiry_date); ?></span>
+        <div class="id-card-footer">
+            <div class="user-unique-id">ID: <?php echo htmlspecialchars($user['unique_id'] ?? 'N/A'); ?></div>
+            <div class="qr-code">
+                <img src="data:image/png;base64,<?php echo base64_encode($user['qr_code']); ?>" alt="QR Code">
             </div>
-        </div>
-        <div class="qr-code">
-             <img src="data:image/png;base64,<?php echo base64_encode($user['qr_code']); ?>" alt="QR Code">
         </div>
     </div>
 </body>
