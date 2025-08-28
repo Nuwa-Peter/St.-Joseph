@@ -150,6 +150,7 @@ $is_parent = $user_role === 'parent';
                          <li><a class="dropdown-item" href="assign_subjects_to_stream.php"><i class="bi bi-journal-plus me-2"></i>Assign Subjects to Stream</a></li>
                          <li><a class="dropdown-item" href="unregistered_students.php"><i class="bi bi-person-plus-fill me-2"></i>Unregistered Students</a></li>
                          <li><a class="dropdown-item" href="student_import_export.php"><i class="bi bi-upload me-2"></i>Import / Export Students</a></li>
+                         <li><a class="dropdown-item" href="school_settings.php"><i class="bi bi-sliders me-2"></i>School Settings</a></li>
                          <?php if ($_SESSION['role'] === 'root'): ?>
                             <li><a class="dropdown-item" href="audit_trail.php"><i class="bi bi-file-earmark-zip me-2"></i>Audit Trail</a></li>
                          <?php endif; ?>

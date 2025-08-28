@@ -116,8 +116,8 @@
     <!-- This template will be included in a loop -->
     <div class="id-card">
         <div class="id-card-header">
-            <img src="<?php echo htmlspecialchars($user['logo_path'] ?? 'images/logo.png'); ?>" alt="Logo" class="school-logo">
-            <div class="school-name">ST. JOSEPH'S VSS<br>NYAMITYOBORA</div>
+            <img src="<?php echo htmlspecialchars($school_settings['school_logo_path'] ?? 'images/logo.png'); ?>" alt="Logo" class="school-logo">
+            <div class="school-name"><?php echo htmlspecialchars(strtoupper($school_settings['school_name'] ?? 'SCHOOL NAME')); ?></div>
         </div>
         <div class="id-card-body">
             <div class="photo-wrapper">

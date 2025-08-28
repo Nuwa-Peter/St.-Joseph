@@ -1592,6 +1592,51 @@ ALTER TABLE `videos`
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `school_settings`
+--
+
+CREATE TABLE `school_settings` (
+  `id` int(11) NOT NULL,
+  `setting_key` varchar(255) NOT NULL,
+  `setting_value` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `school_settings`
+--
+
+INSERT INTO `school_settings` (`id`, `setting_key`, `setting_value`) VALUES
+(1, 'school_name', 'ST JOSEPH VOC. SEC SCHOOL - NYAMITYOBORA'),
+(2, 'school_motto', 'WITHOUT JESUS WHAT CAN THE WORLD GIVE YOU!'),
+(3, 'school_id', '1002215'),
+(4, 'school_tel', '0704050747'),
+(5, 'school_email', 's.josephthejust@gmail.com'),
+(6, 'school_po_box', 'P.O BOX 406 MBARARA'),
+(7, 'school_logo_path', 'images/logo.png');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `school_settings`
+--
+ALTER TABLE `school_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `setting_key` (`setting_key`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `school_settings`
+--
+ALTER TABLE `school_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+COMMIT;
+
+--
 -- Table structure for table `id_card_logs`
 --
 

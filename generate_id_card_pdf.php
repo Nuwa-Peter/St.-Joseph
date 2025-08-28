@@ -18,6 +18,16 @@ if (!$role) {
     exit('Missing role parameter.');
 }
 
+// --- Fetch School Settings ---
+$school_settings = [];
+$settings_sql = "SELECT setting_key, setting_value FROM school_settings";
+$settings_result = $conn->query($settings_sql);
+if ($settings_result) {
+    while ($row = $settings_result->fetch_assoc()) {
+        $school_settings[$row['setting_key']] = $row['setting_value'];
+    }
+}
+
 // --- Get User IDs ---
 $user_ids = [];
 if ($scope === 'individual' && $user_id_single) {
@@ -111,9 +121,11 @@ foreach ($user_ids as $uid) {
     if ($user_data) {
         // Prepare data for the template
         $user = $user_data;
-        $user['photo_path'] = (!empty($user['photo']) && file_exists($user['photo']))
-            ? $user['photo']
-            : (($user['gender'] === 'Female') ? 'images/placeholder_female.png' : 'images/placeholder_male.png');
+        if (!empty($user['photo'])) {
+            $user['photo_path'] = $user['photo'];
+        } else {
+            $user['photo_path'] = ($user['gender'] === 'Female') ? 'images/placeholder_female.png' : 'images/placeholder_male.png';
+        }
 
         // Generate QR Code
         $qr_data = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/student_view.php?id=' . $user['id'];
@@ -122,8 +134,12 @@ foreach ($user_ids as $uid) {
         $qr_code_generator->output_image();
         $user['qr_code'] = ob_get_clean();
 
-        // Include the HTML template
-        include 'id_card_template_new.php';
+        // Include the HTML template based on role
+        if ($user['role'] === 'student') {
+            include 'id_card_template_student_landscape.php';
+        } else {
+            include 'id_card_template_staff_portrait.php';
+        }
     }
 }
 $conn->close();
