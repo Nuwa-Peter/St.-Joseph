@@ -15,8 +15,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $teacher_id = $_POST['teacher_id'] ?? null;
     $class_level_id = $_POST['class_level_id'] ?? 0;
 
-    // If "None" is selected, teacher_id will be an empty string, so we should t
-reat it as NULL.
+    // If "None" is selected, teacher_id will be an empty string, so we should treat it as NULL.
     if (empty($teacher_id)) {
         $teacher_id = null;
     }

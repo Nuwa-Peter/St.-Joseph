@@ -35,7 +35,6 @@ $is_parent = $user_role === 'parent';
                     <a class="nav-link dropdown-toggle" href="#" id="academicsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-mortarboard me-1"></i>Academics</a>
                     <ul class="dropdown-menu" aria-labelledby="academicsDropdown">
                         <li><a class="dropdown-item" href="class_levels.php"><i class="bi bi-collection me-2"></i>Classes</a></li>
-                        <li><a class="dropdown-item" href="streams.php"><i class="bi bi-diagram-3 me-2"></i>Streams</a></li>
                         <li><a class="dropdown-item" href="subjects.php"><i class="bi bi-journal-text me-2"></i>Subjects</a></li>
                         <li><a class="dropdown-item" href="lesson_planner.php"><i class="bi bi-book-half me-2"></i>Lesson Planner</a></li>
                         <li><a class="dropdown-item" href="assignments.php"><i class="bi bi-file-earmark-text me-2"></i>Assignments</a></li>
@@ -48,7 +47,6 @@ $is_parent = $user_role === 'parent';
                                 <li><a class="dropdown-item" href="marks_entry.php"><i class="bi bi-card-checklist me-2"></i>Marks Entry</a></li>
                                 <li><a class="dropdown-item" href="exam_attendance.php"><i class="bi bi-person-check me-2"></i>Exam Attendance</a></li>
                                 <li><a class="dropdown-item" href="report_card_generator.php"><i class="bi bi-file-pdf me-2"></i>Report Cards</a></li>
-                                <li><a class="dropdown-item" href="generate_competency_based_report.php"><i class="bi bi-award me-2"></i>Competency Reports</a></li>
                             </ul>
                         </li>
                         <li><a class="dropdown-item" href="grading_scales.php"><i class="bi bi-patch-check me-2"></i>Grading Scales</a></li>
@@ -101,6 +99,7 @@ $is_parent = $user_role === 'parent';
                     <ul class="dropdown-menu" aria-labelledby="libraryDropdown">
                          <li><a class="dropdown-item" href="books.php"><i class="bi bi-book me-2"></i>Books</a></li>
                          <li><a class="dropdown-item" href="checkouts.php"><i class="bi bi-arrow-right-square me-2"></i>Checkouts</a></li>
+                         <li><a class="dropdown-item" href="checkout_history.php"><i class="bi bi-clock-history me-2"></i>Checkout History</a></li>
                     </ul>
                 </li>
 
