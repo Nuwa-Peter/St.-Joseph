@@ -36,6 +36,11 @@
             background: white;
             padding: 1mm;
         }
+        .left-panel .qr-code-landscape {
+            margin-top: 2mm;
+            width: 20mm;
+            height: 20mm;
+        }
         .left-panel .role-label {
             font-weight: 700;
             font-size: 10pt;
@@ -105,6 +110,7 @@
     <div class="student-card">
         <div class="left-panel">
             <img src="<?php echo htmlspecialchars($school_settings['school_logo_path'] ?? 'images/logo.png'); ?>" alt="Logo" class="school-logo">
+            <img src="data:image/png;base64,<?php echo base64_encode($user['qr_code']); ?>" alt="QR Code" class="qr-code-landscape">
             <span class="role-label">STUDENT</span>
         </div>
         <div class="right-panel">

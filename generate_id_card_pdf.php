@@ -143,6 +143,9 @@ foreach ($user_ids as $uid) {
         } else {
             include 'id_card_template_staff_portrait.php';
         }
+
+        // Include the back of the card
+        include 'id_card_template_back.php';
     }
 }
 $conn->close();
