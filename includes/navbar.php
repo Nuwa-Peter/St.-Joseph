@@ -35,15 +35,20 @@ $is_parent = $user_role === 'parent';
                     <a class="nav-link dropdown-toggle" href="#" id="academicsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-mortarboard me-1"></i>Academics</a>
                     <ul class="dropdown-menu" aria-labelledby="academicsDropdown">
                         <li><a class="dropdown-item" href="class_levels.php"><i class="bi bi-collection me-2"></i>Classes</a></li>
+                        <li><a class="dropdown-item" href="streams.php"><i class="bi bi-diagram-3 me-2"></i>Streams</a></li>
                         <li><a class="dropdown-item" href="subjects.php"><i class="bi bi-journal-text me-2"></i>Subjects</a></li>
                         <li><a class="dropdown-item" href="lesson_planner.php"><i class="bi bi-book-half me-2"></i>Lesson Planner</a></li>
                         <li><a class="dropdown-item" href="assignments.php"><i class="bi bi-file-earmark-text me-2"></i>Assignments</a></li>
+                        <li><a class="dropdown-item" href="class_attendance.php"><i class="bi bi-calendar-check me-2"></i>Take Class Attendance</a></li>
+                        <li><a class="dropdown-item" href="student_analytics.php"><i class="bi bi-graph-up me-2"></i>Student Analytics</a></li>
                         <li class="dropdown-submenu">
                             <a class="dropdown-item dropdown-toggle" href="#"><i class="bi bi-pencil-square me-2"></i>Exams</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="set_exam.php"><i class="bi bi-pencil me-2"></i>Set Exams</a></li>
                                 <li><a class="dropdown-item" href="marks_entry.php"><i class="bi bi-card-checklist me-2"></i>Marks Entry</a></li>
+                                <li><a class="dropdown-item" href="exam_attendance.php"><i class="bi bi-person-check me-2"></i>Exam Attendance</a></li>
                                 <li><a class="dropdown-item" href="report_card_generator.php"><i class="bi bi-file-pdf me-2"></i>Report Cards</a></li>
+                                <li><a class="dropdown-item" href="generate_competency_based_report.php"><i class="bi bi-award me-2"></i>Competency Reports</a></li>
                             </ul>
                         </li>
                         <li><a class="dropdown-item" href="grading_scales.php"><i class="bi bi-patch-check me-2"></i>Grading Scales</a></li>
@@ -58,6 +63,9 @@ $is_parent = $user_role === 'parent';
                         <li><a class="dropdown-item" href="teachers.php"><i class="bi bi-person-video me-2"></i>Teachers</a></li>
                         <li><a class="dropdown-item" href="health_record.php"><i class="bi bi-heart-pulse me-2"></i>Health Records</a></li>
                         <?php if ($is_admin): ?>
+                            <li><a class="dropdown-item" href="id_card_generator.php"><i class="bi bi-person-badge me-2"></i>ID Card Generator</a></li>
+                            <li><a class="dropdown-item" href="link_student_to_parent.php"><i class="bi bi-link-45deg me-2"></i>Link Parent to Student</a></li>
+                            <li><a class="dropdown-item" href="create_staff_group.php"><i class="bi bi-person-plus me-2"></i>Staff Groups</a></li>
                             <li><a class="dropdown-item" href="users.php"><i class="bi bi-people me-2"></i>User Management</a></li>
                         <?php endif; ?>
                     </ul>
@@ -71,6 +79,9 @@ $is_parent = $user_role === 'parent';
                         <li><a class="dropdown-item" href="finance_dashboard.php"><i class="bi bi-graph-up me-2"></i>Finance Dashboard</a></li>
                         <li><a class="dropdown-item" href="invoices.php"><i class="bi bi-receipt me-2"></i>Invoices</a></li>
                         <li><a class="dropdown-item" href="expenses.php"><i class="bi bi-graph-up-arrow me-2"></i>Expenses</a></li>
+                        <li><a class="dropdown-item" href="fee_structures.php"><i class="bi bi-diagram-2 me-2"></i>Fee Structures</a></li>
+                        <li><a class="dropdown-item" href="fee_items.php"><i class="bi bi-list-ol me-2"></i>Fee Items</a></li>
+                        <li><a class="dropdown-item" href="accountability.php"><i class="bi bi-journal-richtext me-2"></i>Accountability Ledger</a></li>
                         <li class="dropdown-submenu">
                             <a class="dropdown-item dropdown-toggle" href="#"><i class="bi bi-journal-check me-2"></i>Requisitions</a>
                             <ul class="dropdown-menu">
@@ -100,7 +111,14 @@ $is_parent = $user_role === 'parent';
                          <li><a class="dropdown-item" href="bookings.php"><i class="bi bi-calendar-plus me-2"></i>Book a Resource</a></li>
                          <li><a class="dropdown-item" href="resources.php"><i class="bi bi-collection-fill me-2"></i>Manage Resources</a></li>
                          <?php if ($is_admin): ?>
-                            <li><a class="dropdown-item" href="dormitories.php"><i class="bi bi-house-door me-2"></i>Dormitories</a></li>
+                            <li class="dropdown-submenu">
+                                <a class="dropdown-item dropdown-toggle" href="#"><i class="bi bi-house-door me-2"></i>Dormitories</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="dormitories.php"><i class="bi bi-gear me-2"></i>Manage Dormitories</a></li>
+                                    <li><a class="dropdown-item" href="manage_rooms.php"><i class="bi bi-door-open me-2"></i>Manage Rooms</a></li>
+                                    <li><a class="dropdown-item" href="room_assignments.php"><i class="bi bi-person-badge me-2"></i>Room Assignments</a></li>
+                                </ul>
+                            </li>
                          <?php endif; ?>
                     </ul>
                 </li>
@@ -128,6 +146,10 @@ $is_parent = $user_role === 'parent';
                          <li><a class="dropdown-item" href="calendar.php"><i class="bi bi-calendar3 me-2"></i>School Calendar</a></li>
                          <li><a class="dropdown-item" href="events.php"><i class="bi bi-calendar-event me-2"></i>Events</a></li>
                          <li><a class="dropdown-item" href="admin_leave_requests.php"><i class="bi bi-calendar-check me-2"></i>Leave Requests</a></li>
+                         <li><a class="dropdown-item" href="assign_class_teacher.php"><i class="bi bi-person-video me-2"></i>Assign Class Teacher</a></li>
+                         <li><a class="dropdown-item" href="assign_subjects_to_stream.php"><i class="bi bi-journal-plus me-2"></i>Assign Subjects to Stream</a></li>
+                         <li><a class="dropdown-item" href="unregistered_students.php"><i class="bi bi-person-plus-fill me-2"></i>Unregistered Students</a></li>
+                         <li><a class="dropdown-item" href="student_import_export.php"><i class="bi bi-upload me-2"></i>Import / Export Students</a></li>
                          <?php if ($_SESSION['role'] === 'root'): ?>
                             <li><a class="dropdown-item" href="audit_trail.php"><i class="bi bi-file-earmark-zip me-2"></i>Audit Trail</a></li>
                          <?php endif; ?>
