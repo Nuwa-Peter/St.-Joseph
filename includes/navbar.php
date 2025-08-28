@@ -29,167 +29,87 @@ $is_parent = $user_role === 'parent';
                 </li>
 
                 <?php if (!$is_parent): // Hide most links from parents ?>
-                <!-- Attendance Dropdown -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="attendanceDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-check-circle-fill me-1"></i> Attendance
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="attendanceDropdown">
-                        <li><h6 class="dropdown-header">Take Attendance</h6></li>
-                        <li><a class="dropdown-item" href="class_attendance.php">Class Attendance</a></li>
-                        <li><a class="dropdown-item" href="exam_attendance.php">Exam Attendance</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><h6 class="dropdown-header">View Reports</h6></li>
-                        <li><a class="dropdown-item" href="view_class_attendance.php">Class Attendance Report</a></li>
-                        <li><a class="dropdown-item" href="view_exam_attendance.php">Exam Attendance Report</a></li>
-                    </ul>
-                </li>
 
                 <!-- Academics Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="academicsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-journal-bookmark me-1"></i> Academics
-                    </a>
+                    <a class="nav-link dropdown-toggle" href="#" id="academicsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-mortarboard me-1"></i>Academics</a>
                     <ul class="dropdown-menu" aria-labelledby="academicsDropdown">
-                        <?php $is_student = $_SESSION['role'] === 'student'; ?>
-                        <?php if ($is_student): ?>
-                            <li><a class="dropdown-item" href="student_assignments_view.php">My Assignments</a></li>
-                        <?php endif; ?>
-                        <li><a class="dropdown-item" href="class_levels.php">Classes & Streams</a></li>
+                        <li><a class="dropdown-item" href="class_levels.php">Classes</a></li>
                         <li><a class="dropdown-item" href="subjects.php">Subjects</a></li>
-                        <li><a class="dropdown-item" href="lesson_planner.php">Lesson Planner</a></li>
                         <li><a class="dropdown-item" href="assignments.php">Assignments</a></li>
-                        <?php if ($is_admin): ?>
-                        <li><a class="dropdown-item" href="assign_subjects_to_stream.php">Assign Subjects to Stream</a></li>
-                        <?php endif; ?>
-                        <li><a class="dropdown-item" href="teacher_assignments.php">Teacher Assignments</a></li>
-                        <li><a class="dropdown-item" href="student_assignments.php">Student Assignments</a></li>
-                        <li><a class="dropdown-item" href="grading_scales.php">Grading Scales</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><h6 class="dropdown-header">Examinations</h6></li>
-                        <li><a class="dropdown-item" href="set_exam.php">Set Exams</a></li>
-                        <li><a class="dropdown-item" href="marks_entry.php">Marks Entry</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><h6 class="dropdown-header">Documents</h6></li>
-                        <li><a class="dropdown-item" href="report_card_generator.php">Generate Report Cards</a></li>
-                        <li><a class="dropdown-item" href="id_card_generator.php">Generate ID Cards</a></li>
+                        <li><a class="dropdown-item" href="set_exam.php">Exams</a></li>
+                        <li><a class="dropdown-item" href="grading_scales.php">Grading</a></li>
                     </ul>
                 </li>
 
-                <!-- Students Dropdown -->
+                <!-- People Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="studentsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-rolodex me-1"></i> Students
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="studentsDropdown">
-                        <li><a class="dropdown-item" href="students.php">All Students</a></li>
-                        <li><a class="dropdown-item" href="student_create.php">Add Student</a></li>
-                        <?php if ($is_teacher_or_admin): ?>
-                        <li><a class="dropdown-item" href="discipline.php">Discipline Logs</a></li>
+                    <a class="nav-link dropdown-toggle" href="#" id="peopleDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-people-fill me-1"></i>People</a>
+                    <ul class="dropdown-menu" aria-labelledby="peopleDropdown">
+                        <li><a class="dropdown-item" href="students.php">Students</a></li>
+                        <li><a class="dropdown-item" href="teachers.php">Teachers</a></li>
+                         <?php if ($is_admin): ?>
+                            <li><a class="dropdown-item" href="users.php">User Management</a></li>
                         <?php endif; ?>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="student_import_export.php">Import/Export</a></li>
-                        <li><a class="dropdown-item" href="unregistered_students.php">Unregistered Students</a></li>
                     </ul>
                 </li>
+
+                <!-- Finance Dropdown -->
+                <?php if ($is_finance_user): ?>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="financeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-cash-coin me-1"></i>Finance</a>
+                    <ul class="dropdown-menu" aria-labelledby="financeDropdown">
+                        <li><a class="dropdown-item" href="invoices.php">Invoices</a></li>
+                        <li><a class="dropdown-item" href="expenses.php">Expenses</a></li>
+                    </ul>
+                </li>
+                <?php endif; ?>
 
                 <!-- Library Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="libraryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-book-half me-1"></i> Library
-                    </a>
+                    <a class="nav-link dropdown-toggle" href="#" id="libraryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-book-half me-1"></i>Library</a>
                     <ul class="dropdown-menu" aria-labelledby="libraryDropdown">
                          <li><a class="dropdown-item" href="books.php">Books</a></li>
-                         <li><a class="dropdown-item" href="checkouts.php">Manage Checkouts</a></li>
-                         <li><a class="dropdown-item" href="checkout_history.php">Checkout History</a></li>
+                         <li><a class="dropdown-item" href="checkouts.php">Checkouts</a></li>
                     </ul>
                 </li>
 
                 <!-- Resources Dropdown -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-calendar-check-fill me-1"></i> Resources
-                    </a>
+                    <a class="nav-link dropdown-toggle" href="#" id="resourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-building me-1"></i>Resources</a>
                     <ul class="dropdown-menu" aria-labelledby="resourcesDropdown">
-                         <li><a class="dropdown-item" href="bookings.php">Book a Resource</a></li>
+                         <li><a class="dropdown-item" href="bookings.php">Bookable Resources</a></li>
                          <?php if ($is_admin): ?>
-                            <li><a class="dropdown-item" href="resources.php">Manage Resources</a></li>
+                            <li><a class="dropdown-item" href="dormitories.php">Dormitories</a></li>
                          <?php endif; ?>
                     </ul>
                 </li>
 
-                <!-- Files Dropdown -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="filesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-folder-fill me-1"></i> Files
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="filesDropdown">
-                        <li><a class="dropdown-item" href="make_requisition.php">Make a Requisition</a></li>
-                        <li><a class="dropdown-item" href="view_requisitions.php">View Requisitions</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="request_leave.php">Request Leave</a></li>
-                        <li><a class="dropdown-item" href="view_my_leave.php">My Leave Requests</a></li>
-                    </ul>
-                </li>
-
-                <!-- Finance Dropdown (Role-based) -->
-                <?php if ($is_finance_user): ?>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="financeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-cash-coin me-1"></i> Finance
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="financeDropdown">
-                        <li><a class="dropdown-item" href="finance_dashboard.php">Finance Dashboard</a></li>
-                        <li><a class="dropdown-item" href="accountability.php">Accountability</a></li>
-                        <li><a class="dropdown-item" href="fee_structures.php">Fee Structures</a></li>
-                        <li><a class="dropdown-item" href="invoices.php">Invoices & Payments</a></li>
-                        <li><a class="dropdown-item" href="student_accounts.php">Student Accounts</a></li>
-                        <li><a class="dropdown-item" href="expenses.php">Expenses</a></li>
-                        <li><a class="dropdown-item" href="finance_reports.php">Reports</a></li>
-                    </ul>
-                </li>
-                <?php endif; ?>
-
-                <!-- Admin Dropdown (Role-based) -->
+                <!-- Communications Dropdown -->
                 <?php if ($is_admin): ?>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-gear me-1"></i> Admin
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                        <li><a class="dropdown-item" href="calendar.php">School Calendar</a></li>
-                        <li><a class="dropdown-item" href="events.php">Manage Events</a></li>
-                        <li><a class="dropdown-item" href="clubs.php">Clubs Management</a></li>
-                        <li><a class="dropdown-item" href="dormitories.php">Manage Dormitories</a></li>
-                        <li><a class="dropdown-item" href="room_assignments.php">Room Assignments</a></li>
-                        <li><a class="dropdown-item" href="student_analytics.php">Student Analytics</a></li>
-                        <li><a class="dropdown-item" href="admin_leave_requests.php">Manage Leave Requests</a></li>
-                        <?php if ($_SESSION['role'] === 'root'): ?>
-                        <li><a class="dropdown-item" href="audit_trail.php">System Audit Trail</a></li>
-                        <?php endif; ?>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="users.php">User Management</a></li>
-                        <li><a class="dropdown-item" href="teachers.php">Teachers</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><h6 class="dropdown-header">Communications</h6></li>
-                        <li><a class="dropdown-item" href="bulk_sms.php">Bulk SMS</a></li>
+                    <a class="nav-link dropdown-toggle" href="#" id="communicationsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-megaphone me-1"></i>Communications</a>
+                    <ul class="dropdown-menu" aria-labelledby="communicationsDropdown">
                         <li><a class="dropdown-item" href="announcements.php">Announcements</a></li>
+                        <li><a class="dropdown-item" href="bulk_sms.php">Bulk SMS</a></li>
                     </ul>
                 </li>
                 <?php endif; ?>
 
-                <!-- Laboratory Link (Role-based) -->
-                <?php if ($is_lab_attendant): ?>
+                <!-- Administration Dropdown -->
+                <?php if ($is_admin): ?>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="labDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-eyedropper me-1"></i> Laboratory
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="labDropdown">
-                        <li><a class="dropdown-item" href="lab_dashboard.php">Lab Dashboard</a></li>
-                        <li><a class="dropdown-item" href="lab_inventory.php">Manage Inventory</a></li>
+                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-gear me-1"></i>Administration</a>
+                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                         <li><a class="dropdown-item" href="view_class_attendance.php">Attendance</a></li>
+                         <li><a class="dropdown-item" href="admin_leave_requests.php">Leave Requests</a></li>
+                         <?php if ($_SESSION['role'] === 'root'): ?>
+                            <li><a class="dropdown-item" href="audit_trail.php">Audit Trail</a></li>
+                         <?php endif; ?>
                     </ul>
                 </li>
                 <?php endif; ?>
+
                 <?php endif; // End parent check ?>
             </ul>
 
