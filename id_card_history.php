@@ -15,6 +15,7 @@ $sql = "
     SELECT
         log.id,
         log.issued_at,
+        student.id AS student_id,
         student.first_name AS student_first_name,
         student.last_name AS student_last_name,
         student.unique_id AS student_unique_id,

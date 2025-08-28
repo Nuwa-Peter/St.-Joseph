@@ -130,9 +130,12 @@ foreach ($user_ids as $uid) {
         // Generate QR Code
         $qr_data = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/student_view.php?id=' . $user['id'];
         $qr_code_generator = new QRCode($qr_data, ['s' => 'qrl', 'e' => 'H']);
+        $qr_image_resource = $qr_code_generator->render_image();
         ob_start();
-        $qr_code_generator->output_image();
-        $user['qr_code'] = ob_get_clean();
+        imagepng($qr_image_resource);
+        $qr_image_data = ob_get_clean();
+        imagedestroy($qr_image_resource);
+        $user['qr_code'] = $qr_image_data;
 
         // Include the HTML template based on role
         if ($user['role'] === 'student') {
