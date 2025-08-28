@@ -1588,6 +1588,52 @@ ALTER TABLE `stream_video`
 --
 ALTER TABLE `videos`
   ADD CONSTRAINT `videos_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `id_card_logs`
+--
+
+CREATE TABLE `id_card_logs` (
+  `id` int(11) NOT NULL,
+  `student_id` bigint(20) UNSIGNED NOT NULL,
+  `issued_by_user_id` bigint(20) UNSIGNED NOT NULL,
+  `issued_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `id_card_logs`
+--
+ALTER TABLE `id_card_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `student_id` (`student_id`),
+  ADD KEY `issued_by_user_id` (`issued_by_user_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `id_card_logs`
+--
+ALTER TABLE `id_card_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `id_card_logs`
+--
+ALTER TABLE `id_card_logs`
+  ADD CONSTRAINT `id_card_logs_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `id_card_logs_ibfk_2` FOREIGN KEY (`issued_by_user_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

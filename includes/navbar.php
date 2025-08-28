@@ -62,6 +62,7 @@ $is_parent = $user_role === 'parent';
                         <li><a class="dropdown-item" href="health_record.php"><i class="bi bi-heart-pulse me-2"></i>Health Records</a></li>
                         <?php if ($is_admin): ?>
                             <li><a class="dropdown-item" href="id_card_generator.php"><i class="bi bi-person-badge me-2"></i>ID Card Generator</a></li>
+                            <li><a class="dropdown-item" href="id_card_history.php"><i class="bi bi-clock-history me-2"></i>ID Card History</a></li>
                             <li><a class="dropdown-item" href="link_student_to_parent.php"><i class="bi bi-link-45deg me-2"></i>Link Parent to Student</a></li>
                             <li><a class="dropdown-item" href="create_staff_group.php"><i class="bi bi-person-plus me-2"></i>Staff Groups</a></li>
                             <li><a class="dropdown-item" href="users.php"><i class="bi bi-people me-2"></i>User Management</a></li>
