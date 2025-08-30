@@ -1634,7 +1634,6 @@ ALTER TABLE `school_settings`
 --
 ALTER TABLE `school_settings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-COMMIT;
 
 --
 -- Table structure for table `id_card_logs`
