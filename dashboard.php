@@ -16,7 +16,7 @@ if ($_SESSION['role'] === 'parent') {
 }
 
 $user_role = $_SESSION['role'];
-$admin_roles = ['root', 'headteacher', 'director']; // Assuming director is an admin role
+$admin_roles = ['root', 'headteacher', 'director']; // Director has full admin access
 
 ?>
 

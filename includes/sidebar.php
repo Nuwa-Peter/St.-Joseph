@@ -40,8 +40,10 @@
                         <i class="bi bi-speedometer2 me-2"></i> Dashboard
                     </a>
                 </li>
-                <?php // Example of role-based menu item
-                // if ($_SESSION['role'] === 'root' || $_SESSION['role'] === 'headteacher') { ?>
+                <?php 
+                $admin_roles = ['root', 'headteacher', 'director'];
+                if (isset($_SESSION['role']) && in_array($_SESSION['role'], $admin_roles)): 
+                ?>
                     <li class="nav-item">
                         <a href="<?php echo users_url(); ?>" class="nav-link text-white <?php echo nav_active('users'); ?>">
                             <i class="bi bi-people me-2"></i> User Management
@@ -52,7 +54,7 @@
                             <i class="bi bi-person-video3 me-2"></i> Teachers
                         </a>
                     </li>
-                <?php // } ?>
+                <?php endif; ?>
                 <li class="nav-item">
                     <a href="#students-submenu" data-bs-toggle="collapse" class="nav-link text-white d-flex justify-content-between align-items-center">
                         <span class="sidebar-link-text">
@@ -186,7 +188,7 @@
                     </ul>
                 </li>
                 <?php
-                $finance_roles = ['bursar', 'headteacher', 'root'];
+                $finance_roles = ['bursar', 'headteacher', 'root', 'director'];
                 if (isset($_SESSION['role']) && in_array($_SESSION['role'], $finance_roles)):
                 ?>
                 <li class="nav-item">
