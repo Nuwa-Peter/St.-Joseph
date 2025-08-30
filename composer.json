@@ -1,0 +1,19 @@
+{
+    "name": "school/management-system",
+    "description": "A simple school management system.",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Jules",
+            "email": "jules@agent.com"
+        }
+    ],
+    "require": {
+        "tecnickcom/tcpdf": "^6.7.5",
+        "phpoffice/phpspreadsheet": "^2.1",
+        "endroid/qr-code": "^4.0",
+        "hellogerard/jobby": "^3.5",
+        "smalot/pdfparser": "^2.0",
+        "vlucas/phpdotenv": "^5.6"
+    }
+}

@@ -1,0 +1,105 @@
+/*
+ * Modern Sidebar Styles
+ * ---------------------
+ * This file contains the styles for the new, modern sidebar design.
+ */
+
+.sidebar-modern {
+    background-color: #2d3748 !important; /* A deep, dark slate-blue */
+    color: #e2e8f0; /* A light gray for soft, readable text */
+    border-right: 1px solid #4a5568; /* A slightly lighter border for separation */
+}
+
+/* Enforce vertical layout to prevent FOUC (Flash of Unstyled Content) */
+.sidebar-modern .nav-pills {
+    flex-direction: column;
+}
+
+/* General navigation link styling */
+.sidebar-modern .nav-link {
+    color: #cbd5e0; /* A slightly dimmer text color for non-active links */
+    padding: 12px 20px; /* Generous padding for a cleaner look */
+    margin: 4px 8px; /* Spacing between nav items */
+    border-radius: 8px; /* Rounded corners for a modern feel */
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+}
+
+/* Icon styling */
+.sidebar-modern .nav-link .bi {
+    font-size: 1.2rem; /* Slightly larger icons */
+    margin-right: 16px; /* More space between icon and text */
+    width: 24px; /* Fixed width for alignment */
+    text-align: center;
+}
+
+/* Hover state for links */
+.sidebar-modern .nav-link:hover {
+    background-color: #4a5568; /* A lighter slate for hover */
+    color: #ffffff; /* Bright white text on hover */
+}
+
+/* Active link and expanded submenu styling */
+.sidebar-modern .nav-link.active,
+.sidebar-modern .nav-link[aria-expanded="true"] {
+    background-color: #3182ce; /* A vibrant blue for active/expanded items */
+    color: #ffffff;
+    font-weight: 500; /* Bolder font for active links */
+}
+
+/* Submenu / Collapsed section styling */
+/* The background-color and margin were removed from this rule to prevent a layout shift (enlargement) of the sidebar when the submenu is opened. */
+.sidebar-modern .collapse {
+    border-radius: 8px;
+}
+
+.sidebar-modern .collapse .nav-link {
+    padding-left: 20px; /* Keep submenu items indented */
+    font-size: 0.9rem; /* Slightly smaller font for submenu items */
+    color: #a0aec0; /* Dimmer color for submenu items */
+}
+
+.sidebar-modern .collapse .nav-link:hover {
+    color: #ffffff;
+}
+
+.sidebar-modern .collapse .nav-link .bi {
+    font-size: 1rem; /* Smaller icons for submenu items */
+}
+
+
+/* Horizontal Rule */
+.sidebar-modern hr {
+    border-color: #4a5568;
+}
+
+/* User profile section at the bottom */
+.sidebar-modern .dropdown-toggle {
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin: 0 8px;
+}
+.sidebar-modern .dropdown-toggle:hover {
+    background-color: #4a5568;
+}
+
+.sidebar-modern .dropdown-menu {
+    background-color: #2d3748;
+    border: 1px solid #4a5568;
+}
+
+.sidebar-modern .dropdown-item {
+    color: #cbd5e0;
+    padding: 8px 20px;
+}
+
+.sidebar-modern .dropdown-item:hover {
+    background-color: #4a5568;
+    color: #ffffff;
+}
+
+/* Overriding the default Bootstrap offcanvas background */
+.offcanvas-start {
+    background-color: #2d3748; /* Ensure offcanvas has the correct background on smaller screens */
+}

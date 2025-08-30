@@ -1,0 +1,164 @@
+RewriteEngine On
+
+# Remove .php extension from URLs
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([^\.]+)$ $1.php [NC,L]
+
+# Clean URLs for main pages
+RewriteRule ^dashboard/?$ dashboard.php [NC,L]
+RewriteRule ^parent-dashboard/?$ parent_dashboard.php [NC,L]
+RewriteRule ^login/?$ login.php [NC,L]
+RewriteRule ^logout/?$ logout.php [NC,L]
+RewriteRule ^profile/?$ profile.php [NC,L]
+
+# Student management URLs
+RewriteRule ^students/?$ students.php [NC,L]
+RewriteRule ^students/create/?$ student_create.php [NC,L]
+RewriteRule ^students/edit/([0-9]+)/?$ student_edit.php?id=$1 [NC,L]
+RewriteRule ^students/view/([0-9]+)/?$ student_view.php?id=$1 [NC,L]
+RewriteRule ^students/import-export/?$ student_import_export.php [NC,L]
+RewriteRule ^students/unregistered/?$ unregistered_students.php [NC,L]
+RewriteRule ^students/analytics/?$ student_analytics.php [NC,L]
+RewriteRule ^students/accounts/?$ student_accounts.php [NC,L]
+
+# Teacher management URLs
+RewriteRule ^teachers/?$ teachers.php [NC,L]
+RewriteRule ^teachers/create/?$ teacher_create.php [NC,L]
+RewriteRule ^teachers/edit/([0-9]+)/?$ teacher_edit.php?id=$1 [NC,L]
+
+# User management URLs
+RewriteRule ^users/?$ users.php [NC,L]
+RewriteRule ^users/create/?$ user_create.php [NC,L]
+RewriteRule ^users/edit/([0-9]+)/?$ user_edit.php?id=$1 [NC,L]
+
+# Academic management URLs
+RewriteRule ^subjects/?$ subjects.php [NC,L]
+RewriteRule ^subjects/create/?$ subject_create.php [NC,L]
+RewriteRule ^subjects/edit/([0-9]+)/?$ subject_edit.php?id=$1 [NC,L]
+
+RewriteRule ^classes/?$ class_levels.php [NC,L]
+RewriteRule ^classes/create/?$ class_level_create.php [NC,L]
+RewriteRule ^classes/edit/([0-9]+)/?$ class_level_edit.php?id=$1 [NC,L]
+
+RewriteRule ^streams/?$ streams.php [NC,L]
+RewriteRule ^streams/create/?$ stream_create.php [NC,L]
+RewriteRule ^streams/edit/([0-9]+)/?$ stream_edit.php?id=$1 [NC,L]
+
+# Assignment management URLs
+RewriteRule ^assignments/?$ assignments.php [NC,L]
+RewriteRule ^assignments/create/?$ assignment_create.php [NC,L]
+RewriteRule ^assignments/edit/([0-9]+)/?$ assignment_edit.php?id=$1 [NC,L]
+RewriteRule ^assignments/submissions/?$ assignment_submissions.php [NC,L]
+
+# Attendance URLs
+RewriteRule ^attendance/?$ class_attendance.php [NC,L]
+RewriteRule ^attendance/take/?$ take_attendance.php [NC,L]
+RewriteRule ^attendance/view/?$ view_attendance.php [NC,L]
+RewriteRule ^attendance/exam/?$ exam_attendance.php [NC,L]
+
+# Financial management URLs
+RewriteRule ^finance/?$ finance_dashboard.php [NC,L]
+RewriteRule ^finance/reports/?$ finance_reports.php [NC,L]
+RewriteRule ^finance/invoices/?$ invoices.php [NC,L]
+RewriteRule ^finance/fees/?$ fee_structures.php [NC,L]
+RewriteRule ^finance/expenses/?$ expenses.php [NC,L]
+
+# Library management URLs
+RewriteRule ^library/?$ books.php [NC,L]
+RewriteRule ^library/books/create/?$ book_create.php [NC,L]
+RewriteRule ^library/books/edit/([0-9]+)/?$ book_edit.php?id=$1 [NC,L]
+RewriteRule ^library/books/view/([0-9]+)/?$ book_view.php?id=$1 [NC,L]
+RewriteRule ^library/checkouts/?$ checkouts.php [NC,L]
+
+# Communication URLs
+RewriteRule ^announcements/?$ announcements.php [NC,L]
+RewriteRule ^announcements/create/?$ announcement_create.php [NC,L]
+RewriteRule ^announcements/edit/([0-9]+)/?$ announcement_edit.php?id=$1 [NC,L]
+
+RewriteRule ^messages/?$ messages.php [NC,L]
+
+# Events and calendar URLs
+RewriteRule ^events/?$ events.php [NC,L]
+RewriteRule ^events/create/?$ event_create.php [NC,L]
+RewriteRule ^events/edit/([0-9]+)/?$ event_edit.php?id=$1 [NC,L]
+RewriteRule ^calendar/?$ calendar.php [NC,L]
+
+# Clubs and activities URLs
+RewriteRule ^clubs/?$ clubs.php [NC,L]
+
+# Reports and analytics URLs
+RewriteRule ^reports/?$ generate_report_pdf.php [NC,L]
+RewriteRule ^reports/competency/?$ generate_competency_based_report.php [NC,L]
+RewriteRule ^reports/id-cards/?$ id_card_generator.php [NC,L]
+
+# Settings and administration URLs
+RewriteRule ^settings/?$ school_settings.php [NC,L]
+RewriteRule ^settings/audit/?$ audit_trail.php [NC,L]
+
+# API endpoints (keep them as they are for AJAX calls)
+RewriteRule ^api/(.*)$ api_$1 [NC,L]
+
+# Security: Prevent direct access to sensitive files
+<Files "config.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "database.sql">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "composer.json">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "composer.lock">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Prevent access to .env files
+<Files ".env">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Prevent access to log files
+<Files "*.log">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Prevent access to backup files
+<Files "*.bak">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Enable compression for better performance
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+</IfModule>
+
+# Set browser caching for static assets
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+</IfModule>
