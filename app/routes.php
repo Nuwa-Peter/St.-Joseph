@@ -11,14 +11,14 @@ $router->set404(function () {
 
 // Define a route for the root directory
 $router->get('/', function () {
-    header('Location: /login');
+    header('Location: ' . login_url());
     exit();
 });
 
 // Before middleware
 $router->before('GET|POST', '/admin/.*', function () {
     if (!isset($_SESSION['user_id'])) {
-        header('location: /login');
+        header('location: ' . login_url());
         exit();
     }
 });
