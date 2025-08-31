@@ -1,11 +1,10 @@
 <?php
-session_start();
 require_once 'config.php';
 require_once 'includes/header.php';
 
 // Authorization Check
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION['role'] !== 'parent') {
-    header("location: login.php");
+    header("location: " . login_url());
     exit;
 }
 ?>

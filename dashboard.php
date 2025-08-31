@@ -1,17 +1,16 @@
 <?php
-session_start();
 require_once 'config.php';
 require_once 'includes/header.php';
 
 // Redirect if not logged in
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+    header("location: " . login_url());
     exit;
 }
 
 // A parent should not be on this dashboard
 if ($_SESSION['role'] === 'parent') {
-    header("location: parent_dashboard.php");
+    header("location: " . parent_dashboard_url());
     exit;
 }
 
