@@ -12,12 +12,16 @@
  */
 function url($path, $params = []) {
     $base_url = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+    // If the base URL is the root, don't include it in the path
+    if ($base_url === '/') {
+        $base_url = '';
+    }
     $url = $base_url . '/' . ltrim($path, '/');
-    
+
     if (!empty($params)) {
         $url .= '?' . http_build_query($params);
     }
-    
+
     return $url;
 }
 
