@@ -9,7 +9,7 @@ $router->set404(function () {
     echo '<h4>404 - Page Not Found</h4>';
 });
 
-// ரூட் டைரக்டரிக்கு ஒரு பாதை வரையறுக்கவும்
+// Define a route for the root directory
 $router->get('/', function () {
     header('Location: /login');
     exit();
@@ -305,7 +305,7 @@ $router->get('/library/books/view/(\d+)', function ($id) {
     include 'book_view.php';
 });
 
-$router.get('/library/checkouts', function () {
+$router->get('/library/checkouts', function () {
     include 'checkouts.php';
 });
 
