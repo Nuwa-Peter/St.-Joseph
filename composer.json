@@ -1,11 +1,11 @@
 {
     "name": "school/management-system",
-    "description": "A simple school management system.",
+    "description": "A robust school management system.",
     "type": "project",
     "authors": [
         {
-            "name": "Jules",
-            "email": "jules@agent.com"
+            "name": "Peter Nuwahereza",
+            "email": "nuwapeter2013@gmail.com"
         }
     ],
     "require": {
