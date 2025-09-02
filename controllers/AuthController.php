@@ -4,13 +4,22 @@ require_once __DIR__ . '/../includes/view.php';
 
 class AuthController {
 
-    public function __construct() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-    }
-
     public function login() {
+        // Redirect if user is already logged in
+        if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+            if (isset($_SESSION['role']) && $_SESSION['role'] === 'parent') {
+                header("location: " . parent_dashboard_url());
+            } else {
+                header("location: " . dashboard_url());
+            }
+            exit;
+        }
+
+        // Set headers to prevent caching of the login page
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
         require_once __DIR__ . '/../config.php';
 
         $data = [
