@@ -33,5 +33,8 @@ require_once __DIR__ . '/includes/url_helper.php';
 // Include the CSRF helper
 require_once __DIR__ . '/includes/csrf_helper.php';
 
+// Set up the view loader and get the Twig environment
+$twig = require_once __DIR__ . '/includes/view_loader.php';
+
 // Include the router
 require_once __DIR__ . '/app/routes.php';

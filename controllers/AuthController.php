@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../includes/view.php';
-
 class AuthController {
 
     public function login() {
@@ -114,7 +112,8 @@ class AuthController {
             $conn->close();
         }
 
-        // Load the login view
-        view('login', $data);
+        // Load the login view using Twig
+        global $twig;
+        echo $twig->render('login.html.twig', $data);
     }
 }
