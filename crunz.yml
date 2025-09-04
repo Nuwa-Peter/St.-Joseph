@@ -1,0 +1,22 @@
+# The directory where the task files are located.
+source: tasks
+
+# The suffix for the task files.
+suffix: 'Tasks.php'
+
+# The timezone for the scheduler.
+timezone: Africa/Kampala
+
+# Email settings for error reporting.
+mailer:
+    # Use the Symfony Mailer transport.
+    transport: symfony
+    # The DSN (Data Source Name) for the mailer.
+    # It reads the connection details from environment variables.
+    dsn: '%env(MAILER_DSN)%'
+    # A default list of recipients for failure notifications.
+    recipients:
+        - 'admin@example.com'
+    # The "From" address for notification emails.
+    sender_name: 'School System Scheduler'
+    sender_email: 'noreply@example.com'

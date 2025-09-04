@@ -1,28 +1,15 @@
 <?php
-require_once __DIR__ . '/vendor/autoload.php';
 
-use Jobby\Jobby;
+/**
+ * This file is now obsolete. The task scheduling has been migrated to Crunz.
+ *
+ * To run the scheduled tasks, you should now use the Crunz command-line utility.
+ * From the project root, run the following command in your system's crontab:
+ *
+ *   * * * * * cd /path/to/your/project && vendor/bin/crunz schedule:run >> /dev/null 2>&1
+ *
+ * The tasks themselves are now defined in the `tasks/` directory.
+ */
 
-$jobby = new Jobby();
-
-// --- Define Scheduled Jobs ---
-
-// Job to send alerts for ended leave requests.
-$jobby->add('SendLeaveAlerts', [
-    'command' => 'php ' . __DIR__ . '/tasks/send_leave_alerts.php',
-    'schedule' => '0 0 * * *', // Run once a day at midnight
-    'output' => __DIR__ . '/logs/scheduler.log',
-    'enabled' => true,
-]);
-
-
-// --- Run the Scheduler ---
-// This command will be executed by the system's master cron job every minute.
-// The Jobby scheduler will then decide if it's time to run any of the defined jobs.
-try {
-    $jobby->run();
-} catch (Exception $e) {
-    // Log any exceptions during the run.
-    file_put_contents(__DIR__ . '/logs/scheduler_error.log', $e->getMessage() . "\n", FILE_APPEND);
-}
-?>
+echo "This scheduler has been migrated to Crunz. Please see the instructions in this file.\n";
+exit(1);
