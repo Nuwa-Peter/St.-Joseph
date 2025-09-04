@@ -1,6 +1,11 @@
 <?php
 
 class AuthController {
+    private $conn;
+
+    public function __construct($db_connection) {
+        $this->conn = $db_connection;
+    }
 
     public function login() {
         // Redirect if user is already logged in
@@ -17,8 +22,6 @@ class AuthController {
         header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         header('Pragma: no-cache');
         header('Expires: 0');
-
-        require_once __DIR__ . '/../config.php';
 
         $data = [
             'login_identifier' => '',
@@ -43,7 +46,7 @@ class AuthController {
             if (empty($data['login_err']) && empty($data['password_err'])) {
                 $sql = "SELECT id, username, first_name, last_name, email, password, role FROM users WHERE username = ? OR email = ?";
 
-                if ($stmt = $conn->prepare($sql)) {
+                if ($stmt = $this->conn->prepare($sql)) {
                     $stmt->bind_param("ss", $data['login_identifier'], $data['login_identifier']);
 
                     if ($stmt->execute()) {
@@ -73,7 +76,7 @@ class AuthController {
                                         $admin_roles_to_notify = ['root', 'director', 'headteacher'];
                                         $admin_ids = [];
                                         $sql_admins = "SELECT id FROM users WHERE role IN ('" . implode("','", $admin_roles_to_notify) . "')";
-                                        $result_admins = $conn->query($sql_admins);
+                                        $result_admins = $this->conn->query($sql_admins);
                                         while($row = $result_admins->fetch_assoc()) {
                                             $admin_ids[] = $row['id'];
                                         }
@@ -82,7 +85,7 @@ class AuthController {
                                             $notification_message = "Parent " . $name . " has logged in.";
                                             $notification_link = "profile.php?id=" . $id;
                                             $notify_sql = "INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)";
-                                            $notify_stmt = $conn->prepare($notify_sql);
+                                            $notify_stmt = $this->conn->prepare($notify_sql);
                                             foreach($admin_ids as $admin_id) {
                                                 $notify_stmt->bind_param("iss", $admin_id, $notification_message, $notification_link);
                                                 $notify_stmt->execute();
@@ -109,7 +112,7 @@ class AuthController {
                     $stmt->close();
                 }
             }
-            $conn->close();
+            $this->conn->close();
         }
 
         // Load the login view using Twig
