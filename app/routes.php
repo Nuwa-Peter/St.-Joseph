@@ -3,6 +3,9 @@
 // Create a new router instance
 $router = new \Bramus\Router\Router();
 
+// Require controllers
+require_once __DIR__ . '/../controllers/AuthController.php';
+
 // Custom 404 Handler
 $router->set404(function () {
     header('HTTP/1.1 404 Not Found');
@@ -35,14 +38,10 @@ $router->get('/parent-dashboard', function () {
 });
 
 // Login/Logout
-$router->get('/login', function () {
+$router->all('/login', function () {
     global $conn;
-    include 'login.php';
-});
-
-$router->post('/login', function () {
-    global $conn;
-    include 'login.php';
+    $authController = new AuthController($conn);
+    $authController->login();
 });
 
 $router->get('/logout', function () {
