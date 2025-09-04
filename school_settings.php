@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once 'config.php';
 
 // Handle form submission before any HTML output

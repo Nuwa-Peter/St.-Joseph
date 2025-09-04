@@ -1,5 +1,4 @@
 <?php
-session_start();
 header('Content-Type: application/json');
 
 // All logged-in users can search, but we must be connected to the db

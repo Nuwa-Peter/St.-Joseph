@@ -67,7 +67,7 @@ if (isset($_POST['upload_photo'])) {
         // If we have image data, process it
         if ($image_data !== null && $file_extension !== null) {
             // Generate a unique name for the file
-            $new_filename = 'user_' . $user_id . '_' . uniqid() . '.' . $file_extension;
+            $new_filename = 'user_' . $user_id_to_display . '_' . uniqid() . '.' . $file_extension;
             $target_path = 'uploads/photos/' . $new_filename;
 
             if (file_put_contents($target_path, $image_data)) {
@@ -77,7 +77,7 @@ if (isset($_POST['upload_photo'])) {
                 }
                 // Update database
                 $stmt_photo = $conn->prepare("UPDATE users SET photo = ? WHERE id = ?");
-                $stmt_photo->bind_param("si", $target_path, $user_id);
+                $stmt_photo->bind_param("si", $target_path, $user_id_to_display);
                 if ($stmt_photo->execute()) {
                     $success_message = "Profile photo updated successfully.";
                     // Refresh user data to show new photo immediately
@@ -115,7 +115,7 @@ if (isset($_POST['change_password'])) {
     } else {
         // Verify current password
         $stmt_pass = $conn->prepare("SELECT password FROM users WHERE id = ?");
-        $stmt_pass->bind_param("i", $user_id);
+        $stmt_pass->bind_param("i", $user_id_to_display);
         $stmt_pass->execute();
         $result_pass = $stmt_pass->get_result();
         $user_with_pass = $result_pass->fetch_assoc();
@@ -125,7 +125,7 @@ if (isset($_POST['change_password'])) {
             // Current password is correct, update to new password
             $hashed_new_password = password_hash($new_password, PASSWORD_DEFAULT);
             $stmt_update = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
-            $stmt_update->bind_param("si", $hashed_new_password, $user_id);
+            $stmt_update->bind_param("si", $hashed_new_password, $user_id_to_display);
             if ($stmt_update->execute()) {
                 $success_message = "Your password has been changed successfully.";
 

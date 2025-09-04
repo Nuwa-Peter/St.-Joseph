@@ -1,6 +1,5 @@
 <?php
 header('Content-Type: application/json');
-session_start();
 
 // 1. Authorization Check
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {

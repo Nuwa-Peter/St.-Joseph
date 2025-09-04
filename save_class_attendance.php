@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once 'config.php';
 
 // This script handles the submission of the class attendance form.

@@ -1,7 +1,6 @@
 <?php
 header('Content-Type: application/json');
 require_once 'config.php';
-session_start();
 
 // Security check: ensure user is logged in
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {

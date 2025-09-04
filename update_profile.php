@@ -3,7 +3,6 @@ require_once 'config.php';
 require_once 'includes/csrf_helper.php'; // Need to include helpers
 
 // Start session - this file is called directly, so it needs to manage its own session and auth.
-session_start();
 
 // Check for a logged-in user
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {

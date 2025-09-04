@@ -1,6 +1,5 @@
 <?php
 header('Content-Type: application/json');
-session_start();
 require_once 'config.php';
 
 // Authorization check: only admins can fetch event data

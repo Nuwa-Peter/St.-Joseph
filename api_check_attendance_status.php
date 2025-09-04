@@ -1,6 +1,5 @@
 <?php
 header('Content-Type: application/json');
-session_start();
 require_once 'config.php';
 
 // Basic security checks

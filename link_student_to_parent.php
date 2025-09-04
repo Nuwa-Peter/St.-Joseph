@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once 'config.php';
 
 // Authorization: Ensure an admin is logged in
