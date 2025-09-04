@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once 'config.php';
 
 // Redirect if not logged in
@@ -22,6 +21,7 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'headteacher') {
 
 // Process form data when form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    verify_csrf_token();
     $first_name = trim($_POST['first_name']);
     $last_name = trim($_POST['last_name']);
     $username = trim($_POST['username']);
@@ -141,6 +141,7 @@ require_once 'includes/header.php';
 
 <h2>Create User</h2>
 <form action="user_create.php" method="post">
+    <?php echo csrf_input(); ?>
     <?php if(isset($errors['db'])): ?><div class="alert alert-danger"><?php echo $errors['db']; ?></div><?php endif; ?>
     <div class="row">
         <div class="col-md-6 mb-3">

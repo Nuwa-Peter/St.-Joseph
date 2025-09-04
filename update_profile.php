@@ -1,15 +1,21 @@
 <?php
-session_start();
 require_once 'config.php';
+require_once 'includes/csrf_helper.php'; // Need to include helpers
 
-// 1. Check for a logged-in user
+// Start session - this file is called directly, so it needs to manage its own session and auth.
+session_start();
+
+// Check for a logged-in user
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+    // We need the url_helper to redirect properly
+    require_once 'includes/url_helper.php';
+    header("location: " . login_url());
     exit;
 }
 
 // Check if the form was submitted
 if (isset($_POST['update_profile'])) {
+    verify_csrf_token();
     $user_id = $_SESSION['id'];
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);

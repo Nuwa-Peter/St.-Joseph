@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once 'config.php';
 
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
@@ -34,6 +33,7 @@ $photo_err = "";
 
 // Handle Photo Upload
 if (isset($_POST['upload_photo'])) {
+    verify_csrf_token();
     $authorized_roles = ['teacher', 'librarian', 'root', 'bursar', 'headteacher'];
     if (in_array($_SESSION['role'], $authorized_roles)) {
 
@@ -102,6 +102,7 @@ if (isset($_POST['upload_photo'])) {
 
 
 if (isset($_POST['change_password'])) {
+    verify_csrf_token();
     $current_password = $_POST['current_password'];
     $new_password = $_POST['new_password'];
     $confirm_new_password = $_POST['confirm_new_password'];
@@ -212,6 +213,7 @@ if (isset($_SESSION['profile_errors'])) {
     </div>
     <div class="col-md-8">
         <form action="update_profile.php" method="post">
+            <?php echo csrf_input(); ?>
             <div class="card mb-3">
                 <div class="card-body">
                     <div class="row">
@@ -257,6 +259,7 @@ if (isset($_SESSION['profile_errors'])) {
                 <?php if($password_err): ?><div class="alert alert-danger"><?php echo $password_err; ?></div><?php endif; ?>
 
                 <form action="profile.php" method="post">
+                    <?php echo csrf_input(); ?>
                     <div class="mb-3">
                         <label for="current_password" class="form-label">Current Password</label>
                         <input type="password" name="current_password" class="form-control" required>
@@ -282,6 +285,7 @@ if (isset($_SESSION['profile_errors'])) {
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="profile.php" method="post" enctype="multipart/form-data">
+                <?php echo csrf_input(); ?>
                 <div class="modal-header">
                     <h5 class="modal-title" id="photoUploadModalLabel">Upload New Profile Photo</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -310,6 +314,7 @@ if (isset($_SESSION['profile_errors'])) {
 
 <!-- Hidden Form for Webcam/Cropped Photo -->
 <form id="webcam-photo-form" action="profile.php" method="post" style="display: none;">
+    <?php echo csrf_input(); ?>
     <input type="hidden" name="cropped_photo_data" id="hidden-cropped-photo-data">
     <input type="hidden" name="upload_photo" value="1">
 </form>

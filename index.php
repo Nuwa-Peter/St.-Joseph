@@ -17,6 +17,9 @@ if (isset($_SESSION['LAST_ACTIVITY']) && (time() - $_SESSION['LAST_ACTIVITY'] > 
 }
 $_SESSION['LAST_ACTIVITY'] = time(); // Update last activity time stamp
 
+// Generate a CSRF token if one doesn't exist for the session
+generate_csrf_token();
+
 
 // Include Composer autoloader
 require_once __DIR__ . '/vendor/autoload.php';
@@ -26,6 +29,9 @@ require_once __DIR__ . '/config.php';
 
 // Include the URL helper
 require_once __DIR__ . '/includes/url_helper.php';
+
+// Include the CSRF helper
+require_once __DIR__ . '/includes/csrf_helper.php';
 
 // Include the router
 require_once __DIR__ . '/app/routes.php';
