@@ -27,4 +27,5 @@ generate_csrf_token();
 $twig = require_once __DIR__ . '/includes/view_loader.php';
 
 // 5. Run the application router
+// All requests are handled from this point onwards.
 require_once __DIR__ . '/app/routes.php';
