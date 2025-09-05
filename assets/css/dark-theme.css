@@ -65,3 +65,28 @@
     background-color: #495057;
     border-color: #6c757d;
 }
+
+/* Contextual color overrides for dark mode */
+[data-bs-theme="dark"] .text-primary {
+    color: #4dabf7 !important; /* A lighter, more readable blue */
+}
+
+[data-bs-theme="dark"] .bg-primary {
+    background-color: #1864ab !important;
+}
+
+[data-bs-theme="dark"] .bg-info {
+    background-color: #1098ad !important;
+}
+
+[data-bs-theme="dark"] .bg-success {
+    background-color: #2b8a3e !important;
+}
+
+[data-bs-theme="dark"] .bg-warning {
+    background-color: #e67700 !important;
+}
+
+[data-bs-theme="dark"] .text-muted {
+    color: #adb5bd !important;
+}

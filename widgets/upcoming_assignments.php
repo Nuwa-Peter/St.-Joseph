@@ -62,6 +62,6 @@ if (isset($stmt) && $stmt) {
                 <?php endforeach; ?>
             </ul>
         <?php endif; ?>
-        <a href="<?php echo $user_role === 'student' ? 'student_assignments_view.php' : 'assignments.php'; ?>" class="mt-3 d-block">View All Assignments &rarr;</a>
+        <a href="<?php echo $user_role === 'student' ? url('student-assignments-view') : assignments_url(); ?>" class="mt-3 d-block">View All Assignments &rarr;</a>
     </div>
 </div>
