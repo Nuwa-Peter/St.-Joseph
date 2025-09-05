@@ -1,0 +1,67 @@
+/*
+ * Dark Theme Overrides
+ * --------------------
+ * This file contains custom style overrides for dark mode.
+ * It works in conjunction with Bootstrap 5's `data-bs-theme="dark"` attribute.
+ */
+
+[data-bs-theme="dark"] {
+    --bs-body-bg: #212529;
+    --bs-body-color: #dee2e6;
+    --bs-border-color: #495057;
+    --bs-secondary-bg: #343a40;
+}
+
+/* Override for the new top header */
+[data-bs-theme="dark"] .top-header {
+    background-color: #1c1f23;
+    border-bottom-color: #343a40;
+}
+
+[data-bs-theme="dark"] .top-header .school-name,
+[data-bs-theme="dark"] .top-header a {
+    color: #f8f9fa;
+}
+
+/* General component overrides */
+[data-bs-theme="dark"] .card {
+    background-color: var(--bs-secondary-bg);
+    border-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .list-group-item {
+    background-color: var(--bs-secondary-bg);
+    border-color: var(--bs-border-color);
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .table {
+    --bs-table-bg: var(--bs-secondary-bg);
+    --bs-table-color: var(--bs-body-color);
+    --bs-table-border-color: var(--bs-border-color);
+    --bs-table-striped-bg: #2c3034;
+}
+
+[data-bs-theme="dark"] .modal-content {
+    background-color: #2b3035;
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .form-control {
+    background-color: #212529;
+    color: #fff;
+    border-color: #495057;
+}
+
+[data-bs-theme="dark"] .form-control:focus {
+    background-color: #212529;
+    color: #fff;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Ensure navbar search has dark background */
+[data-bs-theme="dark"] .navbar-search-input {
+    background-color: #495057;
+    border-color: #6c757d;
+}

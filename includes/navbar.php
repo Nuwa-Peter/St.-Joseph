@@ -137,9 +137,16 @@ $is_parent = $user_role === 'parent';
                     </div>
                 </li>
 
-                <!-- Theme Changer Placeholder -->
-                <li class="nav-item me-2">
-                    <!-- Theme changer will go here -->
+                <!-- Theme Changer Dropdown -->
+                <li class="nav-item dropdown me-2">
+                    <a class="nav-link dropdown-toggle" href="#" id="themeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Toggle theme">
+                        <i class="bi bi-circle-half"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="themeDropdown">
+                        <li><button class="dropdown-item d-flex align-items-center" type="button" data-bs-theme-value="light"><i class="bi bi-sun-fill me-2"></i> Light</button></li>
+                        <li><button class="dropdown-item d-flex align-items-center" type="button" data-bs-theme-value="dark"><i class="bi bi-moon-stars-fill me-2"></i> Dark</button></li>
+                        <li><button class="dropdown-item d-flex align-items-center" type="button" data-bs-theme-value="auto"><i class="bi bi-circle-half me-2"></i> System</button></li>
+                    </ul>
                 </li>
 
                 <!-- User Profile Dropdown -->
