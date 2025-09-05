@@ -1,5 +1,22 @@
 /* assets/css/custom_navbar.css */
 
+.top-header {
+    background-color: #ffffff;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.top-header .school-name {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #212529;
+    margin: 0;
+    vertical-align: middle;
+}
+
 .navbar-nav .nav-link .bi {
     transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
     font-size: 1.1rem; /* Slightly larger icons */

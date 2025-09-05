@@ -129,7 +129,15 @@ $is_parent = $user_role === 'parent';
 
             <!-- Right-aligned items -->
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
-                <!-- Search, Notifications, etc. -->
+                <!-- Search Bar -->
+                <li class="nav-item me-2">
+                    <div class="search-container position-relative">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3" style="z-index: 10;"></i>
+                        <input class="form-control form-control-sm navbar-search-input ps-4" type="search" id="live-search-input" placeholder="Search..." aria-label="Search" autocomplete="off">
+                        <div class="list-group position-absolute" id="live-search-results" style="z-index: 1050; width: 300px; top: 100%; left: 0;"></div>
+                    </div>
+                </li>
+                <!-- User Profile Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <?php if(isset($_SESSION["initials"])): ?>
@@ -153,3 +161,65 @@ $is_parent = $user_role === 'parent';
         </div>
     </div>
 </nav>
+
+<script>
+// Live Search JavaScript
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('live-search-input');
+    const resultsContainer = document.getElementById('live-search-results');
+    let debounceTimer;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const query = searchInput.value;
+
+                if (query.length < 2) {
+                    resultsContainer.innerHTML = '';
+                    resultsContainer.style.display = 'none';
+                    return;
+                }
+
+                fetch(`<?php echo url('api/live-search'); ?>?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        resultsContainer.innerHTML = '';
+                        if (data && data.length > 0) {
+                            resultsContainer.style.display = 'block';
+                            data.forEach(user => {
+                                const link = document.createElement('a');
+                                let userUrl = user.role === 'student' ? '<?php echo student_view_url(0); ?>'.replace('0', user.id) : '<?php echo profile_url(); ?>?id=' + user.id;
+                                link.href = userUrl;
+                                link.className = 'list-group-item list-group-item-action d-flex align-items-center';
+                                let initials = (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase();
+                                link.innerHTML = `
+                                    <div class="flex-shrink-0">
+                                        <div class="avatar-initials-sm">${initials}</div>
+                                    </div>
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="mb-0">${user.first_name} ${user.last_name}</h6>
+                                        <small class="text-muted">${user.role}</small>
+                                    </div>
+                                `;
+                                resultsContainer.appendChild(link);
+                            });
+                        } else {
+                            resultsContainer.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching search results:', error);
+                        resultsContainer.style.display = 'none';
+                    });
+            }, 300);
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!searchInput.contains(event.target)) {
+                resultsContainer.style.display = 'none';
+            }
+        });
+    }
+});
+</script>

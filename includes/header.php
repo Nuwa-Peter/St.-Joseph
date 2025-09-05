@@ -21,7 +21,24 @@
 </head>
 <body>
     <?php
-    // Include URL helper functions
+    // This file is included after config.php, so $conn is available.
+    $school_name = 'St. Joseph\'s VSS'; // Default value
+    $sql = "SELECT setting_value FROM school_settings WHERE setting_key = 'school_name'";
+    if ($result = $conn->query($sql)) {
+        if ($row = $result->fetch_assoc()) {
+            $school_name = $row['setting_value'];
+        }
+        $result->free();
+    }
+    ?>
+    <header class="top-header">
+        <a href="<?php echo (isset($_SESSION['role']) && $_SESSION['role'] === 'parent') ? parent_dashboard_url() : dashboard_url(); ?>" class="text-decoration-none">
+            <img src="<?php echo url('images/logo.png'); ?>" alt="School Logo" height="40" class="me-3">
+            <span class="school-name"><?php echo htmlspecialchars($school_name); ?></span>
+        </a>
+    </header>
+    <?php
+    // Include URL helper functions, which are now needed by the navbar
     require_once __DIR__ . '/url_helper.php';
     
     if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
