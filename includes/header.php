@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="assets/libs/cropperjs/cropper.min.css">
     <link rel="stylesheet" href="assets/css/modern-theme.css">
     <link rel="stylesheet" href="assets/css/modern-navbar.css">
+    <link rel="stylesheet" href="assets/css/custom_navbar.css">
     <link rel="stylesheet" href="assets/css/custom.css">
 </head>
 <body>
