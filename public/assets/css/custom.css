@@ -104,6 +104,15 @@ footer {
 .sidebar-logo {
     width: 80px;
     height: 80px;
+}
+
+/* Specific override for the main header logo to prevent resizing issues */
+.top-header .header-logo {
+    width: 40px !important;
+    height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
+    object-fit: contain;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid #fff;

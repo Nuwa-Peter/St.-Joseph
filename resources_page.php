@@ -147,7 +147,7 @@ if ($result) {
 <div class="modal fade" id="addResourceModal" tabindex="-1" aria-labelledby="addResourceModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="resources.php" method="post">
+            <form action="/resources" method="post">
                 <div class="modal-header"><h5 class="modal-title" id="addResourceModalLabel">Add New Resource</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body">
                     <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" name="name" required></div>
@@ -166,7 +166,7 @@ if ($result) {
 <div class="modal fade" id="editResourceModal" tabindex="-1" aria-labelledby="editResourceModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="resources.php" method="post">
+            <form action="/resources" method="post">
                 <input type="hidden" name="resource_id" id="edit_resource_id">
                 <div class="modal-header"><h5 class="modal-title" id="editResourceModalLabel">Edit Resource</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body">
@@ -186,7 +186,7 @@ if ($result) {
 <div class="modal fade" id="deleteResourceModal" tabindex="-1" aria-labelledby="deleteResourceModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="resources.php" method="post">
+            <form action="/resources" method="post">
                 <input type="hidden" name="resource_id" id="delete_resource_id">
                 <div class="modal-header"><h5 class="modal-title" id="deleteResourceModalLabel">Delete Resource</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body"><p>Are you sure you want to delete this resource? All associated bookings will also be deleted. This action cannot be undone.</p></div>

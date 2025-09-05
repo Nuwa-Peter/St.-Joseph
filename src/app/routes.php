@@ -29,7 +29,7 @@ $router->before('GET|POST', '/admin/.*', function () {
 // Dashboard
 $router->get('/dashboard', function () {
     global $conn;
-    include 'dashboard.php';
+    include __DIR__ . '/../views/dashboard.php';
 });
 
 $router->get('/parent-dashboard', function () {
@@ -58,7 +58,7 @@ $router->get('/profile', function () {
 // Student management
 $router->get('/students', function () {
     global $conn;
-    include 'students.php';
+    include __DIR__ . '/../views/students.php';
 });
 
 $router->get('/students/create', function () {
@@ -170,7 +170,7 @@ $router->post('/users/edit/(\d+)', function ($id) {
 // Academic management
 $router->get('/subjects', function () {
     global $conn;
-    include 'subjects.php';
+    include __DIR__ . '/../views/subjects.php';
 });
 
 $router->get('/subjects/create', function () {
@@ -256,12 +256,7 @@ $router->get('/assignments', function () {
     include 'assignments.php';
 });
 
-$router->get('/assignments/create', function () {
-    global $conn;
-    include 'assignment_create.php';
-});
-
-$router->post('/assignments/create', function () {
+$router->all('/assignments/create', function () {
     global $conn;
     include 'assignment_create.php';
 });
@@ -303,6 +298,11 @@ $router->get('/attendance/view', function () {
 $router->get('/attendance/exam', function () {
     global $conn;
     include 'exam_attendance.php';
+});
+
+$router->post('/attendance/save', function () {
+    global $conn;
+    include 'save_class_attendance.php';
 });
 
 // Financial management
@@ -412,12 +412,7 @@ $router->get('/events', function () {
     include 'events.php';
 });
 
-$router->get('/events/create', function () {
-    global $conn;
-    include 'event_create.php';
-});
-
-$router->post('/events/create', function () {
+$router->all('/events/create', function () {
     global $conn;
     include 'event_create.php';
 });
@@ -441,11 +436,103 @@ $router->get('/calendar', function () {
 
 
 // Clubs
-$router->get('/clubs', function () {
+$router->all('/clubs', function () {
     global $conn;
     include 'clubs.php';
 });
 
+// Student Life
+$router->get('/student-life/discipline', function () {
+    global $conn;
+    include 'discipline.php';
+});
+
+$router->get('/student-life/health-records', function () {
+    global $conn;
+    include 'health_record.php';
+});
+
+$router->get('/student-life/dormitories', function () {
+    global $conn;
+    include 'dormitories.php';
+});
+
+$router->get('/student-life/alumni', function () {
+    global $conn;
+    include 'alumni.php';
+});
+
+// Resources
+$router->get('/resources', function () {
+    global $conn;
+    include 'resources_page.php';
+});
+
+$router->get('/resources/video-library', function () {
+    global $conn;
+    include 'video_library.php';
+});
+
+// Bookings
+$router->get('/bookings', function () {
+    global $conn;
+    include 'bookings.php';
+});
+
+// Inventory
+$router->get('/inventory', function () {
+    global $conn;
+    include 'inventory.php';
+});
+
+// Communication
+$router->get('/communication/bulk-sms', function () {
+    global $conn;
+    include 'bulk_sms.php';
+});
+
+// Finance
+$router->get('/finance/accountability', function () {
+    global $conn;
+    include 'accountability.php';
+});
+
+$router->get('/finance/requisitions', function () {
+    global $conn;
+    include 'view_requisitions.php';
+});
+
+$router->get('/finance/requisitions/new', function () {
+    global $conn;
+    include 'make_requisition.php';
+});
+
+// Users
+$router->get('/users/link-student-to-parent', function () {
+    global $conn;
+    include 'link_student_to_parent.php';
+});
+
+$router->get('/users/create-staff-group', function () {
+    global $conn;
+    include 'create_staff_group.php';
+});
+
+// Academics
+$router->get('/academics/grading-scales', function () {
+    global $conn;
+    include 'grading_scales.php';
+});
+
+$router->get('/academics/examinations', function () {
+    global $conn;
+    include 'examinations.php';
+});
+
+$router->get('/academics/lesson-planner', function () {
+    global $conn;
+    include 'lesson_planner.php';
+});
 
 // Reports
 $router->get('/reports', function () {
@@ -461,6 +548,11 @@ $router->get('/reports/competency', function () {
 $router->get('/reports/id-cards', function () {
     global $conn;
     include 'id_card_generator.php';
+});
+
+$router->get('/reports/report-cards', function () {
+    global $conn;
+    include 'report_card_generator.php';
 });
 
 

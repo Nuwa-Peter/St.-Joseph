@@ -34,7 +34,7 @@
     ?>
     <header class="top-header">
         <a href="<?php echo (isset($_SESSION['role']) && $_SESSION['role'] === 'parent') ? parent_dashboard_url() : dashboard_url(); ?>" class="text-decoration-none">
-            <img src="<?php echo url('images/logo.png'); ?>" alt="School Logo" height="40" class="me-3">
+            <img src="<?php echo url('images/logo.png'); ?>" alt="School Logo" height="40" class="me-3 header-logo">
             <span class="school-name"><?php echo htmlspecialchars($school_name); ?></span>
         </a>
     </header>

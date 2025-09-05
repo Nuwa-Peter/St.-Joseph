@@ -46,8 +46,15 @@ if ($stmt = $conn->prepare($sql)) {
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Manage Assignments</h2>
-        <a href="assignment_create.php" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Create New Assignment</a>
+        <a href="/assignments/create" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Create New Assignment</a>
     </div>
+
+    <?php
+    if (isset($_SESSION['success_message'])) {
+        echo '<div class="alert alert-success alert-dismissible fade show" role="alert">' . $_SESSION['success_message'] . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+        unset($_SESSION['success_message']);
+    }
+    ?>
 
     <div class="card">
         <div class="card-body">

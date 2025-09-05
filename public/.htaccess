@@ -1,0 +1,12 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Don't apply to files that exist
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    # Don't apply to directories that exist
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Rewrite all other requests to index.php
+    RewriteRule ^.*$ index.php [L,QSA]
+</IfModule>

@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function loadConversations() {
         try {
-            const response = await fetch('api_get_conversations.php');
+            const response = await fetch('/api/get_conversations');
             const conversations = await response.json();
 
             if (conversations.error) {
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch(`api_get_messages.php?conversation_id=${conversationId}`);
+            const response = await fetch(`/api/get_messages?conversation_id=${conversationId}`);
             const messages = await response.json();
 
             if (messages.error) {
@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         try {
-            const response = await fetch('api_send_message.php', {
+            const response = await fetch('/api/send_message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(messageData)
@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             // Using the existing live search API
-            const response = await fetch(`api_live_search.php?q=${query}`);
+            const response = await fetch(`/api/live_search?q=${query}`);
             const users = await response.json();
 
             userSearchResults.innerHTML = '';
@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function startNewConversation(recipientId) {
         try {
-            const response = await fetch('api_create_conversation.php', {
+            const response = await fetch('/api/create_conversation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ recipient_id: recipientId })
@@ -360,7 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     async function deleteMessage(messageId, messageElement) {
         try {
-            const response = await fetch('api_delete_message.php', {
+            const response = await fetch('/api/delete_message', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message_id: messageId })

@@ -3,8 +3,10 @@ require_once 'config.php';
 require_once 'includes/url_helper.php';
 require_once 'includes/csrf_helper.php';
 
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("Location: " . login_url());
+// Authorization check
+$allowed_roles = ['headteacher', 'root', 'director'];
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
+    header("location: " . dashboard_url());
     exit;
 }
 

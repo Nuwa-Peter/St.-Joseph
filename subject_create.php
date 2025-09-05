@@ -1,14 +1,17 @@
 <?php
+require_once 'config.php';
+require_once 'includes/url_helper.php';
 
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+// Authorization check
+$allowed_roles = ['teacher', 'headteacher', 'root'];
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
+    header("location: " . login_url());
     exit;
 }
 
-require_once 'config.php';
-
 $name = $code = "";
 $name_err = $code_err = "";
+$db_err = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validate name
@@ -27,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $name = trim($_POST["name"]);
                 }
             } else {
-                // Consider a more robust error handling
+                $db_err = "Oops! Something went wrong. Please try again later.";
             }
             $stmt->close();
         }
@@ -49,23 +52,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $code = trim($_POST["code"]);
                 }
             } else {
-                // Consider a more robust error handling
+                $db_err = "Oops! Something went wrong. Please try again later.";
             }
             $stmt->close();
         }
     }
 
-    if (empty($name_err) && empty($code_err)) {
+    if (empty($name_err) && empty($code_err) && empty($db_err)) {
         $sql = "INSERT INTO subjects (name, code, created_at, updated_at) VALUES (?, ?, NOW(), NOW())";
 
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ss", $name, $code);
 
             if ($stmt->execute()) {
-                header("location: subjects.php");
+                $_SESSION['success_message'] = "Subject created successfully.";
+                header("location: " . subjects_url());
                 exit();
             } else {
-                // Consider a more robust error handling
+                $db_err = "Something went wrong. Please try again later.";
             }
             $stmt->close();
         }
@@ -75,24 +79,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 require_once 'includes/header.php';
 ?>
 
-<h2>Create Subject</h2>
-<p>Please fill this form to create a new subject.</p>
-<form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-    <div class="form-group <?php echo (!empty($name_err)) ? 'has-error' : ''; ?>">
-        <label>Name</label>
-        <input type="text" name="name" class="form-control" value="<?php echo $name; ?>">
-        <span class="help-block"><?php echo $name_err; ?></span>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Create Subject</h2>
+        <a href="<?php echo subjects_url(); ?>" class="btn btn-secondary">Back to Subjects</a>
     </div>
-    <div class="form-group <?php echo (!empty($code_err)) ? 'has-error' : ''; ?>">
-        <label>Code</label>
-        <input type="text" name="code" class="form-control" value="<?php echo $code; ?>">
-        <span class="help-block"><?php echo $code_err; ?></span>
+
+    <?php if(!empty($db_err)): ?>
+        <div class="alert alert-danger"><?php echo $db_err; ?></div>
+    <?php endif; ?>
+
+    <div class="card">
+        <div class="card-body">
+            <p>Please fill this form to create a new subject.</p>
+            <form action="<?php echo subject_create_url(); ?>" method="post">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $name; ?>">
+                    <div class="invalid-feedback"><?php echo $name_err; ?></div>
+                </div>
+                <div class="mb-3">
+                    <label for="code" class="form-label">Code</label>
+                    <input type="text" name="code" id="code" class="form-control <?php echo (!empty($code_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $code; ?>">
+                    <div class="invalid-feedback"><?php echo $code_err; ?></div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Create Subject</button>
+                    <a href="<?php echo subjects_url(); ?>" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="form-group">
-        <input type="submit" class="btn btn-primary" value="Submit">
-        <a href="subjects.php" class="btn btn-default">Cancel</a>
-    </div>
-</form>
+</div>
 
 <?php
 $conn->close();

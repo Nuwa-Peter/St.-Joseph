@@ -15,22 +15,24 @@ $error_message = "";
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_club'])) {
     $name = trim($_POST['name']);
     $description = trim($_POST['description']);
-    $teacher_id = !empty($_POST['teacher_in_charge_id']) ? trim($_POST['teacher_in_charge_id']) : null;
+    $teacher_id = !empty($_POST['teacher_in_charge_id']) ? (int)trim($_POST['teacher_in_charge_id']) : null;
 
     if (empty($name)) {
-        $error_message = "Club name is required.";
+        $_SESSION['error_message'] = "Club name is required.";
     } else {
         $sql = "INSERT INTO clubs (name, description, teacher_in_charge_id, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())";
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ssi", $name, $description, $teacher_id);
             if ($stmt->execute()) {
-                $success_message = "Club added successfully.";
+                $_SESSION['success_message'] = "Club added successfully.";
             } else {
-                $error_message = "Error: " . $stmt->error;
+                $_SESSION['error_message'] = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     }
+    header("Location: /clubs");
+    exit();
 }
 
 // Handle Edit Club submission
@@ -38,22 +40,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_club'])) {
     $club_id = trim($_POST['club_id']);
     $name = trim($_POST['name']);
     $description = trim($_POST['description']);
-    $teacher_id = !empty($_POST['teacher_in_charge_id']) ? trim($_POST['teacher_in_charge_id']) : null;
+    $teacher_id = !empty($_POST['teacher_in_charge_id']) ? (int)trim($_POST['teacher_in_charge_id']) : null;
 
     if (empty($club_id) || empty($name)) {
-        $error_message = "Club ID and name are required for editing.";
+        $_SESSION['error_message'] = "Club ID and name are required for editing.";
     } else {
         $sql = "UPDATE clubs SET name = ?, description = ?, teacher_in_charge_id = ?, updated_at = NOW() WHERE id = ?";
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ssii", $name, $description, $teacher_id, $club_id);
             if ($stmt->execute()) {
-                $success_message = "Club updated successfully.";
+                $_SESSION['success_message'] = "Club updated successfully.";
             } else {
-                $error_message = "Error: " . $stmt->error;
+                $_SESSION['error_message'] = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     }
+    header("Location: /clubs");
+    exit();
 }
 
 // Handle Delete Club submission
@@ -61,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_club'])) {
     $club_id = trim($_POST['club_id']);
 
     if (empty($club_id)) {
-        $error_message = "Club ID is required for deletion.";
+        $_SESSION['error_message'] = "Club ID is required for deletion.";
     } else {
         // Also delete associated members to maintain data integrity
         $sql_delete_members = "DELETE FROM club_members WHERE club_id = ?";
@@ -75,13 +79,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_club'])) {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("i", $club_id);
             if ($stmt->execute()) {
-                $success_message = "Club deleted successfully.";
+                $_SESSION['success_message'] = "Club deleted successfully.";
             } else {
-                $error_message = "Error: " . $stmt->error;
+                $_SESSION['error_message'] = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     }
+    header("Location: /clubs");
+    exit();
 }
 
 require_once 'includes/header.php';
@@ -127,18 +133,16 @@ if ($result_clubs && $result_clubs->num_rows > 0) {
     </div>
 
     <!-- Display success/error messages -->
-    <?php if(!empty($success_message)): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <?php echo $success_message; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
-    <?php if(!empty($error_message)): ?>
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <?php echo $error_message; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    <?php endif; ?>
+    <?php
+    if (isset($_SESSION['success_message'])) {
+        echo '<div class="alert alert-success alert-dismissible fade show" role="alert">' . $_SESSION['success_message'] . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+        unset($_SESSION['success_message']);
+    }
+    if (isset($_SESSION['error_message'])) {
+        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">' . $_SESSION['error_message'] . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+        unset($_SESSION['error_message']);
+    }
+    ?>
 
     <div class="card">
         <div class="card-body">
@@ -186,7 +190,7 @@ if ($result_clubs && $result_clubs->num_rows > 0) {
 <div class="modal fade" id="addClubModal" tabindex="-1" aria-labelledby="addClubModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="clubs.php" method="post">
+            <form action="/clubs" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addClubModalLabel">Add New Club</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -225,7 +229,7 @@ if ($result_clubs && $result_clubs->num_rows > 0) {
 <div class="modal fade" id="editClubModal" tabindex="-1" aria-labelledby="editClubModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="clubs.php" method="post">
+            <form action="/clubs" method="post">
                 <input type="hidden" name="club_id" id="edit_club_id">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editClubModalLabel">Edit Club</h5>
@@ -265,7 +269,7 @@ if ($result_clubs && $result_clubs->num_rows > 0) {
 <div class="modal fade" id="deleteClubModal" tabindex="-1" aria-labelledby="deleteClubModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="clubs.php" method="post">
+            <form action="/clubs" method="post">
                 <input type="hidden" name="club_id" id="delete_club_id">
                 <div class="modal-header">
                     <h5 class="modal-title" id="deleteClubModalLabel">Delete Club</h5>

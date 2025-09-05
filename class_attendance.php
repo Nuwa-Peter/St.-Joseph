@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 1. Check if attendance has already been taken
-        fetch(`api_check_attendance_status.php?stream_id=${streamId}&date=${attendanceDate}`)
+        fetch(`/api/check_attendance_status?stream_id=${streamId}&date=${attendanceDate}`)
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function fetchStudentsAndBuildSheet(streamId, attendanceDate, className) {
-        fetch(`api_get_students_for_stream.php?stream_id=${streamId}`)
+        fetch(`/api/get_students_for_stream?stream_id=${streamId}`)
             .then(response => response.json())
             .then(students => {
                 if (students.error) {
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         return `
-            <form id="attendance-form" action="save_class_attendance.php" method="post">
+            <form id="attendance-form" action="/attendance/save" method="post">
                 <input type="hidden" name="stream_id" value="${streamId}">
                 <input type="hidden" name="attendance_date" value="${attendanceDate}">
 
