@@ -16,9 +16,6 @@ $db_username = $_ENV['DB_USERNAME'] ?? 'root';
 $db_password = $_ENV['DB_PASSWORD'] ?? '';
 $db_name = $_ENV['DB_NAME'] ?? 'school_management_simple_db';
 
-// Define the base URL of the application
-define('BASE_URL', '/');
-
 // Create a database connection
 $conn = new mysqli($db_host, $db_username, $db_password, $db_name);
 
