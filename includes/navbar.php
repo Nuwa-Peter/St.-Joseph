@@ -14,7 +14,6 @@ $is_parent = $user_role === 'parent';
     <div class="container-fluid">
         <a class="navbar-brand" href="<?php echo $is_parent ? parent_dashboard_url() : dashboard_url(); ?>">
             <img src="<?php echo url('images/logo.png'); ?>" alt="Logo" class="navbar-logo">
-            <span class="d-none d-sm-inline ms-2">St. Joseph's VSS</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
