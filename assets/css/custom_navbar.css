@@ -34,3 +34,21 @@
     transform: scale(1.2);
     color: #0d6efd;
 }
+
+/* Search Bar Styles */
+.search-container {
+    position: relative;
+}
+
+.navbar-search-input {
+    padding-left: 2.5rem !important; /* Make space for the icon */
+}
+
+.search-container .bi-search {
+    position: absolute;
+    top: 50%;
+    left: 0.75rem;
+    transform: translateY(-50%);
+    color: #6c757d; /* Muted color */
+    pointer-events: none; /* Make icon non-interactive */
+}

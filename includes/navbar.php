@@ -12,7 +12,7 @@ $is_parent = $user_role === 'parent';
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-fluid">
-        <a class="navbar-brand" href="<?php echo $is_parent ? parent_dashboard_url() : dashboard_url(); ?>">
+        <a class="navbar-brand" href="<?php echo (isset($_SESSION['role']) && $_SESSION['role'] === 'parent') ? parent_dashboard_url() : dashboard_url(); ?>">
             <img src="<?php echo url('images/logo.png'); ?>" alt="Logo" class="navbar-logo">
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -130,12 +130,18 @@ $is_parent = $user_role === 'parent';
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
                 <!-- Search Bar -->
                 <li class="nav-item me-2">
-                    <div class="search-container position-relative">
-                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3" style="z-index: 10;"></i>
-                        <input class="form-control form-control-sm navbar-search-input ps-4" type="search" id="live-search-input" placeholder="Search..." aria-label="Search" autocomplete="off">
+                    <div class="search-container">
+                        <i class="bi bi-search"></i>
+                        <input class="form-control form-control-sm navbar-search-input" type="search" id="live-search-input" placeholder="Search..." aria-label="Search" autocomplete="off">
                         <div class="list-group position-absolute" id="live-search-results" style="z-index: 1050; width: 300px; top: 100%; left: 0;"></div>
                     </div>
                 </li>
+
+                <!-- Theme Changer Placeholder -->
+                <li class="nav-item me-2">
+                    <!-- Theme changer will go here -->
+                </li>
+
                 <!-- User Profile Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
