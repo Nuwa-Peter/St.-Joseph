@@ -5,8 +5,8 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     exit;
 }
 
-require_once 'config.php';
-require_once 'includes/header.php';
+require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../src/includes/header.php';
 
 $sql = "SELECT id, name, code FROM subjects ORDER BY name ASC";
 $result = $conn->query($sql);
@@ -44,5 +44,5 @@ $result = $conn->query($sql);
 
 <?php
 $conn->close();
-require_once 'includes/footer.php';
+require_once __DIR__ . '/../../src/includes/footer.php';
 ?>

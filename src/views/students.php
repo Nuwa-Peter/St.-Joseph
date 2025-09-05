@@ -1,6 +1,5 @@
 <?php
-require_once 'config.php';
-require_once 'config.php';
+require_once __DIR__ . '/../../config.php';
 
 $success_message = "";
 $error_message = "";
@@ -24,10 +23,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['unregister_student']))
     }
 }
 
-require_once 'includes/header.php';
+require_once __DIR__ . '/../../src/includes/header.php';
 
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+    header("location: " . login_url());
     exit;
 }
 
@@ -66,7 +65,7 @@ $result = $conn->query($sql);
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header"><h5 class="modal-title" id="exportModalLabel">Export Students to PDF</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
-            <form action="student_export_pdf.php" method="get" target="_blank">
+            <form action="<?php echo url('student_export_pdf.php'); ?>" method="get" target="_blank">
                 <div class="modal-body">
                     <p>Select a filter for the PDF export. Leave blank to export all students.</p>
                     <div class="mb-3">
@@ -116,8 +115,8 @@ $result = $conn->query($sql);
             <?php while($row = $result->fetch_assoc()): ?>
                 <tr>
                     <td>
-                        <?php if (!empty($row['photo']) && file_exists($row['photo'])): ?>
-                            <img src="<?php echo htmlspecialchars($row['photo']); ?>" alt="Photo" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+                        <?php if (!empty($row['photo']) && file_exists(__DIR__ . '/../../public/' . $row['photo'])): ?>
+                            <img src="<?php echo url($row['photo']); ?>" alt="Photo" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
                         <?php else:
                             $name = $row["first_name"] . ' ' . $row["last_name"];
                             $initials = '';
@@ -157,7 +156,7 @@ $result = $conn->query($sql);
 <div class="modal fade" id="unregisterModal" tabindex="-1" aria-labelledby="unregisterModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="students.php" method="post">
+            <form action="<?php echo students_url(); ?>" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title" id="unregisterModalLabel">Unregister Student</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -200,5 +199,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <?php
 $conn->close();
-require_once 'includes/footer.php';
+require_once __DIR__ . '/../../src/includes/footer.php';
 ?>

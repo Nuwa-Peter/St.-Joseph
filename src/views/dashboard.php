@@ -1,6 +1,6 @@
 <?php
-require_once 'config.php';
-require_once 'includes/header.php';
+require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../src/includes/header.php';
 
 // Redirect if not logged in
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
@@ -32,19 +32,19 @@ $admin_roles = ['root', 'headteacher', 'director']; // Director has full admin a
     if (in_array($user_role, $admin_roles)) {
         // --- Admin Dashboard ---
         echo '<h4 class="mb-3">School Overview</h4>';
-        include 'widgets/admin_stats.php';
+        include __DIR__ . '/../../widgets/admin_stats.php';
 
         // You can include other admin-specific widgets here
-        // include 'widgets/recent_activity.php';
+        // include __DIR__ . '/../../widgets/recent_activity.php';
 
     } elseif ($user_role === 'teacher') {
         // --- Teacher Dashboard ---
         echo '<div class="row">';
         echo '<div class="col-lg-8">';
-        include 'widgets/teacher_classes.php';
+        include __DIR__ . '/../../widgets/teacher_classes.php';
         echo '</div>';
         echo '<div class="col-lg-4">';
-        include 'widgets/upcoming_assignments.php';
+        include __DIR__ . '/../../widgets/upcoming_assignments.php';
         echo '</div>';
         echo '</div>';
 
@@ -52,10 +52,10 @@ $admin_roles = ['root', 'headteacher', 'director']; // Director has full admin a
         // --- Student Dashboard ---
         echo '<div class="row">';
         echo '<div class="col-lg-8">';
-        include 'widgets/student_grades_summary.php';
+        include __DIR__ . '/../../widgets/student_grades_summary.php';
         echo '</div>';
         echo '<div class="col-lg-4">';
-        include 'widgets/upcoming_assignments.php';
+        include __DIR__ . '/../../widgets/upcoming_assignments.php';
         echo '</div>';
         echo '</div>';
 
@@ -69,5 +69,5 @@ $admin_roles = ['root', 'headteacher', 'director']; // Director has full admin a
 
 <?php
 $conn->close();
-require_once 'includes/footer.php';
+require_once __DIR__ . '/../../src/includes/footer.php';
 ?>

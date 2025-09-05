@@ -1,10 +1,10 @@
 <?php
 // includes/view_loader.php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 // Define the path to the views directory.
-$views_path = __DIR__ . '/../resources/views';
+$views_path = __DIR__ . '/../../resources/views';
 
 // Set up the Twig loader, which tells Twig where to find our templates.
 $loader = new \Twig\Loader\FilesystemLoader($views_path);

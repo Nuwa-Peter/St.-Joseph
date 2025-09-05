@@ -11,11 +11,8 @@
  * @return string Clean URL
  */
 function url($path, $params = []) {
-    $base_url = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-    // If the base URL is the root, don't include it in the path
-    if ($base_url === '/') {
-        $base_url = '';
-    }
+    // Ensure BASE_URL is defined, otherwise default to root
+    $base_url = defined('BASE_URL') ? rtrim(BASE_URL, '/') : '';
     $url = $base_url . '/' . ltrim($path, '/');
 
     if (!empty($params)) {
