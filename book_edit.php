@@ -1,9 +1,10 @@
 <?php
 require_once 'config.php';
-require_once 'includes/header.php';
+require_once 'includes/url_helper.php';
+require_once 'includes/csrf_helper.php';
 
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+    header("Location: " . login_url());
     exit;
 }
 
@@ -28,22 +29,24 @@ if (isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
                 $published_year = $book['published_year'];
                 $quantity = $book['quantity'];
             } else {
-                echo "No record found.";
+                // Redirect or show error if book not found
+                header("Location: " . library_url());
                 exit();
             }
         } else {
-            echo "Oops! Something went wrong. Please try again later.";
-            exit();
+            die("Oops! Something went wrong. Please try again later.");
         }
         $stmt->close();
     }
 } else {
-    echo "ID parameter missing.";
+    // Redirect if ID is missing
+    header("Location: " . library_url());
     exit();
 }
 
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    verify_csrf_token();
     $book_id = $_POST['id'];
     $title = trim($_POST['title']);
     $author = trim($_POST['author']);
@@ -66,15 +69,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if (empty($errors)) {
-        // Note: This does not update available_quantity. That should be handled by checkouts/returns.
-        // A more advanced implementation might calculate the difference and adjust available_quantity.
         $sql = "UPDATE books SET title = ?, author = ?, isbn = ?, publisher = ?, published_year = ?, quantity = ?, updated_at = NOW() WHERE id = ?";
 
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ssssiii", $title, $author, $isbn, $publisher, $published_year, $quantity, $book_id);
 
             if ($stmt->execute()) {
-                header("location: books.php");
+                header("Location: " . library_url());
                 exit();
             } else {
                 $errors['db'] = "Something went wrong. Please try again later.";
@@ -84,12 +85,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 $conn->close();
+
+require_once 'includes/header.php';
 ?>
 
 <h2>Edit Book</h2>
 <p>Update the book's details below.</p>
 
-<form action="<?php echo htmlspecialchars(basename($_SERVER['REQUEST_URI'])); ?>" method="post">
+<form action="<?php echo book_edit_url($book_id); ?>" method="post">
+    <?php echo csrf_input(); ?>
     <input type="hidden" name="id" value="<?php echo $book_id; ?>"/>
     <div class="row">
         <div class="col-md-6 mb-3">
@@ -132,7 +136,7 @@ $conn->close();
 
     <div class="mt-3">
         <button type="submit" class="btn btn-primary">Update Book</button>
-        <a href="books.php" class="btn btn-secondary">Cancel</a>
+        <a href="<?php echo library_url(); ?>" class="btn btn-secondary">Cancel</a>
     </div>
 </form>
 

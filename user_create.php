@@ -1,9 +1,11 @@
 <?php
 require_once 'config.php';
+require_once 'includes/url_helper.php';
+require_once 'includes/csrf_helper.php';
 
 // Redirect if not logged in
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+    header("Location: " . login_url());
     exit;
 }
 
@@ -115,7 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if(!empty($admin_ids)) {
                 $creator_name = $_SESSION['name'];
                 $message = "New user '" . $first_name . " " . $last_name . "' (" . $role . ") was created by " . $creator_name . ".";
-                $link = "user_edit.php?id=" . $new_user_id;
+                $link = user_edit_url($new_user_id);
                 $notify_sql = "INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)";
                 $notify_stmt = $conn->prepare($notify_sql);
                 foreach($admin_ids as $admin_id) {
@@ -126,7 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             // --- End notification ---
 
-            header("location: users.php");
+            header("Location: " . users_url());
             exit();
 
         } catch (Exception $e) {
@@ -140,7 +142,7 @@ require_once 'includes/header.php';
 ?>
 
 <h2>Create User</h2>
-<form action="user_create.php" method="post">
+<form action="<?php echo user_create_url(); ?>" method="post">
     <?php echo csrf_input(); ?>
     <?php if(isset($errors['db'])): ?><div class="alert alert-danger"><?php echo $errors['db']; ?></div><?php endif; ?>
     <div class="row">
@@ -205,7 +207,7 @@ require_once 'includes/header.php';
     </div>
 
     <button type="submit" class="btn btn-primary mt-4">Create User</button>
-    <a href="users.php" class="btn btn-secondary mt-4">Cancel</a>
+    <a href="<?php echo users_url(); ?>" class="btn btn-secondary mt-4">Cancel</a>
 </form>
 
 <?php
@@ -238,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (query.length < 2) return;
 
         try {
-            const response = await fetch(`api_live_search.php?q=${query}&context=student`);
+            const response = await fetch(`<?php echo url('api/live_search'); ?>?q=${query}&context=student`);
             const users = await response.json();
 
             if (users.length > 0) {

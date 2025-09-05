@@ -86,10 +86,10 @@
                     </a>
                     <ul class="collapse nav flex-column ms-3" id="requisitions-submenu" data-bs-parent="#nav-pills">
                         <li class="nav-item">
-                            <a href="make_requisition.php" class="nav-link text-white"><i class="bi bi-pencil-square me-2"></i> Make a Requisition</a>
+                            <a href="<?php echo make_requisition_url(); ?>" class="nav-link text-white"><i class="bi bi-pencil-square me-2"></i> Make a Requisition</a>
                         </li>
                         <li class="nav-item">
-                            <a href="view_requisitions.php" class="nav-link text-white"><i class="bi bi-list-check me-2"></i> View Requisitions</a>
+                            <a href="<?php echo view_requisitions_url(); ?>" class="nav-link text-white"><i class="bi bi-list-check me-2"></i> View Requisitions</a>
                         </li>
                     </ul>
                 </li>
@@ -103,10 +103,10 @@
                     </a>
                     <ul class="collapse nav flex-column ms-3" id="lab-submenu" data-bs-parent="#nav-pills">
                         <li class="nav-item">
-                            <a href="lab_dashboard.php" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i> Lab Dashboard</a>
+                            <a href="<?php echo url('lab-dashboard'); ?>" class="nav-link text-white"><i class="bi bi-speedometer2 me-2"></i> Lab Dashboard</a>
                         </li>
                         <li class="nav-item">
-                            <a href="lab_inventory.php" class="nav-link text-white"><i class="bi bi-card-list me-2"></i> Manage Inventory</a>
+                            <a href="<?php echo url('lab-inventory'); ?>" class="nav-link text-white"><i class="bi bi-card-list me-2"></i> Manage Inventory</a>
                         </li>
                     </ul>
                 </li>
@@ -126,13 +126,13 @@
                             <a href="<?php echo subjects_url(); ?>" class="nav-link text-white <?php echo nav_active('subjects'); ?>"><i class="bi bi-book me-2"></i> Subjects</a>
                         </li>
                         <li class="nav-item">
-                            <a href="teacher_assignments.php" class="nav-link text-white"><i class="bi bi-person-video3 me-2"></i> Teacher Assignments</a>
+                            <a href="<?php echo url('teacher-assignments'); ?>" class="nav-link text-white"><i class="bi bi-person-video3 me-2"></i> Teacher Assignments</a>
                         </li>
                         <li class="nav-item">
-                            <a href="student_assignments.php" class="nav-link text-white"><i class="bi bi-person-badge me-2"></i> Student Assignments</a>
+                            <a href="<?php echo url('student-assignments'); ?>" class="nav-link text-white"><i class="bi bi-person-badge me-2"></i> Student Assignments</a>
                         </li>
                         <li class="nav-item">
-                            <a href="grading_scales.php" class="nav-link text-white"><i class="bi bi-rulers me-2"></i> Grading Scales</a>
+                            <a href="<?php echo grading_scales_url(); ?>" class="nav-link text-white"><i class="bi bi-rulers me-2"></i> Grading Scales</a>
                         </li>
                     </ul>
                 </li>
@@ -145,10 +145,10 @@
                     </a>
                     <ul class="collapse nav flex-column ms-3" id="documents-submenu" data-bs-parent="#nav-pills">
                         <li class="nav-item">
-                            <a href="report_card_generator.php" class="nav-link text-white"><i class="bi bi-file-earmark-pdf me-2"></i> Generate Report Cards</a>
+                            <a href="<?php echo report_card_generator_url(); ?>" class="nav-link text-white"><i class="bi bi-file-earmark-pdf me-2"></i> Generate Report Cards</a>
                         </li>
                         <li class="nav-item">
-                            <a href="id_card_generator.php" class="nav-link text-white"><i class="bi bi-person-vcard me-2"></i> Generate ID Cards</a>
+                            <a href="<?php echo id_cards_url(); ?>" class="nav-link text-white"><i class="bi bi-person-vcard me-2"></i> Generate ID Cards</a>
                         </li>
                     </ul>
                 </li>
@@ -161,10 +161,10 @@
                     </a>
                     <ul class="collapse nav flex-column ms-3" id="communications-submenu" data-bs-parent="#nav-pills">
                         <li class="nav-item">
-                            <a href="#" class="nav-link text-white"><i class="bi bi-chat-square-dots me-2"></i> Social Chat</a>
+                            <a href="<?php echo messages_url(); ?>" class="nav-link text-white"><i class="bi bi-chat-square-dots me-2"></i> Social Chat</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link text-white"><i class="bi bi-chat-text me-2"></i> Bulk SMS</a>
+                            <a href="<?php echo bulk_sms_url(); ?>" class="nav-link text-white"><i class="bi bi-chat-text me-2"></i> Bulk SMS</a>
                         </li>
                         <li class="nav-item">
                             <a href="<?php echo announcements_url(); ?>" class="nav-link text-white <?php echo nav_active('announcements'); ?>"><i class="bi bi-megaphone me-2"></i> Announcements</a>
@@ -180,10 +180,10 @@
                     </a>
                     <ul class="collapse nav flex-column ms-3" id="exams-submenu" data-bs-parent="#nav-pills">
                         <li class="nav-item">
-                            <a href="set_exam.php" class="nav-link text-white"><i class="bi bi-pencil-square me-2"></i> Set Exams</a>
+                            <a href="<?php echo set_exam_url(); ?>" class="nav-link text-white"><i class="bi bi-pencil-square me-2"></i> Set Exams</a>
                         </li>
                         <li class="nav-item">
-                            <a href="marks_entry.php" class="nav-link text-white"><i class="bi bi-card-list me-2"></i> Marks Entry</a>
+                            <a href="<?php echo marks_entry_url(); ?>" class="nav-link text-white"><i class="bi bi-card-list me-2"></i> Marks Entry</a>
                         </li>
                     </ul>
                 </li>
@@ -203,7 +203,7 @@
                             <a href="<?php echo finance_url(); ?>" class="nav-link text-white <?php echo nav_active('finance'); ?>"><i class="bi bi-graph-up me-2"></i> Dashboard</a>
                         </li>
                         <li class="nav-item">
-                            <a href="accountability.php" class="nav-link text-white"><i class="bi bi-journal-check me-2"></i> Accountability</a>
+                            <a href="<?php echo accountability_url(); ?>" class="nav-link text-white"><i class="bi bi-journal-check me-2"></i> Accountability</a>
                         </li>
                         <li class="nav-item">
                             <a href="<?php echo fees_url(); ?>" class="nav-link text-white <?php echo nav_active('finance/fees'); ?>"><i class="bi bi-collection me-2"></i> Fee Structures</a>
@@ -238,7 +238,7 @@
                             <a href="<?php echo checkouts_url(); ?>" class="nav-link text-white <?php echo nav_active('library/checkouts'); ?>"><i class="bi bi-arrow-left-right me-2"></i> Manage Checkouts</a>
                         </li>
                         <li class="nav-item">
-                            <a href="checkout_history.php" class="nav-link text-white"><i class="bi bi-clock-history me-2"></i> Checkout History</a>
+                            <a href="<?php echo checkout_history_url(); ?>" class="nav-link text-white"><i class="bi bi-clock-history me-2"></i> Checkout History</a>
                         </li>
                     </ul>
                 </li>
@@ -253,7 +253,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link text-white">
+                    <a href="<?php echo about_url(); ?>" class="nav-link text-white">
                         <i class="bi bi-info-circle me-2"></i> About
                     </a>
                 </li>
@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            fetch(`api_live_search.php?q=${encodeURIComponent(query)}`)
+            fetch(`<?php echo url('api/live_search'); ?>?q=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
                     resultsContainer.innerHTML = '';
@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         resultsContainer.style.display = 'block';
                         data.forEach(user => {
                             const link = document.createElement('a');
-                            link.href = `profile.php?id=${user.id}`;
+                            link.href = user.role === 'student' ? `<?php echo student_view_url('${user.id}'); ?>` : `<?php echo profile_url(); ?>?id=${user.id}`;
                             link.className = 'list-group-item list-group-item-action d-flex align-items-center';
 
                             let initials = (user.first_name.charAt(0) + user.last_name.charAt(0)).toUpperCase();
