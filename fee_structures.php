@@ -4,8 +4,7 @@ require_once 'config.php';
 // Role-based access control
 $authorized_roles = ['bursar', 'headteacher', 'root'];
 if (!isset($_SESSION['loggedin']) || !in_array($_SESSION['role'], $authorized_roles)) {
-    // Redirect to dashboard or show an error message
-    header("location: dashboard.php?unauthorized=true");
+    header("location: " . dashboard_url() . "?unauthorized=true");
     exit;
 }
 
@@ -32,23 +31,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_fee_structure'])) 
         $stmt_check->execute();
         $stmt_check->store_result();
         if ($stmt_check->num_rows > 0) {
-            $errors[] = "A fee structure with this name already exists for the selected academic year.";
-        }
-        $stmt_check->close();
-    }
-
-    if (empty($errors)) {
-        $stmt = $conn->prepare("INSERT INTO fee_structures (name, academic_year, description) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $name, $academic_year, $description);
-        if ($stmt->execute()) {
-            // To avoid form resubmission on refresh
-            header("location: fee_structures.php?success=created");
-            exit();
+            $_SESSION['error_message'] = "A fee structure with this name already exists for the selected academic year.";
         } else {
-            $errors[] = "Database error: Failed to create fee structure.";
+            $stmt_check->close();
+            $stmt = $conn->prepare("INSERT INTO fee_structures (name, academic_year, description) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $name, $academic_year, $description);
+            if ($stmt->execute()) {
+                $_SESSION['success_message'] = "New fee structure has been created successfully!";
+            } else {
+                $_SESSION['error_message'] = "Database error: Failed to create fee structure.";
+            }
+            $stmt->close();
         }
-        $stmt->close();
+    } else {
+        // Persist errors in session if redirecting
+        $_SESSION['form_errors'] = $errors;
     }
+    header("location: " . fees_url());
+    exit();
 }
 
 
@@ -56,24 +56,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_fee_structure'])) 
 $fee_structures = [];
 $sql = "SELECT id, name, description, academic_year FROM fee_structures ORDER BY academic_year DESC, name ASC";
 if ($result = $conn->query($sql)) {
-    if ($result->num_rows > 0) {
-        $fee_structures = $result->fetch_all(MYSQLI_ASSOC);
-    }
+    $fee_structures = $result->fetch_all(MYSQLI_ASSOC);
 } else {
-    $errors[] = "Error fetching fee structures: " . $conn->error;
+    $_SESSION['error_message'] = "Error fetching fee structures: " . $conn->error;
 }
 
-// Check for success messages from redirects
-if (isset($_GET['success']) && $_GET['success'] == 'created') {
-    $success_message = "New fee structure has been created successfully!";
+// Check for session messages
+if (isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
 }
+if (isset($_SESSION['error_message'])) {
+    $errors[] = $_SESSION['error_message'];
+    unset($_SESSION['error_message']);
+}
+if (isset($_SESSION['form_errors'])) {
+    $errors = array_merge($errors, $_SESSION['form_errors']);
+    unset($_SESSION['form_errors']);
+}
+
 
 require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-primary">Fee Structures</h2>
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <h2 class="text-primary"><i class="bi bi-diagram-3 me-2"></i>Fee Structures</h2>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStructureModal">
             <i class="bi bi-plus-circle me-2"></i>Add New Fee Structure
         </button>
@@ -81,7 +89,7 @@ require_once 'includes/header.php';
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-danger">
-            <ul>
+            <ul class="mb-0">
                 <?php foreach ($errors as $error): ?>
                     <li><?php echo htmlspecialchars($error); ?></li>
                 <?php endforeach; ?>
@@ -95,14 +103,14 @@ require_once 'includes/header.php';
         </div>
     <?php endif; ?>
 
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-header">
             Existing Fee Structures
         </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
-                    <thead class="table-dark">
+                    <thead class="table-light">
                         <tr>
                             <th>Structure Name</th>
                             <th>Academic Year</th>
@@ -118,9 +126,9 @@ require_once 'includes/header.php';
                                     <td><?php echo htmlspecialchars($structure['academic_year']); ?></td>
                                     <td><?php echo htmlspecialchars($structure['description']); ?></td>
                                     <td>
-                                        <a href="fee_items.php?structure_id=<?php echo $structure['id']; ?>" class="btn btn-sm btn-info" title="View/Edit Items"><i class="bi bi-card-list"></i> Items</a>
-                                        <button class="btn btn-sm btn-warning" title="Edit Structure"><i class="bi bi-pencil-square"></i></button>
-                                        <button class="btn btn-sm btn-danger" title="Delete Structure"><i class="bi bi-trash"></i></button>
+                                        <a href="<?php echo url('fee_items.php', ['structure_id' => $structure['id']]); ?>" class="btn btn-sm btn-info" title="View/Edit Items"><i class="bi bi-card-list"></i> Items</a>
+                                        <button class="btn btn-sm btn-warning" title="Edit Structure" disabled><i class="bi bi-pencil-square"></i></button>
+                                        <button class="btn btn-sm btn-danger" title="Delete Structure" disabled><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -140,7 +148,7 @@ require_once 'includes/header.php';
 <div class="modal fade" id="addStructureModal" tabindex="-1" aria-labelledby="addStructureModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="fee_structures.php" method="post">
+            <form action="<?php echo fees_url(); ?>" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addStructureModalLabel">Add New Fee Structure</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

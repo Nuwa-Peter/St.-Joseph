@@ -44,6 +44,7 @@ function student_create_url() { return url('students/create'); }
 function student_edit_url($id) { return url('students/edit/' . $id); }
 function student_view_url($id) { return url('students/view/' . $id); }
 function student_import_export_url() { return url('students/import-export'); }
+function student_export_pdf_url() { return url('students/export-pdf'); }
 function student_analytics_url() { return url('students/analytics'); }
 function student_accounts_url() { return url('students/accounts'); }
 function unregistered_students_url() { return url('students/unregistered'); }
@@ -63,6 +64,9 @@ function teacher_edit_url($id) { return url('teachers/edit/' . $id); }
 function users_url() { return url('users'); }
 function user_create_url() { return url('users/create'); }
 function user_edit_url($id) { return url('users/edit/' . $id); }
+function link_student_to_parent_url() { return url('users/link-student'); }
+function unlink_student_from_parent_url() { return url('users/unlink-student'); }
+function admin_update_password_url() { return url('users/admin-update-password'); }
 function create_staff_group_url() { return url('create-staff-group'); }
 
 
@@ -78,10 +82,15 @@ function class_edit_url($id) { return url('classes/edit/' . $id); }
 function streams_url() { return url('streams'); }
 function stream_create_url() { return url('streams/create'); }
 function stream_edit_url($id) { return url('streams/edit/' . $id); }
+function stream_delete_url($id) { return url('streams/delete/' . $id); }
 function lesson_planner_url() { return url('lesson-planner'); }
-function grading_scales_url() { return url('grading-scales'); }
-function assign_class_teacher_url() { return url('assign-class-teacher'); }
-function assign_subjects_to_stream_url() { return url('assign-subjects-to-stream'); }
+function grading_scales_url() { return url('academics/grading-scales'); }
+function assign_class_teacher_url() { return url('academics/assign-class-teacher'); }
+function assign_subjects_to_stream_url() { return url('academics/assign-subjects'); }
+function teacher_assignments_url() { return url('academics/teacher-assignments'); }
+function teacher_assignment_delete_url($id) { return url('academics/teacher-assignment/delete/' . $id); }
+function student_assignments_url() { return url('academics/student-assignments'); }
+function student_assignment_delete_url($id) { return url('academics/student-assignment/delete/' . $id); }
 
 
 /**
@@ -91,8 +100,15 @@ function assignments_url() { return url('assignments'); }
 function assignment_create_url() { return url('assignments/create'); }
 function assignment_edit_url($id) { return url('assignments/edit/' . $id); }
 function assignment_submissions_url() { return url('assignments/submissions'); }
-function set_exam_url() { return url('set-exam'); }
-function marks_entry_url() { return url('marks-entry'); }
+function student_assignments_view_url() { return url('assignments/my-assignments'); }
+function student_assignment_submit_url() { return url('assignments/submit'); }
+function grade_submission_url() { return url('assignments/submissions/grade'); }
+function set_exam_url() { return url('academics/set-exam'); }
+function exam_edit_url($id) { return url('academics/exam/edit/' . $id); }
+function exam_delete_url($id) { return url('academics/exam/delete/' . $id); }
+function marks_entry_url() { return url('academics/marks-entry'); }
+function marks_template_download_url() { return url('academics/marks-template-download'); }
+function api_save_marks_url() { return url('api/save_marks'); }
 
 
 /**
@@ -100,8 +116,12 @@ function marks_entry_url() { return url('marks-entry'); }
  */
 function attendance_url() { return url('attendance'); }
 function take_attendance_url() { return url('attendance/take'); }
+function save_daily_attendance_url() { return url('attendance/save-daily'); }
+function save_class_attendance_url() { return url('attendance/save-class'); }
 function view_attendance_url() { return url('attendance/view'); }
+function view_exam_attendance_url() { return url('attendance/exam/view'); }
 function exam_attendance_url() { return url('attendance/exam'); }
+function save_exam_attendance_url() { return url('attendance/exam/save'); }
 
 
 /**
@@ -109,13 +129,15 @@ function exam_attendance_url() { return url('attendance/exam'); }
  */
 function finance_url() { return url('finance'); }
 function finance_reports_url() { return url('finance/reports'); }
-function invoices_url() { return url('invoices'); }
+function invoices_url() { return url('finance/invoices'); }
+function student_ledger_url($id) { return url('finance/student-ledger/' . $id); }
 function fees_url() { return url('finance/fees'); }
+function fee_items_url($id) { return url('finance/fees/items/' . $id); }
 function expenses_url() { return url('finance/expenses'); }
-function fee_items_url() { return url('fee-items'); }
-function accountability_url() { return url('accountability'); }
-function view_requisitions_url() { return url('view-requisitions'); }
-function make_requisition_url() { return url('make-requisition'); }
+function accountability_url() { return url('finance/accountability'); }
+function view_requisitions_url() { return url('finance/requisitions'); }
+function make_requisition_url() { return url('finance/requisitions/new'); }
+function export_requisitions_pdf_url() { return url('finance/requisitions/export-pdf'); }
 
 
 /**
@@ -126,6 +148,7 @@ function book_create_url() { return url('library/books/create'); }
 function book_edit_url($id) { return url('library/books/edit/' . $id); }
 function book_view_url($id) { return url('library/books/view/' . $id); }
 function checkouts_url() { return url('library/checkouts'); }
+function checkout_return_url($id) { return url('library/checkouts/return/' . $id); }
 function checkout_history_url() { return url('checkout-history'); }
 
 
@@ -136,7 +159,7 @@ function announcements_url() { return url('announcements'); }
 function announcement_create_url() { return url('announcements/create'); }
 function announcement_edit_url($id) { return url('announcements/edit/' . $id); }
 function messages_url() { return url('messages'); }
-function bulk_sms_url() { return url('bulk-sms'); }
+function bulk_sms_url() { return url('communication/bulk-sms'); }
 
 
 /**
@@ -153,17 +176,18 @@ function calendar_url() { return url('calendar'); }
  */
 function bookings_url() { return url('bookings'); }
 function resources_url() { return url('resources'); }
-function dormitories_url() { return url('dormitories'); }
-function manage_rooms_url() { return url('manage-rooms'); }
-function room_assignments_url() { return url('room-assignments'); }
+function dormitories_url() { return url('student-life/dormitories'); }
+function manage_rooms_url($id) { return url('student-life/dormitories/manage/' . $id); }
+function room_assignments_url() { return url('student-life/assignments'); }
 
 
 /**
  * Student Life URLs
  */
 function clubs_url() { return url('clubs'); }
-function discipline_url() { return url('discipline'); }
-function health_record_url() { return url('health-record'); }
+function club_view_url($id) { return url('clubs/view/' . $id); }
+function discipline_url() { return url('student-life/discipline'); }
+function health_record_url() { return url('student-life/health-records'); }
 
 
 /**
@@ -172,6 +196,7 @@ function health_record_url() { return url('health-record'); }
 function reports_url() { return url('reports'); }
 function competency_reports_url() { return url('reports/competency'); }
 function id_cards_url() { return url('reports/id-cards'); }
+function generate_id_card_pdf_url() { return url('reports/id-cards/generate'); }
 function id_card_history_url() { return url('id-card-history'); }
 function report_card_generator_url() { return url('report-card-generator'); }
 
@@ -182,6 +207,8 @@ function report_card_generator_url() { return url('report-card-generator'); }
 function request_leave_url() { return url('request-leave'); }
 function view_my_leave_url() { return url('view-my-leave'); }
 function admin_leave_requests_url() { return url('admin-leave-requests'); }
+function submit_leave_request_url() { return url('leave/submit'); }
+function update_leave_status_url() { return url('leave/update-status'); }
 
 
 /**

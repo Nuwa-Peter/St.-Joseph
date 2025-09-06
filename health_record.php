@@ -2,21 +2,20 @@
 require_once 'config.php';
 
 // Access control
-$allowed_roles = ['root', 'headteacher', 'nurse']; // Added 'nurse' for future use
+$allowed_roles = ['root', 'headteacher', 'nurse', 'admin'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: dashboard.php");
+    header("location: " . dashboard_url());
     exit;
 }
 
-// Get Student ID
-if (!isset($_GET['student_id']) || empty($_GET['student_id'])) {
-    header("location: students.php");
+// Get Student ID from GET or POST
+if (isset($_REQUEST['student_id']) && !empty($_REQUEST['student_id'])) {
+    $student_id = (int)$_REQUEST['student_id'];
+} else {
+    $_SESSION['error_message'] = "No student specified.";
+    header("location: " . students_url());
     exit;
 }
-$student_id = (int)$_GET['student_id'];
-
-$success_message = "";
-$error_message = "";
 
 // Handle form submission (UPSERT logic)
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_health_record'])) {
@@ -39,9 +38,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_health_record']))
             if ($stmt_update = $conn->prepare($sql_update)) {
                 $stmt_update->bind_param("sssssi", $allergies, $chronic_conditions, $emergency_contact_name, $emergency_contact_phone, $notes, $student_id);
                 if ($stmt_update->execute()) {
-                    $success_message = "Health record updated successfully.";
+                    $_SESSION['success_message'] = "Health record updated successfully.";
                 } else {
-                    $error_message = "Error updating record: " . $stmt_update->error;
+                    $_SESSION['error_message'] = "Error updating record: " . $stmt_update->error;
                 }
                 $stmt_update->close();
             }
@@ -51,18 +50,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_health_record']))
             if ($stmt_insert = $conn->prepare($sql_insert)) {
                 $stmt_insert->bind_param("isssss", $student_id, $allergies, $chronic_conditions, $emergency_contact_name, $emergency_contact_phone, $notes);
                 if ($stmt_insert->execute()) {
-                    $success_message = "Health record created successfully.";
+                    $_SESSION['success_message'] = "Health record created successfully.";
                 } else {
-                    $error_message = "Error creating record: " . $stmt_insert->error;
+                    $_SESSION['error_message'] = "Error creating record: " . $stmt_insert->error;
                 }
                 $stmt_insert->close();
             }
         }
         $stmt_check->close();
     }
+    header("Location: " . health_record_url(['student_id' => $student_id]));
+    exit();
 }
 
-require_once 'includes/header.php';
+// Fetch session messages
+$success_message = $_SESSION['success_message'] ?? null;
+$error_message = $_SESSION['error_message'] ?? null;
+unset($_SESSION['success_message'], $_SESSION['error_message']);
 
 // Fetch student details
 $student_name = '';
@@ -74,8 +78,8 @@ if ($stmt_student = $conn->prepare($sql_student)) {
     if ($row = $result_student->fetch_assoc()) {
         $student_name = $row['first_name'] . ' ' . $row['last_name'];
     } else {
-        echo "<div class='container mt-4'><div class='alert alert-danger'>Student not found.</div></div>";
-        require_once 'includes/footer.php';
+        $_SESSION['error_message'] = "Student not found.";
+        header("Location: " . students_url());
         exit;
     }
     $stmt_student->close();
@@ -93,13 +97,15 @@ if ($stmt_health = $conn->prepare($sql_health)) {
     }
     $stmt_health->close();
 }
+
+require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="mb-0"><i class="bi bi-heart-pulse-fill me-2"></i>Health Record for <?php echo htmlspecialchars($student_name); ?></h2>
-            <a href="student_view.php?id=<?php echo $student_id; ?>" class="text-decoration-none text-muted-hover"><i class="bi bi-arrow-left-circle me-1"></i>Back to Student Profile</a>
+            <a href="<?php echo student_view_url($student_id); ?>" class="text-decoration-none"><i class="bi bi-arrow-left-circle me-1"></i>Back to Student Profile</a>
         </div>
     </div>
 
@@ -110,9 +116,10 @@ if ($stmt_health = $conn->prepare($sql_health)) {
         <div class="alert alert-danger alert-dismissible fade show" role="alert"><?php echo $error_message; ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
     <?php endif; ?>
 
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-body">
-            <form action="health_record.php?student_id=<?php echo $student_id; ?>" method="post">
+            <form action="<?php echo health_record_url(['student_id' => $student_id]); ?>" method="post">
+                <input type="hidden" name="student_id" value="<?php echo $student_id; ?>">
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="allergies" class="form-label">Allergies</label>

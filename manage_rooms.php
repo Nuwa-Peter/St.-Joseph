@@ -2,21 +2,19 @@
 require_once 'config.php';
 
 // Access control for admins
-$admin_roles = ['root', 'headteacher'];
+$admin_roles = ['root', 'headteacher', 'admin'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $admin_roles)) {
-    header("location: dashboard.php");
+    header("location: " . dashboard_url());
     exit;
 }
 
-// Get Dormitory ID
-if (!isset($_GET['dormitory_id']) || empty($_GET['dormitory_id'])) {
-    header("location: dormitories.php");
+// Get Dormitory ID from GET or POST
+$dormitory_id = isset($_REQUEST['dormitory_id']) ? (int)$_REQUEST['dormitory_id'] : 0;
+if ($dormitory_id === 0) {
+    $_SESSION['error_message'] = "Dormitory ID is missing.";
+    header("location: " . dormitories_url());
     exit;
 }
-$dormitory_id = (int)$_GET['dormitory_id'];
-
-$success_message = "";
-$error_message = "";
 
 // Handle Add Room
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_room'])) {
@@ -27,15 +25,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_room'])) {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("isi", $dormitory_id, $room_number, $capacity);
             if ($stmt->execute()) {
-                $success_message = "Room added successfully.";
+                $_SESSION['success_message'] = "Room added successfully.";
             } else {
-                $error_message = "Error: " . $stmt->error;
+                $_SESSION['error_message'] = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     } else {
-        $error_message = "Room number is required.";
+        $_SESSION['error_message'] = "Room number is required.";
     }
+    header("Location: " . manage_rooms_url($dormitory_id));
+    exit();
 }
 
 // Handle Edit Room
@@ -48,15 +48,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_room'])) {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("sii", $room_number, $capacity, $room_id);
             if ($stmt->execute()) {
-                $success_message = "Room updated successfully.";
+                $_SESSION['success_message'] = "Room updated successfully.";
             } else {
-                $error_message = "Error: " . $stmt->error;
+                $_SESSION['error_message'] = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     } else {
-        $error_message = "ID and room number are required.";
+        $_SESSION['error_message'] = "ID and room number are required.";
     }
+    header("Location: " . manage_rooms_url($dormitory_id));
+    exit();
 }
 
 // Handle Delete Room
@@ -70,26 +72,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_room'])) {
         $stmt_check->execute();
         $stmt_check->store_result();
         if($stmt_check->num_rows > 0) {
-            $error_message = "Cannot delete room because it has students assigned to it.";
+            $_SESSION['error_message'] = "Cannot delete room because it has students assigned to it.";
         } else {
             $sql = "DELETE FROM dormitory_rooms WHERE id = ?";
             if ($stmt = $conn->prepare($sql)) {
                 $stmt->bind_param("i", $room_id);
                 if ($stmt->execute()) {
-                    $success_message = "Room deleted successfully.";
+                    $_SESSION['success_message'] = "Room deleted successfully.";
                 } else {
-                    $error_message = "Error: " . $stmt->error;
+                    $_SESSION['error_message'] = "Error: " . $stmt->error;
                 }
                 $stmt->close();
             }
         }
         $stmt_check->close();
     } else {
-        $error_message = "ID is required.";
+        $_SESSION['error_message'] = "ID is required.";
     }
+    header("Location: " . manage_rooms_url($dormitory_id));
+    exit();
 }
 
-require_once 'includes/header.php';
+// Fetch session messages
+$success_message = $_SESSION['success_message'] ?? null;
+$error_message = $_SESSION['error_message'] ?? null;
+unset($_SESSION['success_message'], $_SESSION['error_message']);
 
 // Fetch dormitory details
 $dorm_name = '';
@@ -101,8 +108,8 @@ if ($stmt_dorm = $conn->prepare($sql_dorm)) {
     if($row = $result_dorm->fetch_assoc()) {
         $dorm_name = $row['name'];
     } else {
-        // Dorm not found, redirect
-        header("location: dormitories.php");
+        $_SESSION['error_message'] = "Dormitory not found.";
+        header("location: " . dormitories_url());
         exit;
     }
     $stmt_dorm->close();
@@ -115,17 +122,17 @@ if ($stmt_rooms = $conn->prepare($sql_rooms)) {
     $stmt_rooms->bind_param("i", $dormitory_id);
     $stmt_rooms->execute();
     $result_rooms = $stmt_rooms->get_result();
-    while ($row = $result_rooms->fetch_assoc()) {
-        $rooms[] = $row;
-    }
+    $rooms = $result_rooms->fetch_all(MYSQLI_ASSOC);
     $stmt_rooms->close();
 }
+
+require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <a href="dormitories.php" class="text-decoration-none text-muted-hover d-block mb-2"><i class="bi bi-arrow-left-circle me-1"></i>Back to Dormitories</a>
+            <a href="<?php echo dormitories_url(); ?>" class="text-decoration-none d-block mb-2"><i class="bi bi-arrow-left-circle me-1"></i>Back to Dormitories</a>
             <h2 class="mb-0"><i class="bi bi-door-open-fill me-2"></i>Rooms in <?php echo htmlspecialchars($dorm_name); ?></h2>
         </div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
@@ -140,7 +147,7 @@ if ($stmt_rooms = $conn->prepare($sql_rooms)) {
         <div class="alert alert-danger alert-dismissible fade show" role="alert"><?php echo $error_message; ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
     <?php endif; ?>
 
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover">
@@ -177,7 +184,8 @@ if ($stmt_rooms = $conn->prepare($sql_rooms)) {
 <div class="modal fade" id="addRoomModal" tabindex="-1" aria-labelledby="addRoomModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="manage_rooms.php?dormitory_id=<?php echo $dormitory_id; ?>" method="post">
+            <form action="<?php echo manage_rooms_url($dormitory_id); ?>" method="post">
+                <input type="hidden" name="dormitory_id" value="<?php echo $dormitory_id; ?>">
                 <div class="modal-header"><h5 class="modal-title" id="addRoomModalLabel">Add New Room</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body">
                     <div class="mb-3"><label for="room_number" class="form-label">Room Number / Name</label><input type="text" class="form-control" id="room_number" name="room_number" required></div>
@@ -193,7 +201,8 @@ if ($stmt_rooms = $conn->prepare($sql_rooms)) {
 <div class="modal fade" id="editRoomModal" tabindex="-1" aria-labelledby="editRoomModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="manage_rooms.php?dormitory_id=<?php echo $dormitory_id; ?>" method="post">
+            <form action="<?php echo manage_rooms_url($dormitory_id); ?>" method="post">
+                <input type="hidden" name="dormitory_id" value="<?php echo $dormitory_id; ?>">
                 <input type="hidden" name="room_id" id="edit_room_id">
                 <div class="modal-header"><h5 class="modal-title" id="editRoomModalLabel">Edit Room</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body">
@@ -210,7 +219,8 @@ if ($stmt_rooms = $conn->prepare($sql_rooms)) {
 <div class="modal fade" id="deleteRoomModal" tabindex="-1" aria-labelledby="deleteRoomModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="manage_rooms.php?dormitory_id=<?php echo $dormitory_id; ?>" method="post">
+            <form action="<?php echo manage_rooms_url($dormitory_id); ?>" method="post">
+                <input type="hidden" name="dormitory_id" value="<?php echo $dormitory_id; ?>">
                 <input type="hidden" name="room_id" id="delete_room_id">
                 <div class="modal-header"><h5 class="modal-title" id="deleteRoomModalLabel">Delete Room</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body"><p>Are you sure you want to delete this room? This action cannot be undone.</p></div>
@@ -223,18 +233,22 @@ if ($stmt_rooms = $conn->prepare($sql_rooms)) {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const editRoomModal = document.getElementById('editRoomModal');
-    editRoomModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        document.getElementById('edit_room_id').value = button.getAttribute('data-id');
-        document.getElementById('edit_room_number').value = button.getAttribute('data-number');
-        document.getElementById('edit_capacity').value = button.getAttribute('data-capacity');
-    });
+    if (editRoomModal) {
+        editRoomModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            document.getElementById('edit_room_id').value = button.getAttribute('data-id');
+            document.getElementById('edit_room_number').value = button.getAttribute('data-number');
+            document.getElementById('edit_capacity').value = button.getAttribute('data-capacity');
+        });
+    }
 
     const deleteRoomModal = document.getElementById('deleteRoomModal');
-    deleteRoomModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        document.getElementById('delete_room_id').value = button.getAttribute('data-id');
-    });
+    if (deleteRoomModal) {
+        deleteRoomModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            document.getElementById('delete_room_id').value = button.getAttribute('data-id');
+        });
+    }
 });
 </script>
 

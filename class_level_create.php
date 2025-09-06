@@ -1,11 +1,11 @@
 <?php
 require_once 'config.php';
-require_once 'includes/url_helper.php';
 
-// Authorization check
-$allowed_roles = ['headteacher', 'root'];
+// Authorization check - Admins and Headteachers should be able to create classes
+$allowed_roles = ['admin', 'headteacher', 'root'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: " . login_url());
+    $_SESSION['error_message'] = "You are not authorized to create class levels.";
+    header("location: " . classes_url());
     exit;
 }
 
@@ -40,8 +40,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("s", $name);
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Class level created successfully.";
-                header("location: " . class_levels_url());
+                $_SESSION['success_message'] = "Class level '" . htmlspecialchars($name) . "' created successfully.";
+                header("location: " . classes_url());
                 exit();
             } else {
                 $db_err = "Something went wrong. Please try again later.";
@@ -56,28 +56,33 @@ require_once 'includes/header.php';
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Create Class Level</h2>
-        <a href="<?php echo class_levels_url(); ?>" class="btn btn-secondary">Back to Class Levels</a>
+        <h2><i class="bi bi-person-video3 me-2"></i>Create Class Level</h2>
+        <a href="<?php echo classes_url(); ?>" class="btn btn-secondary">Back to Class Levels</a>
     </div>
 
     <?php if(!empty($db_err)): ?>
         <div class="alert alert-danger"><?php echo $db_err; ?></div>
     <?php endif; ?>
 
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-body">
-            <p>Please fill this form to create a new class level.</p>
-            <form action="<?php echo class_level_create_url(); ?>" method="post">
+            <p class="card-text">Please fill this form to create a new class level (e.g., Senior 1, Grade 7).</p>
+            <form action="<?php echo class_create_url(); ?>" method="post">
                 <div class="mb-3">
                     <label for="name" class="form-label">Class Name</label>
-                    <input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $name; ?>" required>
+                    <input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($name); ?>" required>
                     <div class="invalid-feedback"><?php echo $name_err; ?></div>
                 </div>
                 <div class="mt-4">
                     <button type="submit" class="btn btn-primary">Create Class Level</button>
-                    <a href="<?php echo class_levels_url(); ?>" class="btn btn-outline-secondary">Cancel</a>
+                    <a href="<?php echo classes_url(); ?>" class="btn btn-outline-secondary">Cancel</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<?php
+require_once 'includes/footer.php';
+$conn->close();
+?>

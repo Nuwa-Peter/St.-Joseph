@@ -3,7 +3,7 @@ require_once 'config.php';
 
 // All logged-in users can view and book
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+    header("location: " . login_url());
     exit;
 }
 
@@ -68,7 +68,7 @@ if ($result) {
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2><i class="bi bi-calendar-plus-fill me-2"></i>Book a Resource</h2>
         <div>
-            <a href="resources.php" class="btn btn-secondary"><i class="bi bi-gear-fill me-1"></i>Manage Resources</a>
+            <a href="<?php echo resources_url(); ?>" class="btn btn-secondary"><i class="bi bi-gear-fill me-1"></i>Manage Resources</a>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookingModal"><i class="bi bi-plus-circle-fill me-1"></i>New Booking</button>
         </div>
     </div>
@@ -91,7 +91,7 @@ if ($result) {
 <div class="modal fade" id="addBookingModal" tabindex="-1" aria-labelledby="addBookingModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="bookings.php" method="post">
+            <form action="<?php echo bookings_url(); ?>" method="post">
                 <div class="modal-header"><h5 class="modal-title" id="addBookingModalLabel">New Booking</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
         },
-        events: 'api_get_bookings.php',
+        events: '<?php echo url("api/get_bookings"); ?>',
         slotMinTime: '08:00:00',
         slotMaxTime: '18:00:00',
         nowIndicator: true,

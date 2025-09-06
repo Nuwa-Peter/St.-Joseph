@@ -18,10 +18,10 @@ $streams_sql = "SELECT s.id, cl.name as class_name, s.name as stream_name
 $streams = $conn->query($streams_sql)->fetch_all(MYSQLI_ASSOC);
 
 // Check for session messages
-$success_message = $_SESSION['class_attendance_success'] ?? '';
-$error_message = $_SESSION['class_attendance_error'] ?? '';
-unset($_SESSION['class_attendance_success']);
-unset($_SESSION['class_attendance_error']);
+$success_message = $_SESSION['success_message'] ?? '';
+$error_message = $_SESSION['error_message'] ?? '';
+unset($_SESSION['success_message']);
+unset($_SESSION['error_message']);
 
 
 require_once 'includes/header.php';
@@ -87,18 +87,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 1. Check if attendance has already been taken
         fetch(`<?php echo url('api/check_attendance_status'); ?>?stream_id=${streamId}&date=${attendanceDate}`)
             .then(response => response.json())
             .then(data => {
-                if (data.error) {
-                    throw new Error(data.error);
-                }
+                if (data.error) throw new Error(data.error);
                 if (data.status === 'taken') {
-                    // Display locked message
                     displayArea.innerHTML = generateLockedMessage(className, attendanceDate);
                 } else {
-                    // 2. Fetch student list and display attendance form
                     fetchStudentsAndBuildSheet(streamId, attendanceDate, className);
                 }
             })
@@ -111,9 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`<?php echo url('api/get_students_for_stream'); ?>?stream_id=${streamId}`)
             .then(response => response.json())
             .then(students => {
-                if (students.error) {
-                    throw new Error(students.error);
-                }
+                if (students.error) throw new Error(students.error);
                 displayArea.innerHTML = generateAttendanceForm(students, streamId, attendanceDate, className);
             })
             .catch(error => {
@@ -123,17 +116,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function generateLockedMessage(className, attendanceDate) {
         return `
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Attendance Locked</h5>
-                </div>
-                <div class="card-body text-center">
-                    <i class="bi bi-lock-fill fs-1 text-warning"></i>
-                    <p class="fs-5 mt-3">Attendance for <strong>${className}</strong> on <strong>${attendanceDate}</strong> has already been recorded.</p>
-                    <p>It can be taken again tomorrow.</p>
-                </div>
-            </div>
-        `;
+            <div class="card"><div class="card-header"><h5 class="mb-0">Attendance Locked</h5></div>
+            <div class="card-body text-center"><i class="bi bi-lock-fill fs-1 text-warning"></i>
+            <p class="fs-5 mt-3">Attendance for <strong>${className}</strong> on <strong>${attendanceDate}</strong> has already been recorded.</p>
+            <p>It can be taken again tomorrow.</p></div></div>`;
     }
 
     function generateAttendanceForm(students, streamId, attendanceDate, className) {
@@ -151,16 +137,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         <td class="text-center"><input class="form-check-input" type="radio" name="attendance[${student.id}]" value="late"></td>
                         <td class="text-center"><input class="form-check-input" type="radio" name="attendance[${student.id}]" value="excused"></td>
                         <td><input type="text" name="notes[${student.id}]" class="form-control form-control-sm" placeholder="Add a note..."></td>
-                    </tr>
-                `;
+                    </tr>`;
             });
         }
 
         return `
-            <form id="attendance-form" action="<?php echo url('attendance/save'); ?>" method="post">
+            <form id="attendance-form" action="<?php echo save_class_attendance_url(); ?>" method="post">
                 <input type="hidden" name="stream_id" value="${streamId}">
                 <input type="hidden" name="attendance_date" value="${attendanceDate}">
-
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Attendance for ${className} on ${attendanceDate}</h5>
@@ -171,24 +155,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             <table class="table table-striped table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Student Name</th>
-                                        <th>Student ID</th>
-                                        <th class="text-center">Present</th>
-                                        <th class="text-center">Absent</th>
-                                        <th class="text-center">Late</th>
-                                        <th class="text-center">Excused</th>
-                                        <th>Notes</th>
+                                        <th>Student Name</th><th>Student ID</th><th class="text-center">Present</th><th class="text-center">Absent</th>
+                                        <th class="text-center">Late</th><th class="text-center">Excused</th><th>Notes</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    ${studentRows}
-                                </tbody>
+                                <tbody>${studentRows}</tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-            </form>
-        `;
+            </form>`;
     }
 });
 </script>

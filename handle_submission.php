@@ -3,7 +3,7 @@ require_once 'config.php';
 
 // Authorization check: only students can submit
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION['role'] !== 'student') {
-    header("location: dashboard.php");
+    header("location: " . dashboard_url());
     exit;
 }
 
@@ -14,8 +14,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $error = "";
 
     if ($assignment_id === 0) {
-        // Redirect with error
-        header("location: student_assignments_view.php?error=invalid_id");
+        $_SESSION['error_message'] = "Invalid assignment ID.";
+        header("location: " . student_assignments_view_url());
         exit;
     }
 
@@ -25,7 +25,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (!is_dir($target_dir)) {
             mkdir($target_dir, 0755, true);
         }
-        // Sanitize filename and make it unique
         $filename = "sub_" . $assignment_id . "_" . $student_id . "_" . time() . "_" . basename($_FILES["submission_file"]["name"]);
         $target_file = $target_dir . $filename;
 
@@ -35,21 +34,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Sorry, there was an error uploading your file.";
         }
     } else {
-        $error = "No file was uploaded or an error occurred.";
+        $error = "No file was uploaded or an error occurred during upload.";
     }
 
     // If file upload was successful, insert into database
     if (empty($error) && $file_path) {
-        // Use INSERT IGNORE or check for existing submission to prevent duplicates
+        // Use INSERT ... ON DUPLICATE KEY UPDATE to handle resubmissions
         $sql = "INSERT INTO assignment_submissions (assignment_id, student_id, file_path, submission_date)
                 VALUES (?, ?, ?, NOW())
-                ON DUPLICATE KEY UPDATE file_path = VALUES(file_path), submission_date = NOW()";
+                ON DUPLICATE KEY UPDATE file_path = VALUES(file_path), submission_date = NOW(), updated_at = NOW()";
 
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("iis", $assignment_id, $student_id, $file_path);
             if ($stmt->execute()) {
-                // Success, redirect back to the assignment page
-                header("location: assignment_submit.php?id=" . $assignment_id);
+                $_SESSION['success_message'] = "Your assignment was submitted successfully.";
+                header("location: " . url('assignment_submit.php', ['id' => $assignment_id]));
                 exit();
             } else {
                 $error = "Database error: " . $stmt->error;
@@ -58,16 +57,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // If there was an error, redirect back with an error message
-    // A more robust solution would use session flashes for errors
     if (!empty($error)) {
-        header("location: assignment_submit.php?id=" . $assignment_id . "&error=" . urlencode($error));
+        $_SESSION['error_message'] = $error;
+        header("location: " . url('assignment_submit.php', ['id' => $assignment_id]));
         exit();
     }
 
 } else {
-    // Redirect if not a POST request
-    header("location: student_assignments_view.php");
+    header("location: " . student_assignments_view_url());
     exit;
 }
 

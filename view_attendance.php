@@ -2,18 +2,14 @@
 require_once 'config.php';
 
 // Ensure user is logged in and is a teacher or admin
-$allowed_roles = ['teacher', 'headteacher', 'root'];
+$allowed_roles = ['teacher', 'headteacher', 'root', 'admin'];
 if (!isset($_SESSION["loggedin"]) || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: dashboard.php");
+    header("location: " . dashboard_url());
     exit;
 }
 
 // --- Fetch data for filters ---
-// Get all streams/classes
-$streams_sql = "SELECT s.id, cl.name as class_name, s.name as stream_name
-                FROM streams s
-                JOIN class_levels cl ON s.class_level_id = cl.id
-                ORDER BY cl.name, s.name";
+$streams_sql = "SELECT s.id, cl.name as class_name, s.name as stream_name FROM streams s JOIN class_levels cl ON s.class_level_id = cl.id ORDER BY cl.name, s.name";
 $streams = $conn->query($streams_sql)->fetch_all(MYSQLI_ASSOC);
 
 // --- Handle Filters and Fetch Attendance Data ---
@@ -64,66 +60,32 @@ $result = $stmt->get_result();
 $attendance_records = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-
 require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
     <h1 class="my-4"><i class="bi bi-file-earmark-text me-2"></i>Attendance Report</h1>
 
-    <div class="card">
-        <div class="card-header">
-            Filters
-        </div>
+    <div class="card shadow-sm">
+        <div class="card-header">Filters</div>
         <div class="card-body">
-            <form action="view_attendance.php" method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label for="stream_id" class="form-label">Class</label>
-                    <select name="stream_id" id="stream_id" class="form-select">
-                        <option value="">All Classes</option>
-                        <?php foreach ($streams as $stream): ?>
-                            <option value="<?php echo $stream['id']; ?>" <?php if ($filter_stream_id == $stream['id']) echo 'selected'; ?>>
-                                <?php echo htmlspecialchars($stream['class_name'] . ' ' . $stream['stream_name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="student_search" class="form-label">Student</label>
-                    <input type="text" class="form-control" id="student_search" placeholder="Search by name...">
-                    <input type="hidden" name="student_id" id="student_id" value="<?php echo htmlspecialchars($filter_student_id); ?>">
-                    <div id="student-search-results-report" class="list-group" style="position: absolute; z-index: 1000;"></div>
-                </div>
-                <div class="col-md-2">
-                    <label for="start_date" class="form-label">From</label>
-                    <input type="date" name="start_date" id="start_date" class="form-control" value="<?php echo htmlspecialchars($filter_start_date); ?>">
-                </div>
-                <div class="col-md-2">
-                    <label for="end_date" class="form-label">To</label>
-                    <input type="date" name="end_date" id="end_date" class="form-control" value="<?php echo htmlspecialchars($filter_end_date); ?>">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">Filter</button>
-                </div>
+            <form action="<?php echo view_attendance_url(); ?>" method="get" class="row g-3">
+                <div class="col-md-3"><label for="stream_id" class="form-label">Class</label><select name="stream_id" id="stream_id" class="form-select"><option value="">All Classes</option><?php foreach ($streams as $stream): ?><option value="<?php echo $stream['id']; ?>" <?php if ($filter_stream_id == $stream['id']) echo 'selected'; ?>><?php echo htmlspecialchars($stream['class_name'] . ' ' . $stream['stream_name']); ?></option><?php endforeach; ?></select></div>
+                <div class="col-md-3"><label for="student_search" class="form-label">Student</label><input type="text" class="form-control" id="student_search" placeholder="Search by name..."><input type="hidden" name="student_id" id="student_id" value="<?php echo htmlspecialchars($filter_student_id); ?>"><div id="student-search-results-report" class="list-group" style="position: absolute; z-index: 1000;"></div></div>
+                <div class="col-md-2"><label for="start_date" class="form-label">From</label><input type="date" name="start_date" id="start_date" class="form-control" value="<?php echo htmlspecialchars($filter_start_date); ?>"></div>
+                <div class="col-md-2"><label for="end_date" class="form-label">To</label><input type="date" name="end_date" id="end_date" class="form-control" value="<?php echo htmlspecialchars($filter_end_date); ?>"></div>
+                <div class="col-md-2 d-flex align-items-end"><button type="submit" class="btn btn-primary w-100">Filter</button></div>
             </form>
         </div>
     </div>
 
     <div class="card mt-4">
-        <div class="card-header">
-            Attendance Records
-        </div>
+        <div class="card-header">Attendance Records</div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover table-striped">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Student Name</th>
-                            <th>Student ID</th>
-                            <th>Class</th>
-                            <th>Status</th>
-                        </tr>
+                    <thead class="table-light">
+                        <tr><th>Date</th><th>Student Name</th><th>Student ID</th><th>Class</th><th>Status</th></tr>
                     </thead>
                     <tbody>
                         <?php if (empty($attendance_records)): ?>
@@ -135,17 +97,7 @@ require_once 'includes/header.php';
                                     <td><?php echo htmlspecialchars($record['first_name'] . ' ' . $record['last_name']); ?></td>
                                     <td><?php echo htmlspecialchars($record['unique_id']); ?></td>
                                     <td><?php echo htmlspecialchars($record['class_name'] . ' ' . $record['stream_name']); ?></td>
-                                    <td>
-                                         <?php
-                                        $status = htmlspecialchars($record['status']);
-                                        $badge_class = 'bg-secondary';
-                                        if ($status === 'present') $badge_class = 'bg-success';
-                                        if ($status === 'absent') $badge_class = 'bg-danger';
-                                        if ($status === 'late') $badge_class = 'bg-warning text-dark';
-                                        if ($status === 'excused') $badge_class = 'bg-info text-dark';
-                                        echo "<span class='badge " . $badge_class . "'>" . ucfirst($status) . "</span>";
-                                        ?>
-                                    </td>
+                                    <td><?php $status = htmlspecialchars($record['status']); $badge_class = 'bg-secondary'; if ($status === 'present') $badge_class = 'bg-success'; if ($status === 'absent') $badge_class = 'bg-danger'; if ($status === 'late') $badge_class = 'bg-warning text-dark'; if ($status === 'excused') $badge_class = 'bg-info text-dark'; echo "<span class='badge " . $badge_class . "'>" . ucfirst($status) . "</span>"; ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -157,7 +109,6 @@ require_once 'includes/header.php';
 </div>
 
 <script>
-// JS for live student search in filter
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('student_search');
     const resultsContainer = document.getElementById('student-search-results-report');
@@ -166,11 +117,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchInput.addEventListener('input', () => {
         clearTimeout(debounceTimer);
-        studentIdInput.value = ''; // Clear hidden ID when user types
+        studentIdInput.value = '';
         debounceTimer = setTimeout(() => {
             const query = searchInput.value;
             if (query.length > 1) {
-                fetch(`api_search_users.php?role=student&q=${encodeURIComponent(query)}`)
+                fetch(`<?php echo url('api/search_users'); ?>?role=student&q=${encodeURIComponent(query)}`)
                     .then(response => response.json())
                     .then(data => {
                         resultsContainer.innerHTML = '';
@@ -197,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target)) {
+        if (searchInput && !searchInput.contains(e.target)) {
             resultsContainer.innerHTML = '';
         }
     });

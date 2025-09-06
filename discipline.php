@@ -1,13 +1,10 @@
 <?php
 require_once 'config.php';
 
-$success_message = "";
-$error_message = "";
-
 // Role-based access control
-$allowed_roles = ['root', 'headteacher', 'teacher'];
+$allowed_roles = ['root', 'headteacher', 'teacher', 'admin'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: dashboard.php");
+    header("location: " . dashboard_url());
     exit;
 }
 
@@ -21,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_log'])) {
 
     // Basic validation
     if (empty($student_id) || empty($type) || empty($log_date) || empty($description)) {
-        $error_message = "All fields are required.";
+        $_SESSION['error_message'] = "All fields are required.";
     } else {
         $sql_insert = "INSERT INTO discipline_logs (user_id, recorded_by_id, type, log_date, description, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())";
 
@@ -29,27 +26,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_log'])) {
             $stmt->bind_param("iisss", $student_id, $recorded_by_id, $type, $log_date, $description);
 
             if ($stmt->execute()) {
-                $success_message = "Discipline log added successfully.";
+                $_SESSION['success_message'] = "Discipline log added successfully.";
             } else {
-                $error_message = "Error adding log: " . $stmt->error;
+                $_SESSION['error_message'] = "Error adding log: " . $stmt->error;
             }
             $stmt->close();
         } else {
-            $error_message = "Error preparing statement: " . $conn->error;
+            $_SESSION['error_message'] = "Error preparing statement: " . $conn->error;
         }
     }
+    header("Location: " . discipline_url());
+    exit();
 }
 
-require_once 'includes/header.php';
+// Fetch session messages
+$success_message = $_SESSION['success_message'] ?? null;
+$error_message = $_SESSION['error_message'] ?? null;
+unset($_SESSION['success_message'], $_SESSION['error_message']);
+
 
 // Fetch all students for the dropdown
 $students = [];
 $sql_students = "SELECT id, first_name, last_name FROM users WHERE role = 'student' AND status = 'active' ORDER BY last_name, first_name";
 $result_students = $conn->query($sql_students);
-if ($result_students && $result_students->num_rows > 0) {
-    while ($row = $result_students->fetch_assoc()) {
-        $students[] = $row;
-    }
+if ($result_students) {
+    $students = $result_students->fetch_all(MYSQLI_ASSOC);
 }
 
 // Fetch all discipline logs
@@ -72,14 +73,11 @@ $sql_logs = "
     ORDER BY
         dl.log_date DESC, dl.created_at DESC";
 $result_logs = $conn->query($sql_logs);
-if ($result_logs && $result_logs->num_rows > 0) {
-    while ($row = $result_logs->fetch_assoc()) {
-        $logs[] = $row;
-    }
+if ($result_logs) {
+    $logs = $result_logs->fetch_all(MYSQLI_ASSOC);
 }
 
-// The connection will be closed in the backend logic part, for now, it's here.
-// $conn->close();
+require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
@@ -104,11 +102,11 @@ if ($result_logs && $result_logs->num_rows > 0) {
         </div>
     <?php endif; ?>
 
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-bordered">
-                    <thead>
+                    <thead class="table-light">
                         <tr>
                             <th>Date</th>
                             <th>Student</th>
@@ -148,7 +146,7 @@ if ($result_logs && $result_logs->num_rows > 0) {
 <div class="modal fade" id="addLogModal" tabindex="-1" aria-labelledby="addLogModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="discipline.php" method="post">
+            <form action="<?php echo discipline_url(); ?>" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addLogModalLabel">Add New Discipline Log</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -190,4 +188,7 @@ if ($result_logs && $result_logs->num_rows > 0) {
     </div>
 </div>
 
-<?php require_once 'includes/footer.php'; ?>
+<?php
+$conn->close();
+require_once 'includes/footer.php';
+?>

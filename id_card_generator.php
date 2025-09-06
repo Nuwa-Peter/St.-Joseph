@@ -1,70 +1,58 @@
 <?php
 require_once 'config.php';
-require_once 'includes/header.php';
 
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+// Authorization check
+$allowed_roles = ['admin', 'headteacher', 'root'];
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
+    header("location: " . login_url());
     exit;
 }
 
 // Define roles for the dropdown
-$roles = ['student' => 'Students', 'teacher' => 'Teachers', 'headteacher' => 'Head Teacher'];
+$roles = ['student' => 'Students', 'teacher' => 'Teachers', 'headteacher' => 'Head Teacher', 'staff' => 'Other Staff'];
+
+require_once 'includes/header.php';
 ?>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Generate ID Cards</h2>
-</div>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-person-vcard-fill me-2"></i>Generate ID Cards</h2>
+    </div>
 
-<div class="card">
-    <div class="card-header">ID Card Options</div>
-    <div class="card-body">
-        <form action="generate_id_card_pdf.php" method="post" target="_blank">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="generation_scope" class="form-label">Scope</label>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="generation_scope" id="scope_all" value="all" checked>
-                        <label class="form-check-label" for="scope_all">All users in selected role</label>
+    <div class="card shadow-sm">
+        <div class="card-header">ID Card Options</div>
+        <div class="card-body">
+            <form action="<?php echo generate_id_card_pdf_url(); ?>" method="post" target="_blank">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="generation_scope" class="form-label">Scope</label>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="generation_scope" id="scope_all" value="all" checked><label class="form-check-label" for="scope_all">All users in selected role</label></div>
+                        <div class="form-check"><input class="form-check-input" type="radio" name="generation_scope" id="scope_individual" value="individual"><label class="form-check-label" for="scope_individual">Individual User</label></div>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="generation_scope" id="scope_individual" value="individual">
-                        <label class="form-check-label" for="scope_individual">Individual User</label>
+                    <div class="col-md-6 mb-3">
+                        <label for="role" class="form-label">Generate for</label>
+                        <select name="role" id="role" class="form-select" required><option value="">Select Role...</option><?php foreach($roles as $role_key => $role_value): ?><option value="<?php echo $role_key; ?>"><?php echo $role_value; ?></option><?php endforeach; ?></select>
                     </div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label for="role" class="form-label">Generate for</label>
-                    <select name="role" id="role" class="form-select" required>
-                        <option value="">Select Role...</option>
-                        <?php foreach($roles as $role_key => $role_value): ?>
-                            <option value="<?php echo $role_key; ?>"><?php echo $role_value; ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3" id="individual-user-container" style="display: none;">
-                    <label for="user_search_input" class="form-label">Search for User (Name or LIN)</label>
-                    <input type="text" id="user_search_input" class="form-control" placeholder="Start typing to search..." disabled>
-                    <input type="hidden" name="user_id" id="user_id_hidden">
-                    <div id="search-results" class="list-group position-absolute" style="z-index: 1000;"></div>
+                <div class="row">
+                    <div class="col-md-6 mb-3" id="individual-user-container" style="display: none;">
+                        <label for="user_search_input" class="form-label">Search for User (Name or LIN)</label>
+                        <input type="text" id="user_search_input" class="form-control" placeholder="Start typing to search..." disabled>
+                        <input type="hidden" name="user_id" id="user_id_hidden">
+                        <div id="search-results" class="list-group position-absolute" style="z-index: 1000;"></div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="issue_date" class="form-label">Date of Issue</label>
-                    <input type="date" name="issue_date" id="issue_date" class="form-control" required>
+                <div class="row">
+                    <div class="col-md-6 mb-3"><label for="issue_date" class="form-label">Date of Issue</label><input type="date" name="issue_date" id="issue_date" class="form-control" value="<?php echo date('Y-m-d'); ?>" required></div>
+                    <div class="col-md-6 mb-3"><label for="expiry_date" class="form-label">Expiry Date</label><input type="date" name="expiry_date" id="expiry_date" class="form-control" required></div>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label for="expiry_date" class="form-label">Expiry Date</label>
-                    <input type="date" name="expiry_date" id="expiry_date" class="form-control" required>
-                </div>
-            </div>
 
-            <hr>
-            <button type="submit" class="btn btn-primary"><i class="bi bi-person-vcard-fill me-2"></i>Generate ID Cards</button>
-        </form>
+                <hr>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-person-vcard-fill me-2"></i>Generate ID Cards</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -103,28 +91,20 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('input', function() {
         const query = this.value;
         const role = roleSelect.value;
-        hiddenInput.value = ''; // Clear hidden ID when user types
-
+        hiddenInput.value = '';
         clearTimeout(debounceTimer);
-        if (query.length < 2) {
-            resultsContainer.innerHTML = '';
-            return;
-        }
+        if (query.length < 2) { resultsContainer.innerHTML = ''; return; }
 
         debounceTimer = setTimeout(() => {
-            fetch(`api_search_users.php?role=${role}&query=${encodeURIComponent(query)}`)
+            fetch(`<?php echo url('api/search_users'); ?>?role=${role}&query=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
                     resultsContainer.innerHTML = '';
-                    if (data.error) {
-                        console.error(data.error);
-                        return;
-                    }
+                    if (data.error) { console.error(data.error); return; }
                     if (data.length > 0) {
                         data.forEach(user => {
                             const item = document.createElement('div');
                             item.className = 'list-group-item d-flex justify-content-between align-items-center';
-
                             const nameSpan = document.createElement('span');
                             nameSpan.textContent = `${user.first_name} ${user.last_name} (${user.lin || 'No LIN'})`;
                             nameSpan.style.cursor = 'pointer';
@@ -135,37 +115,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                 hiddenInput.value = this.dataset.id;
                                 resultsContainer.innerHTML = '';
                             };
-
-                            let viewUrl = (role === 'student') ? `student_view.php?id=${user.id}` : `user_edit.php?id=${user.id}`;
-
-                            const viewBtn = document.createElement('a');
-                            viewBtn.href = viewUrl;
-                            viewBtn.target = '_blank';
-                            viewBtn.className = 'btn btn-sm btn-outline-secondary';
-                            viewBtn.innerHTML = '<i class="bi bi-eye"></i> View';
-
                             item.appendChild(nameSpan);
-                            item.appendChild(viewBtn);
                             resultsContainer.appendChild(item);
                         });
                     } else {
                         resultsContainer.innerHTML = '<span class="list-group-item">No results found</span>';
                     }
                 });
-        }, 300); // Debounce for 300ms
+        }, 300);
     });
 
-    resultsContainer.addEventListener('click', function(e) {
-        e.preventDefault();
-        const target = e.target;
-        if (target.matches('a.list-group-item-action')) {
-            searchInput.value = target.dataset.name;
-            hiddenInput.value = target.dataset.id;
-            resultsContainer.innerHTML = '';
-        }
-    });
-
-    // Hide results when clicking outside
     document.addEventListener('click', function(e) {
         if (!userContainer.contains(e.target)) {
             resultsContainer.innerHTML = '';

@@ -2,14 +2,12 @@
 require_once 'config.php';
 
 // Access control for admins
-$admin_roles = ['root', 'headteacher'];
+$admin_roles = ['root', 'headteacher', 'admin'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $admin_roles)) {
-    header("location: dashboard.php");
+    header("location: " . dashboard_url());
     exit;
 }
 
-$success_message = "";
-$error_message = "";
 $current_academic_year = date('Y'); // Example: Use the current year
 
 // Handle Assign Student
@@ -24,20 +22,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['assign_student'])) {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("iis", $room_id, $student_id, $academic_year);
             if ($stmt->execute()) {
-                $success_message = "Student assigned to room successfully.";
+                $_SESSION['success_message'] = "Student assigned to room successfully.";
             } else {
                 // Check for duplicate entry
                 if ($conn->errno == 1062) {
-                    $error_message = "This student is already assigned to a room for this academic year.";
+                    $_SESSION['error_message'] = "This student is already assigned to a room for this academic year.";
                 } else {
-                    $error_message = "Error assigning student: " . $stmt->error;
+                    $_SESSION['error_message'] = "Error assigning student: " . $stmt->error;
                 }
             }
             $stmt->close();
         }
     } else {
-        $error_message = "All fields are required.";
+        $_SESSION['error_message'] = "All fields are required.";
     }
+    header("Location: " . room_assignments_url());
+    exit();
 }
 
 // Handle Un-assign Student
@@ -48,16 +48,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['unassign_student'])) {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("i", $assignment_id);
             if ($stmt->execute()) {
-                $success_message = "Student un-assigned successfully.";
+                $_SESSION['success_message'] = "Student un-assigned successfully.";
             } else {
-                $error_message = "Error: " . $stmt->error;
+                $_SESSION['error_message'] = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     }
+    header("Location: " . room_assignments_url());
+    exit();
 }
 
-require_once 'includes/header.php';
+// Fetch session messages
+$success_message = $_SESSION['success_message'] ?? null;
+$error_message = $_SESSION['error_message'] ?? null;
+unset($_SESSION['success_message'], $_SESSION['error_message']);
 
 // Fetch all necessary data
 $dormitories_data = [];
@@ -102,7 +107,6 @@ if($stmt_main = $conn->prepare($sql)){
     $stmt_main->close();
 }
 
-
 // Fetch students not yet assigned for the current academic year
 $unassigned_students = [];
 $sql_unassigned = "SELECT id, first_name, last_name FROM users WHERE role = 'student' AND status = 'active' AND id NOT IN (SELECT user_id FROM room_assignments WHERE academic_year = ?) ORDER BY last_name";
@@ -111,26 +115,27 @@ if($stmt_unassigned = $conn->prepare($sql_unassigned)){
     $stmt_unassigned->execute();
     $result_unassigned = $stmt_unassigned->get_result();
     if($result_unassigned) {
-        while($row = $result_unassigned->fetch_assoc()) $unassigned_students[] = $row;
+        $unassigned_students = $result_unassigned->fetch_all(MYSQLI_ASSOC);
     }
     $stmt_unassigned->close();
 }
-
 
 // Fetch all rooms for dropdown
 $all_rooms = [];
 $sql_all_rooms = "SELECT dr.id, dr.room_number, d.name as dorm_name FROM dormitory_rooms dr JOIN dormitories d ON dr.dormitory_id = d.id ORDER BY d.name, dr.room_number";
 $result_all_rooms = $conn->query($sql_all_rooms);
 if($result_all_rooms) {
-    while($row = $result_all_rooms->fetch_assoc()) $all_rooms[] = $row;
+    $all_rooms = $result_all_rooms->fetch_all(MYSQLI_ASSOC);
 }
+
+require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="mb-0"><i class="bi bi-person-square me-2"></i>Room Assignments for <?php echo $current_academic_year; ?></h2>
-            <a href="dormitories.php" class="text-decoration-none text-muted-hover"><i class="bi bi-arrow-left-circle me-1"></i>Manage Dormitories & Rooms</a>
+            <a href="<?php echo dormitories_url(); ?>" class="text-decoration-none"><i class="bi bi-arrow-left-circle me-1"></i>Manage Dormitories & Rooms</a>
         </div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assignStudentModal">
             <i class="bi bi-person-plus-fill me-2"></i>Assign a Student
@@ -150,7 +155,7 @@ if($result_all_rooms) {
             <?php if (!empty($dorm['rooms'])): ?>
                 <?php foreach($dorm['rooms'] as $room): ?>
                     <div class="col">
-                        <div class="card h-100">
+                        <div class="card h-100 shadow-sm">
                             <div class="card-header d-flex justify-content-between">
                                 <strong>Room: <?php echo htmlspecialchars($room['number']); ?></strong>
                                 <span class="badge bg-secondary"><?php echo count($room['assignments']); ?> / <?php echo $room['capacity']; ?></span>
@@ -160,7 +165,7 @@ if($result_all_rooms) {
                                     <?php foreach($room['assignments'] as $assignment): ?>
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <?php echo htmlspecialchars($assignment['student_name']); ?>
-                                            <form method="post" action="room_assignments.php" class="d-inline">
+                                            <form method="post" action="<?php echo room_assignments_url(); ?>" class="d-inline">
                                                 <input type="hidden" name="assignment_id" value="<?php echo $assignment['id']; ?>">
                                                 <button type="submit" name="unassign_student" class="btn btn-sm btn-outline-danger" title="Un-assign"><i class="bi bi-person-x-fill"></i></button>
                                             </form>
@@ -184,7 +189,7 @@ if($result_all_rooms) {
 <div class="modal fade" id="assignStudentModal" tabindex="-1" aria-labelledby="assignStudentModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="room_assignments.php" method="post">
+            <form action="<?php echo room_assignments_url(); ?>" method="post">
                 <div class="modal-header"><h5 class="modal-title" id="assignStudentModalLabel">Assign Student to Room</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body">
                     <input type="hidden" name="academic_year" value="<?php echo $current_academic_year; ?>">

@@ -3,7 +3,7 @@ require_once 'config.php';
 
 // Ensure user is logged in
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+    header("location: " . login_url());
     exit;
 }
 
@@ -19,7 +19,7 @@ require_once 'includes/header.php';
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="card mt-5">
+            <div class="card mt-5 shadow-sm">
                 <div class="card-header">
                     <h1 class="my-3 text-center">Request Leave of Absence</h1>
                 </div>
@@ -39,7 +39,7 @@ require_once 'includes/header.php';
                         </div>
                     <?php endif; ?>
 
-                    <form action="submit_leave_request.php" method="post">
+                    <form action="<?php echo submit_leave_request_url(); ?>" method="post">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="start_date" class="form-label">Start Date</label>

@@ -2,10 +2,9 @@
 require_once 'config.php';
 
 // Ensure user is an admin
-$admin_roles = ['root', 'headteacher'];
-if (!isset($_SESSION["loggedin"]) || !in_array($_SESSION['role'], $admin_roles))
- {
-    header("location: dashboard.php");
+$admin_roles = ['root', 'headteacher', 'admin'];
+if (!isset($_SESSION["loggedin"]) || !in_array($_SESSION['role'], $admin_roles)) {
+    header("location: " . dashboard_url());
     exit;
 }
 
@@ -14,7 +13,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $teacher_id = $_POST['teacher_id'] ?? null;
     $class_level_id = $_POST['class_level_id'] ?? 0;
 
-    // If "None" is selected, teacher_id will be an empty string, so we should treat it as NULL.
     if (empty($teacher_id)) {
         $teacher_id = null;
     }
@@ -24,21 +22,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ii", $teacher_id, $stream_id);
             if ($stmt->execute()) {
-                $_SESSION['message'] = "Class teacher updated successfully.";
+                $_SESSION['success_message'] = "Class teacher updated successfully.";
             } else {
-                $_SESSION['message'] = "Error updating record: " . $conn->error;
+                $_SESSION['error_message'] = "Error updating record: " . $conn->error;
             }
             $stmt->close();
         }
     } else {
-        $_SESSION['message'] = "Invalid stream ID.";
+        $_SESSION['error_message'] = "Invalid stream ID.";
     }
 
-    // Redirect back to the streams page for the correct class level
     if ($class_level_id > 0) {
-        header("location: streams.php?class_level_id=" . $class_level_id);
+        header("location: " . streams_url(['class_level_id' => $class_level_id]));
     } else {
-        header("location: class_levels.php"); // Fallback
+        header("location: " . classes_url());
     }
     exit();
 }

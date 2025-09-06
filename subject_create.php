@@ -1,11 +1,12 @@
 <?php
 require_once 'config.php';
-require_once 'includes/url_helper.php';
 
-// Authorization check
-$allowed_roles = ['teacher', 'headteacher', 'root'];
+// Authorization check - Admins and Headteachers should be able to create subjects
+$allowed_roles = ['admin', 'headteacher', 'root'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: " . login_url());
+    // Redirect to a more appropriate page if not authorized, e.g., the subjects list or dashboard
+    $_SESSION['error_message'] = "You are not authorized to create subjects.";
+    header("location: " . subjects_url());
     exit;
 }
 
@@ -65,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bind_param("ss", $name, $code);
 
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Subject created successfully.";
+                $_SESSION['success_message'] = "Subject '" . htmlspecialchars($name) . "' created successfully.";
                 header("location: " . subjects_url());
                 exit();
             } else {
@@ -81,7 +82,7 @@ require_once 'includes/header.php';
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Create Subject</h2>
+        <h2><i class="bi bi-book-half me-2"></i>Create Subject</h2>
         <a href="<?php echo subjects_url(); ?>" class="btn btn-secondary">Back to Subjects</a>
     </div>
 
@@ -89,18 +90,18 @@ require_once 'includes/header.php';
         <div class="alert alert-danger"><?php echo $db_err; ?></div>
     <?php endif; ?>
 
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-body">
-            <p>Please fill this form to create a new subject.</p>
+            <p class="card-text">Please fill this form to create a new subject in the system.</p>
             <form action="<?php echo subject_create_url(); ?>" method="post">
                 <div class="mb-3">
-                    <label for="name" class="form-label">Name</label>
-                    <input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $name; ?>">
+                    <label for="name" class="form-label">Subject Name</label>
+                    <input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($name); ?>" required>
                     <div class="invalid-feedback"><?php echo $name_err; ?></div>
                 </div>
                 <div class="mb-3">
-                    <label for="code" class="form-label">Code</label>
-                    <input type="text" name="code" id="code" class="form-control <?php echo (!empty($code_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $code; ?>">
+                    <label for="code" class="form-label">Subject Code</label>
+                    <input type="text" name="code" id="code" class="form-control <?php echo (!empty($code_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($code); ?>" required>
                     <div class="invalid-feedback"><?php echo $code_err; ?></div>
                 </div>
                 <div class="mt-4">
@@ -111,3 +112,8 @@ require_once 'includes/header.php';
         </div>
     </div>
 </div>
+
+<?php
+require_once 'includes/footer.php';
+$conn->close();
+?>

@@ -4,7 +4,7 @@ require_once 'config.php';
 // Authorization check
 $allowed_roles = ['teacher', 'headteacher', 'root'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: dashboard.php");
+    header("location: " . dashboard_url());
     exit;
 }
 
@@ -51,7 +51,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ssiiiss", $title, $description, $stream_id, $subject_id, $teacher_id, $due_date, $file_path);
             if ($stmt->execute()) {
-                header("location: assignments.php");
+                $_SESSION['success_message'] = "Assignment created successfully.";
+                header("location: " . assignments_url());
                 exit();
             } else {
                 $errors['db'] = "Database error: " . $stmt->error;
@@ -66,9 +67,9 @@ require_once 'includes/header.php';
 
 <div class="container mt-4">
     <h2>Create New Assignment</h2>
-    <a href="assignments.php" class="btn btn-secondary mb-3">Back to Assignments</a>
+    <a href="<?php echo assignments_url(); ?>" class="btn btn-secondary mb-3">Back to Assignments</a>
 
-    <form action="assignment_create.php" method="post" enctype="multipart/form-data">
+    <form action="<?php echo assignment_create_url(); ?>" method="post" enctype="multipart/form-data">
         <?php if(isset($errors['db'])): ?><div class="alert alert-danger"><?php echo $errors['db']; ?></div><?php endif; ?>
 
         <div class="mb-3">

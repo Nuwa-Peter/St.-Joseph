@@ -4,14 +4,11 @@ require_once 'config.php';
 // Role-based access control
 $authorized_roles = ['bursar', 'headteacher', 'root'];
 if (!isset($_SESSION['loggedin']) || !in_array($_SESSION['role'], $authorized_roles)) {
-    header("location: dashboard.php?unauthorized=true");
+    header("location: " . dashboard_url() . "?unauthorized=true");
     exit;
 }
 
-require_once 'includes/header.php';
-
 $errors = [];
-$expenses = [];
 $success_message = '';
 
 // Handle Add Expense form submission
@@ -32,19 +29,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_expense'])) {
         $stmt->bind_param("ssdsi", $category, $description, $amount, $expense_date, $recorded_by);
 
         if ($stmt->execute()) {
-            header("Location: expenses.php?success=1");
+            $_SESSION['success_message'] = "Expense added successfully!";
+            header("Location: " . expenses_url());
             exit();
         } else {
             $errors[] = "Database error: " . $stmt->error;
         }
         $stmt->close();
     }
-}
-
-if (isset($_GET['success'])) {
-    if ($_GET['success'] == '1') $success_message = "Expense added successfully!";
-    if ($_GET['success'] == '2') $success_message = "Expense updated successfully!";
-    if ($_GET['success'] == '3') $success_message = "Expense deleted successfully!";
 }
 
 // Handle Delete Expense form submission
@@ -60,7 +52,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_expense'])) {
         $stmt->bind_param("i", $id);
 
         if ($stmt->execute()) {
-            header("Location: expenses.php?success=3");
+            $_SESSION['success_message'] = "Expense deleted successfully!";
+            header("Location: " . expenses_url());
             exit();
         } else {
             $errors[] = "Database error: " . $stmt->error;
@@ -88,7 +81,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_expense'])) {
         $stmt->bind_param("ssdsi", $category, $description, $amount, $expense_date, $id);
 
         if ($stmt->execute()) {
-            header("Location: expenses.php?success=2");
+            $_SESSION['success_message'] = "Expense updated successfully!";
+            header("Location: " . expenses_url());
             exit();
         } else {
             $errors[] = "Database error: " . $stmt->error;
@@ -96,7 +90,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_expense'])) {
         $stmt->close();
     }
 }
-
 
 // Fetch all expenses
 $sql = "SELECT
@@ -119,11 +112,18 @@ if ($result = $conn->query($sql)) {
     $errors[] = "Failed to retrieve expenses: " . $conn->error;
 }
 
+// Get session messages
+if (isset($_SESSION['success_message'])) {
+    $success_message = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
+}
+
+require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center my-4">
-        <h2 class="text-primary">Manage Expenses</h2>
+        <h2 class="text-primary"><i class="bi bi-wallet2 me-2"></i>Manage Expenses</h2>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
             <i class="bi bi-plus-circle me-2"></i>Add New Expense
         </button>
@@ -145,14 +145,14 @@ if ($result = $conn->query($sql)) {
         </div>
     <?php endif; ?>
 
-    <div class="card">
+    <div class="card shadow-sm">
         <div class="card-header">
             <i class="bi bi-cash me-2"></i>Recorded Expenses
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-dark">
+                <table class="table table-hover table-striped">
+                    <thead class="table-light">
                         <tr>
                             <th>Date</th>
                             <th>Category</th>
@@ -181,7 +181,7 @@ if ($result = $conn->query($sql)) {
                                                 data-description="<?php echo htmlspecialchars($expense['description']); ?>">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
-                                        <form action="expenses.php" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this expense record? This action cannot be undone.');">
+                                        <form action="<?php echo expenses_url(); ?>" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this expense record? This action cannot be undone.');">
                                             <input type="hidden" name="expense_id" value="<?php echo $expense['id']; ?>">
                                             <button type="submit" name="delete_expense" class="btn btn-sm btn-danger" title="Delete Expense">
                                                 <i class="bi bi-trash"></i>
@@ -206,7 +206,7 @@ if ($result = $conn->query($sql)) {
 <div class="modal fade" id="addExpenseModal" tabindex="-1" aria-labelledby="addExpenseModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <form action="expenses.php" method="post">
+      <form action="<?php echo expenses_url(); ?>" method="post">
         <div class="modal-header">
           <h5 class="modal-title" id="addExpenseModalLabel">Add New Expense</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -247,7 +247,7 @@ if ($result = $conn->query($sql)) {
 <div class="modal fade" id="editExpenseModal" tabindex="-1" aria-labelledby="editExpenseModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <form action="expenses.php" method="post">
+      <form action="<?php echo expenses_url(); ?>" method="post">
         <input type="hidden" name="expense_id" id="edit_expense_id">
         <div class="modal-header">
           <h5 class="modal-title" id="editExpenseModalLabel">Edit Expense</h5>

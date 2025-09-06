@@ -4,7 +4,7 @@ require_once 'config.php';
 // Authorization check
 $admin_roles = ['headteacher', 'root', 'director'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $admin_roles)) {
-    header("location: dashboard.php");
+    header("location: " . dashboard_url());
     exit;
 }
 
@@ -34,7 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $end_date_to_insert = !empty($end_date) ? $end_date : null;
             $stmt->bind_param("sssssi", $title, $description, $start_date, $end_date_to_insert, $event_type, $created_by);
             if ($stmt->execute()) {
-                header("location: events.php");
+                $_SESSION['success_message'] = "Event created successfully.";
+                header("location: " . events_url());
                 exit();
             } else {
                 $errors['db'] = "Database error: " . $stmt->error;
@@ -49,9 +50,9 @@ require_once 'includes/header.php';
 
 <div class="container mt-4">
     <h2>Create New Event</h2>
-    <a href="events.php" class="btn btn-secondary mb-3">Back to Events</a>
+    <a href="<?php echo events_url(); ?>" class="btn btn-secondary mb-3">Back to Events</a>
 
-    <form action="event_create.php" method="post">
+    <form action="<?php echo event_create_url(); ?>" method="post">
         <?php if(isset($errors['db'])): ?><div class="alert alert-danger"><?php echo $errors['db']; ?></div><?php endif; ?>
 
         <div class="mb-3">
