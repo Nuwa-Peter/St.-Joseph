@@ -48,7 +48,6 @@ function student_export_pdf_url() { return url('students/export-pdf'); }
 function student_analytics_url() { return url('students/analytics'); }
 function student_accounts_url() { return url('students/accounts'); }
 function unregistered_students_url() { return url('students/unregistered'); }
-function link_student_to_parent_url() { return url('link-student-to-parent'); }
 
 
 /**
