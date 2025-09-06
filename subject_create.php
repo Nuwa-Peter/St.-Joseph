@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once 'includes/url_helper.php';
 
 // Authorization check - Admins and Headteachers should be able to create subjects
 $allowed_roles = ['admin', 'headteacher', 'root'];
