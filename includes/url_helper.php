@@ -75,9 +75,11 @@ function create_staff_group_url() { return url('create-staff-group'); }
 function subjects_url() { return url('subjects'); }
 function subject_create_url() { return url('subjects/create'); }
 function subject_edit_url($id) { return url('subjects/edit/' . $id); }
+function subject_delete_url($id) { return url('subjects/delete/' . $id); }
 function classes_url() { return url('classes'); }
 function class_create_url() { return url('classes/create'); }
 function class_edit_url($id) { return url('classes/edit/' . $id); }
+function class_delete_url($id) { return url('classes/delete/' . $id); }
 function streams_url() { return url('streams'); }
 function stream_create_url() { return url('streams/create'); }
 function stream_edit_url($id) { return url('streams/edit/' . $id); }

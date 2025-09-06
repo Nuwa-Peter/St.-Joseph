@@ -649,6 +649,36 @@ $router->all('/academics/teacher-assignments', function () {
     include 'teacher_assignments.php';
 });
 
+$router->get('/subjects/delete/(\d+)', function ($id) {
+    global $conn;
+    // Add deletion logic here, then redirect
+    $stmt = $conn->prepare("DELETE FROM subjects WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    if ($stmt->execute()) {
+        $_SESSION['success_message'] = "Subject deleted successfully.";
+    } else {
+        $_SESSION['error_message'] = "Error deleting subject.";
+    }
+    $stmt->close();
+    header("Location: " . subjects_url());
+    exit();
+});
+
+$router->get('/classes/delete/(\d+)', function ($id) {
+    global $conn;
+    // Add deletion logic here, then redirect
+    $stmt = $conn->prepare("DELETE FROM class_levels WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    if ($stmt->execute()) {
+        $_SESSION['success_message'] = "Class level deleted successfully.";
+    } else {
+        $_SESSION['error_message'] = "Error deleting class level.";
+    }
+    $stmt->close();
+    header("Location: " . classes_url());
+    exit();
+});
+
 $router->get('/academics/teacher-assignment/delete/(\d+)', function ($id) {
     global $conn;
     // Add deletion logic here, then redirect
