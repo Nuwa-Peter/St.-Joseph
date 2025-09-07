@@ -80,7 +80,7 @@ function streams_url() { return url('streams'); }
 function stream_create_url() { return url('streams/create'); }
 function stream_edit_url($id) { return url('streams/edit/' . $id); }
 function lesson_planner_url() { return url('lesson-planner'); }
-function grading_scales_url() { return url('grading-scales'); }
+function grading_scales_url() { return url('academics/grading-scales'); }
 function assign_class_teacher_url() { return url('assign-class-teacher'); }
 function assign_subjects_to_stream_url() { return url('assign-subjects-to-stream'); }
 

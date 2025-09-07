@@ -256,6 +256,11 @@ $router->post('/streams/edit/(\d+)', function ($id) {
     include __DIR__ . '/../stream_edit.php';
 });
 
+$router->get('/academics/grading-scales', function () {
+    global $conn;
+    include __DIR__ . '/../grading_scales.php';
+});
+
 
 // Assignment management
 $router->get('/assignments', function () {
