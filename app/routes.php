@@ -9,6 +9,8 @@ require_once __DIR__ . '/../controllers/AuthController.php';
 // Custom 404 Handler
 $router->set404(function () {
     global $conn;
+    // The header requires the url() function, so we must include the helper here.
+    require_once __DIR__ . '/../includes/url_helper.php';
     http_response_code(404);
     include __DIR__ . '/../404.php';
 });
@@ -304,6 +306,18 @@ $router->get('/assignments/submissions', function () {
 $router->get('/marks-entry', function () {
     global $conn;
     include __DIR__ . '/../marks_entry.php';
+});
+
+$router->get('/exams/edit/(\d+)', function ($id) {
+    global $conn;
+    $_GET['id'] = $id;
+    include __DIR__ . '/../exam_edit.php';
+});
+
+$router->get('/exams/delete/(\d+)', function ($id) {
+    global $conn;
+    $_GET['id'] = $id;
+    include __DIR__ . '/../exam_delete.php';
 });
 
 

@@ -1,34 +1,44 @@
 <?php
 require_once 'config.php';
-require_once 'includes/header.php';
+session_start();
+require_once 'includes/url_helper.php';
+require_once 'includes/csrf_helper.php';
 
+// Authentication and Authorization
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+    header("location: " . login_url());
+    exit;
+}
+if (!in_array($_SESSION['role'], ['admin', 'headteacher', 'root', 'director'])) {
+    $_SESSION['error_message'] = "You are not authorized to access this page.";
+    header("location: " . dashboard_url());
     exit;
 }
 
-$errors = [];
-$success_message = "";
-$subject_id = $exam_type = $name = "";
-
+// Handle POST request for creating a new exam
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    verify_csrf_token();
+
     $subject_id = trim($_POST['subject_id']);
     $exam_type = trim($_POST['exam_type']);
     $name = trim($_POST['name']);
+    $errors = [];
 
-    if (empty($subject_id)) $errors['subject_id'] = "Please select a subject.";
-    if (empty($exam_type)) $errors['exam_type'] = "Please select an exam type.";
-    if (empty($name)) $errors['name'] = "Please enter an exam name.";
+    if (empty($subject_id)) $errors[] = "Please select a subject.";
+    if (empty($exam_type)) $errors[] = "Please select an exam type.";
+    if (empty($name)) $errors[] = "Please enter an exam name.";
 
     // Check for duplicate paper name within the same subject
-    $sql_check = "SELECT id FROM papers WHERE subject_id = ? AND name = ?";
-    if ($stmt_check = $conn->prepare($sql_check)) {
-        $stmt_check->bind_param("is", $subject_id, $name);
-        $stmt_check->execute();
-        if ($stmt_check->get_result()->num_rows > 0) {
-            $errors['name'] = "An exam with this name already exists for the selected subject.";
+    if (empty($errors)) {
+        $sql_check = "SELECT id FROM papers WHERE subject_id = ? AND name = ?";
+        if ($stmt_check = $conn->prepare($sql_check)) {
+            $stmt_check->bind_param("is", $subject_id, $name);
+            $stmt_check->execute();
+            if ($stmt_check->get_result()->num_rows > 0) {
+                $errors[] = "An exam with this name already exists for the selected subject.";
+            }
+            $stmt_check->close();
         }
-        $stmt_check->close();
     }
 
     if (empty($errors)) {
@@ -36,25 +46,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("iss", $subject_id, $exam_type, $name);
             if ($stmt->execute()) {
-                $success_message = "Exam '" . htmlspecialchars($name) . "' has been set successfully!";
-                // Clear form fields
-                $subject_id = $exam_type = $name = "";
+                $_SESSION['success_message'] = "Exam '" . htmlspecialchars($name) . "' has been set successfully!";
             } else {
-                $errors['db'] = "Database error: Could not create the exam.";
+                $_SESSION['error_message'] = "Database error: Could not create the exam.";
             }
             $stmt->close();
         }
+    } else {
+        $_SESSION['error_message'] = implode("<br>", $errors);
+        // Persist form data on error
+        $_SESSION['form_data'] = $_POST;
     }
+
+    header("Location: " . set_exam_url());
+    exit;
 }
 
-// Fetch subjects for the dropdown
-$subjects_sql = "SELECT id, name FROM subjects ORDER BY name ASC";
-$subjects_result = $conn->query($subjects_sql);
+// Include header
+require_once 'includes/header.php';
 
-// Fetch existing papers to display in a list
+// Retrieve and clear any form data or messages from session
+$form_data = $_SESSION['form_data'] ?? [];
+$success_message = $_SESSION['success_message'] ?? null;
+$error_message = $_SESSION['error_message'] ?? null;
+unset($_SESSION['form_data'], $_SESSION['success_message'], $_SESSION['error_message']);
+
+// Fetch data for the page
+$subjects = $conn->query("SELECT id, name FROM subjects ORDER BY name ASC")->fetch_all(MYSQLI_ASSOC);
 $papers_sql = "SELECT p.id, p.name, p.exam_type, s.name as subject_name FROM papers p JOIN subjects s ON p.subject_id = s.id ORDER BY s.name, p.name";
-$papers_result = $conn->query($papers_sql);
-
+$papers = $conn->query($papers_sql)->fetch_all(MYSQLI_ASSOC);
 $exam_types = ['AOI', 'CA', 'Beginning of Term', 'Midterm', 'End of Term'];
 ?>
 
@@ -62,11 +82,11 @@ $exam_types = ['AOI', 'CA', 'Beginning of Term', 'Midterm', 'End of Term'];
     <h2>Set Examinations</h2>
 </div>
 
-<?php if (isset($_GET['success'])): ?>
-    <div class="alert alert-success"><?php echo htmlspecialchars($_GET['success']); ?></div>
+<?php if ($success_message): ?>
+    <div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div>
 <?php endif; ?>
-<?php if (isset($_GET['error'])): ?>
-    <div class="alert alert-danger"><?php echo htmlspecialchars($_GET['error']); ?></div>
+<?php if ($error_message): ?>
+    <div class="alert alert-danger"><?php echo $error_message; // Already includes HTML, so no htmlspecialchars ?></div>
 <?php endif; ?>
 
 <div class="row">
@@ -74,34 +94,29 @@ $exam_types = ['AOI', 'CA', 'Beginning of Term', 'Midterm', 'End of Term'];
         <div class="card">
             <div class="card-header">Create New Exam</div>
             <div class="card-body">
-                <?php if($success_message): ?><div class="alert alert-success"><?php echo $success_message; ?></div><?php endif; ?>
-                <?php if(isset($errors['db'])): ?><div class="alert alert-danger"><?php echo htmlspecialchars($errors['db']); ?></div><?php endif; ?>
-
-                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+                <form action="<?php echo set_exam_url(); ?>" method="post">
+                    <?php generate_csrf_token_form(); ?>
                     <div class="mb-3">
                         <label for="subject_id" class="form-label">Subject</label>
-                        <select name="subject_id" id="subject_id" class="form-select <?php echo isset($errors['subject_id']) ? 'is-invalid' : ''; ?>" required>
+                        <select name="subject_id" id="subject_id" class="form-select" required>
                             <option value="">Select Subject...</option>
-                            <?php while($subject = $subjects_result->fetch_assoc()): ?>
-                                <option value="<?php echo $subject['id']; ?>" <?php echo ($subject_id == $subject['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($subject['name']); ?></option>
-                            <?php endwhile; ?>
+                            <?php foreach($subjects as $subject): ?>
+                                <option value="<?php echo $subject['id']; ?>" <?php echo (($form_data['subject_id'] ?? '') == $subject['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($subject['name']); ?></option>
+                            <?php endforeach; ?>
                         </select>
-                        <?php if(isset($errors['subject_id'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['subject_id']); ?></div><?php endif; ?>
                     </div>
                     <div class="mb-3">
                         <label for="exam_type" class="form-label">Exam Type</label>
-                        <select name="exam_type" id="exam_type" class="form-select <?php echo isset($errors['exam_type']) ? 'is-invalid' : ''; ?>" required>
+                        <select name="exam_type" id="exam_type" class="form-select" required>
                             <option value="">Select Type...</option>
                             <?php foreach($exam_types as $type): ?>
-                                <option value="<?php echo $type; ?>" <?php echo ($exam_type == $type) ? 'selected' : ''; ?>><?php echo htmlspecialchars($type); ?></option>
+                                <option value="<?php echo $type; ?>" <?php echo (($form_data['exam_type'] ?? '') == $type) ? 'selected' : ''; ?>><?php echo htmlspecialchars($type); ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <?php if(isset($errors['exam_type'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['exam_type']); ?></div><?php endif; ?>
                     </div>
                     <div class="mb-3">
                         <label for="name" class="form-label">Exam Name</label>
-                        <input type="text" name="name" id="name" class="form-control <?php echo isset($errors['name']) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($name); ?>" placeholder="e.g., Term 1 Midterm" required>
-                        <?php if(isset($errors['name'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['name']); ?></div><?php endif; ?>
+                        <input type="text" name="name" id="name" class="form-control" value="<?php echo htmlspecialchars($form_data['name'] ?? ''); ?>" placeholder="e.g., Term 1 Midterm" required>
                     </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">Set Exam</button>
@@ -125,18 +140,18 @@ $exam_types = ['AOI', 'CA', 'Beginning of Term', 'Midterm', 'End of Term'];
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if ($papers_result->num_rows > 0): ?>
-                                <?php while($paper = $papers_result->fetch_assoc()): ?>
+                            <?php if (!empty($papers)): ?>
+                                <?php foreach($papers as $paper): ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($paper['subject_name']); ?></td>
                                         <td><?php echo htmlspecialchars($paper['name']); ?></td>
                                         <td><?php echo htmlspecialchars($paper['exam_type']); ?></td>
                                         <td>
-                                            <a href="exam_edit.php?id=<?php echo $paper['id']; ?>" class="btn btn-sm btn-primary">Edit</a>
-                                            <a href="exam_delete.php?id=<?php echo $paper['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure? Deleting an exam will also delete all marks entered for it.');">Delete</a>
+                                            <a href="<?php echo exam_edit_url($paper['id']); ?>" class="btn btn-sm btn-primary">Edit</a>
+                                            <a href="<?php echo exam_delete_url($paper['id']); ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure? Deleting an exam will also delete all marks entered for it.');">Delete</a>
                                         </td>
                                     </tr>
-                                <?php endwhile; ?>
+                                <?php endforeach; ?>
                             <?php else: ?>
                                 <tr><td colspan="4" class="text-center">No exams have been set yet.</td></tr>
                             <?php endif; ?>
@@ -149,6 +164,5 @@ $exam_types = ['AOI', 'CA', 'Beginning of Term', 'Midterm', 'End of Term'];
 </div>
 
 <?php
-$conn->close();
 require_once 'includes/footer.php';
 ?>
