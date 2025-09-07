@@ -4,7 +4,7 @@ require_once 'config.php';
 // Ensure user is logged in and is a teacher or admin
 $allowed_roles = ['teacher', 'headteacher', 'root'];
 if (!isset($_SESSION["loggedin"]) || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
 
@@ -71,7 +71,7 @@ require_once 'includes/header.php';
             Filters
         </div>
         <div class="card-body">
-            <form action="<?php echo view_exam_attendance_url(); ?>" method="get" id="filter-form">
+            <form action="view_exam_attendance.php" method="get" id="filter-form">
                 <div class="row g-3">
                     <div class="col-12 mb-3">
                         <label class="form-label">Quick Date Filters</label><br>
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
         debounceTimer = setTimeout(() => {
             const query = searchInput.value;
             if (query.length > 1) {
-                fetch(`<?php echo url('api/search_users'); ?>?role=student&q=${encodeURIComponent(query)}`)
+                fetch(`api_search_users.php?role=student&q=${encodeURIComponent(query)}`)
                     .then(response => response.json())
                     .then(data => {
                         resultsContainer.innerHTML = '';

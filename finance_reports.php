@@ -2,11 +2,13 @@
 require_once 'config.php';
 
 // Role-based access control
-$authorized_roles = ['bursar', 'headteacher', 'root', 'admin'];
+$authorized_roles = ['bursar', 'headteacher', 'root'];
 if (!isset($_SESSION['loggedin']) || !in_array($_SESSION['role'], $authorized_roles)) {
-    header("location: " . dashboard_url() . "?unauthorized=true");
+    header("location: dashboard.php?unauthorized=true");
     exit;
 }
+
+require_once 'includes/header.php';
 
 $report_data = [];
 $report_type = $_POST['report_type'] ?? '';
@@ -63,7 +65,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-require_once 'includes/header.php';
 ?>
 <style>
     @media print {
@@ -86,9 +87,9 @@ require_once 'includes/header.php';
 </style>
 
 <div class="container-fluid">
-    <h2 class="text-primary my-4 no-print"><i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Financial Reports</h2>
+    <h2 class="text-primary my-4 no-print">Financial Reports</h2>
 
-    <div class="card mb-4 no-print shadow-sm">
+    <div class="card mb-4 no-print">
         <div class="card-header">
             Report Generator
         </div>
@@ -103,7 +104,7 @@ require_once 'includes/header.php';
                     </h2>
                     <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#reportsAccordion">
                         <div class="accordion-body">
-                            <form action="<?php echo finance_reports_url(); ?>" method="post">
+                            <form action="finance_reports.php" method="post">
                                 <input type="hidden" name="report_type" value="fee_collection">
                                 <div class="row">
                                     <div class="col-md-5">
@@ -132,7 +133,7 @@ require_once 'includes/header.php';
                     </h2>
                     <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#reportsAccordion">
                         <div class="accordion-body">
-                             <form action="<?php echo finance_reports_url(); ?>" method="post">
+                             <form action="finance_reports.php" method="post">
                                 <input type="hidden" name="report_type" value="outstanding_fees">
                                 <p>This report lists all active students with an outstanding balance.</p>
                                 <button type="submit" class="btn btn-primary">Generate Outstanding Fees Report</button>

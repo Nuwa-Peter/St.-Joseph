@@ -3,7 +3,7 @@ require_once 'config.php';
 
 // All logged-in users can make a requisition
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: " . login_url());
+    header("location: login.php");
     exit;
 }
 
@@ -54,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_requisition']))
             if (!empty($users_to_notify_ids)) {
                 $requester_name = $_SESSION['name'] ?? 'A user';
                 $message = "A new requisition has been submitted by " . $requester_name . ".";
-                $link = view_requisitions_url() . "?status=pending";
+                $link = "view_requisitions.php?status=pending";
 
                 $notify_stmt = $conn->prepare("INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)");
                 foreach ($users_to_notify_ids as $user_id_to_notify) {
@@ -66,8 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_requisition']))
             // --- End Notification Generation ---
 
             $conn->commit();
-            $_SESSION['success_message'] = "Requisition submitted successfully and is now pending approval.";
-            header("location: " . view_requisitions_url());
+            header("location: view_requisitions.php?success=1");
             exit();
 
         } catch (Exception $e) {
@@ -81,7 +80,7 @@ require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
-    <h2 class="text-primary my-4"><i class="bi bi-receipt-cutoff me-2"></i>Make a Requisition</h2>
+    <h2 class="text-primary my-4">Make a Requisition</h2>
 
     <?php if (!empty($errors)): ?>
         <div class="alert alert-danger">
@@ -93,8 +92,8 @@ require_once 'includes/header.php';
         </div>
     <?php endif; ?>
 
-    <form action="<?php echo make_requisition_url(); ?>" method="post">
-        <div class="card shadow-sm">
+    <form action="make_requisition.php" method="post">
+        <div class="card">
             <div class="card-header">
                 Requisition Items
             </div>
@@ -139,7 +138,7 @@ require_once 'includes/header.php';
         </div>
 
         <div class="mt-4 text-end">
-            <a href="<?php echo dashboard_url(); ?>" class="btn btn-secondary">Cancel</a>
+            <a href="dashboard.php" class="btn btn-secondary">Cancel</a>
             <button type="submit" name="submit_requisition" class="btn btn-primary">Submit Requisition</button>
         </div>
     </form>

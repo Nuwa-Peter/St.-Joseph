@@ -1,19 +1,15 @@
 <?php
 require_once 'config.php';
 
-// Check if the user is logged in and is an admin, otherwise redirect
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], ['root', 'headteacher', 'admin'])) {
-    header("location: " . dashboard_url());
-    exit;
-}
+$success_message = "";
+$error_message = "";
 
-// Handle form submission for sending SMS
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_sms'])) {
     $recipient_group = $_POST['recipient_group'];
     $message = trim($_POST['message']);
 
     if (empty($recipient_group) || empty($message)) {
-        $_SESSION['error_message'] = "Please select a recipient group and write a message.";
+        $error_message = "Please select a recipient group and write a message.";
     } else {
         $sql_recipients = "";
         $param_type = "";
@@ -24,8 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_sms'])) {
                 $sql_recipients = "SELECT phone_number FROM users WHERE role = 'student' AND status = 'active' AND phone_number IS NOT NULL AND phone_number != ''";
                 break;
             case 'all_parents':
-                // This query is a bit more complex, joining through the parent_student link table
-                $sql_recipients = "SELECT DISTINCT u.phone_number FROM users u JOIN parent_student ps ON u.id = ps.parent_id JOIN users s ON ps.student_id = s.id WHERE u.role = 'parent' AND s.status = 'active' AND u.phone_number IS NOT NULL AND u.phone_number != ''";
+                $sql_recipients = "SELECT u.phone_number FROM users u JOIN parent_student ps ON u.id = ps.parent_id JOIN users s ON ps.student_id = s.id WHERE u.role = 'parent' AND s.status = 'active' AND u.phone_number IS NOT NULL AND u.phone_number != ''";
                 break;
             case 'all_teachers':
                 $sql_recipients = "SELECT phone_number FROM users WHERE role = 'teacher' AND status = 'active' AND phone_number IS NOT NULL AND phone_number != ''";
@@ -67,39 +62,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_sms'])) {
                 $log_content .= "--- END BATCH ---\n\n";
 
                 file_put_contents('sms_log.txt', $log_content, FILE_APPEND);
-                $_SESSION['success_message'] = "Successfully processed messages for " . count($phone_numbers) . " recipients. (Simulated)";
+                $success_message = "Successfully processed messages for " . count($phone_numbers) . " recipients. (Simulated)";
             } else {
-                $_SESSION['error_message'] = "No recipients with phone numbers found for the selected group.";
+                $error_message = "No recipients with phone numbers found for the selected group.";
             }
         } else {
-            $_SESSION['error_message'] = "Invalid recipient group selected.";
+            $error_message = "Invalid recipient group selected.";
         }
     }
-    header("Location: " . bulk_sms_url());
-    exit();
 }
 
-// Fetch session messages
-$success_message = $_SESSION['success_message'] ?? null;
-$error_message = $_SESSION['error_message'] ?? null;
-unset($_SESSION['success_message'], $_SESSION['error_message']);
+require_once 'includes/header.php';
+
+// Check if the user is logged in and is an admin, otherwise redirect
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], ['root', 'headteacher'])) {
+    header("location: dashboard.php");
+    exit;
+}
 
 // Fetch classes for the dropdown
 $class_levels = [];
 $sql_classes = "SELECT id, name FROM class_levels ORDER BY name";
 $result_classes = $conn->query($sql_classes);
-if ($result_classes) {
-    $class_levels = $result_classes->fetch_all(MYSQLI_ASSOC);
+if ($result_classes && $result_classes->num_rows > 0) {
+    while ($row = $result_classes->fetch_assoc()) {
+        $class_levels[] = $row;
+    }
 }
 
-require_once 'includes/header.php';
+$conn->close();
 ?>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2><i class="bi bi-chat-dots-fill me-2"></i>Bulk SMS Service</h2>
     </div>
-    <p>Send messages to entire groups of users at once. This service simulates sending SMS and logs them to a file for now.</p>
+    <p>Send messages to entire groups of users at once. This service simulates sending SMS for now.</p>
 
     <?php if(!empty($success_message)): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -114,12 +112,12 @@ require_once 'includes/header.php';
         </div>
     <?php endif; ?>
 
-    <div class="card shadow-sm">
+    <div class="card">
         <div class="card-header">
             Compose Message
         </div>
         <div class="card-body">
-            <form action="<?php echo bulk_sms_url(); ?>" method="post">
+            <form action="bulk_sms.php" method="post">
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="recipient_group" class="form-label">Recipient Group</label>
@@ -128,7 +126,7 @@ require_once 'includes/header.php';
                             <option value="all_students">All Students</option>
                             <option value="all_parents">All Parents</option>
                             <option value="all_teachers">All Teachers</option>
-                            <optgroup label="Specific Class (Students)">
+                            <optgroup label="Specific Class">
                                 <?php foreach ($class_levels as $class): ?>
                                     <option value="class_<?php echo $class['id']; ?>">
                                         Class: <?php echo htmlspecialchars($class['name']); ?>
@@ -167,7 +165,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php
-$conn->close();
-require_once 'includes/footer.php';
-?>
+<?php require_once 'includes/footer.php'; ?>

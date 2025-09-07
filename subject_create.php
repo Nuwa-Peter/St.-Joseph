@@ -1,19 +1,14 @@
 <?php
-require_once 'config.php';
-require_once 'includes/url_helper.php';
 
-// Authorization check - Admins and Headteachers should be able to create subjects
-$allowed_roles = ['admin', 'headteacher', 'root'];
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
-    // Redirect to a more appropriate page if not authorized, e.g., the subjects list or dashboard
-    $_SESSION['error_message'] = "You are not authorized to create subjects.";
-    header("location: " . subjects_url());
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    header("location: login.php");
     exit;
 }
 
+require_once 'config.php';
+
 $name = $code = "";
 $name_err = $code_err = "";
-$db_err = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validate name
@@ -32,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $name = trim($_POST["name"]);
                 }
             } else {
-                $db_err = "Oops! Something went wrong. Please try again later.";
+                // Consider a more robust error handling
             }
             $stmt->close();
         }
@@ -54,24 +49,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $code = trim($_POST["code"]);
                 }
             } else {
-                $db_err = "Oops! Something went wrong. Please try again later.";
+                // Consider a more robust error handling
             }
             $stmt->close();
         }
     }
 
-    if (empty($name_err) && empty($code_err) && empty($db_err)) {
+    if (empty($name_err) && empty($code_err)) {
         $sql = "INSERT INTO subjects (name, code, created_at, updated_at) VALUES (?, ?, NOW(), NOW())";
 
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ss", $name, $code);
 
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Subject '" . htmlspecialchars($name) . "' created successfully.";
-                header("location: " . subjects_url());
+                header("location: subjects.php");
                 exit();
             } else {
-                $db_err = "Something went wrong. Please try again later.";
+                // Consider a more robust error handling
             }
             $stmt->close();
         }
@@ -81,40 +75,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 require_once 'includes/header.php';
 ?>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-book-half me-2"></i>Create Subject</h2>
-        <a href="<?php echo subjects_url(); ?>" class="btn btn-secondary">Back to Subjects</a>
+<h2>Create Subject</h2>
+<p>Please fill this form to create a new subject.</p>
+<form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+    <div class="form-group <?php echo (!empty($name_err)) ? 'has-error' : ''; ?>">
+        <label>Name</label>
+        <input type="text" name="name" class="form-control" value="<?php echo $name; ?>">
+        <span class="help-block"><?php echo $name_err; ?></span>
     </div>
-
-    <?php if(!empty($db_err)): ?>
-        <div class="alert alert-danger"><?php echo $db_err; ?></div>
-    <?php endif; ?>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <p class="card-text">Please fill this form to create a new subject in the system.</p>
-            <form action="<?php echo subject_create_url(); ?>" method="post">
-                <div class="mb-3">
-                    <label for="name" class="form-label">Subject Name</label>
-                    <input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($name); ?>" required>
-                    <div class="invalid-feedback"><?php echo $name_err; ?></div>
-                </div>
-                <div class="mb-3">
-                    <label for="code" class="form-label">Subject Code</label>
-                    <input type="text" name="code" id="code" class="form-control <?php echo (!empty($code_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($code); ?>" required>
-                    <div class="invalid-feedback"><?php echo $code_err; ?></div>
-                </div>
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary">Create Subject</button>
-                    <a href="<?php echo subjects_url(); ?>" class="btn btn-outline-secondary">Cancel</a>
-                </div>
-            </form>
-        </div>
+    <div class="form-group <?php echo (!empty($code_err)) ? 'has-error' : ''; ?>">
+        <label>Code</label>
+        <input type="text" name="code" class="form-control" value="<?php echo $code; ?>">
+        <span class="help-block"><?php echo $code_err; ?></span>
     </div>
-</div>
+    <div class="form-group">
+        <input type="submit" class="btn btn-primary" value="Submit">
+        <a href="subjects.php" class="btn btn-default">Cancel</a>
+    </div>
+</form>
 
 <?php
-require_once 'includes/footer.php';
 $conn->close();
+require_once 'includes/footer.php';
 ?>

@@ -4,19 +4,46 @@ require_once 'config.php';
 // Authorization check
 $allowed_roles = ['teacher', 'headteacher', 'root'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
 
 $errors = [];
-$assignment_id = isset($_REQUEST['id']) ? (int)$_REQUEST['id'] : 0;
-
+$assignment_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($assignment_id === 0) {
-    header("location: " . assignments_url());
+    header("location: assignments.php");
     exit;
 }
 
-// Handle form submission
+// Fetch existing assignment data
+$sql = "SELECT * FROM assignments WHERE id = ?";
+if ($stmt = $conn->prepare($sql)) {
+    $stmt->bind_param("i", $assignment_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows === 1) {
+        $assignment = $result->fetch_assoc();
+        // Security check: Only owner or admin can edit
+        if ($_SESSION['role'] === 'teacher' && $assignment['teacher_id'] != $_SESSION['id']) {
+            header("location: assignments.php?error=unauthorized");
+            exit;
+        }
+        $title = $assignment['title'];
+        $description = $assignment['description'];
+        $stream_id = $assignment['stream_id'];
+        $subject_id = $assignment['subject_id'];
+        $due_date = date('Y-m-d\TH:i', strtotime($assignment['due_date']));
+    } else {
+        header("location: assignments.php?error=notfound");
+        exit;
+    }
+    $stmt->close();
+}
+
+// Fetch streams and subjects for dropdowns
+$streams = $conn->query("SELECT s.id, s.name, cl.name as class_level_name FROM streams s JOIN class_levels cl ON s.class_level_id = cl.id ORDER BY cl.name, s.name")->fetch_all(MYSQLI_ASSOC);
+$subjects = $conn->query("SELECT id, name FROM subjects ORDER BY name")->fetch_all(MYSQLI_ASSOC);
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = trim($_POST['title']);
     $description = trim($_POST['description']);
@@ -33,8 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt_update = $conn->prepare($sql_update)) {
             $stmt_update->bind_param("ssiisi", $title, $description, $stream_id, $subject_id, $due_date, $assignment_id);
             if ($stmt_update->execute()) {
-                $_SESSION['success_message'] = "Assignment updated successfully.";
-                header("location: " . assignments_url());
+                header("location: assignments.php");
                 exit();
             } else {
                 $errors['db'] = "Database error: " . $stmt_update->error;
@@ -42,49 +68,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt_update->close();
         }
     }
-    // If there are errors, they will be displayed on the form below
 }
-
-
-// Fetch existing assignment data for displaying in the form
-$sql = "SELECT * FROM assignments WHERE id = ?";
-if ($stmt = $conn->prepare($sql)) {
-    $stmt->bind_param("i", $assignment_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($result->num_rows === 1) {
-        $assignment = $result->fetch_assoc();
-        // Security check: Only owner or admin can edit
-        if ($_SESSION['role'] === 'teacher' && $assignment['teacher_id'] != $_SESSION['id']) {
-            $_SESSION['error_message'] = "You are not authorized to edit this assignment.";
-            header("location: " . assignments_url());
-            exit;
-        }
-        $title = $assignment['title'];
-        $description = $assignment['description'];
-        $stream_id = $assignment['stream_id'];
-        $subject_id = $assignment['subject_id'];
-        $due_date = date('Y-m-d\TH:i', strtotime($assignment['due_date']));
-    } else {
-        $_SESSION['error_message'] = "Assignment not found.";
-        header("location: " . assignments_url());
-        exit;
-    }
-    $stmt->close();
-}
-
-// Fetch streams and subjects for dropdowns
-$streams = $conn->query("SELECT s.id, s.name, cl.name as class_level_name FROM streams s JOIN class_levels cl ON s.class_level_id = cl.id ORDER BY cl.name, s.name")->fetch_all(MYSQLI_ASSOC);
-$subjects = $conn->query("SELECT id, name FROM subjects ORDER BY name")->fetch_all(MYSQLI_ASSOC);
 
 require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
     <h2>Edit Assignment</h2>
-    <a href="<?php echo assignments_url(); ?>" class="btn btn-secondary mb-3">Back to Assignments</a>
+    <a href="assignments.php" class="btn btn-secondary mb-3">Back to Assignments</a>
 
-    <form action="<?php echo assignment_edit_url($assignment_id); ?>" method="post">
+    <form action="assignment_edit.php?id=<?php echo $assignment_id; ?>" method="post">
         <?php if(isset($errors['db'])): ?><div class="alert alert-danger"><?php echo $errors['db']; ?></div><?php endif; ?>
 
         <div class="mb-3">

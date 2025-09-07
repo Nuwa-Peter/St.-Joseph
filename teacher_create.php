@@ -1,10 +1,8 @@
 <?php
 require_once 'config.php';
 
-// Authorization check
-$allowed_roles = ['admin', 'headteacher', 'root'];
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: " . login_url());
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    header("location: login.php");
     exit;
 }
 
@@ -83,8 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt_subject->close();
 
             $conn->commit();
-            $_SESSION['success_message'] = "Teacher created successfully. Username: $username, Default Password: password123";
-            header("location: " . teachers_url());
+            header("location: teachers.php");
             exit();
 
         } catch (Exception $e) {
@@ -94,99 +91,95 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
+require_once 'includes/header.php';
+?>
+
+<?php
 // Fetch subjects for dropdown
 $subjects_sql = "SELECT id, name FROM subjects ORDER BY name ASC";
 $subjects_result = $conn->query($subjects_sql);
 $all_subjects = $subjects_result->fetch_all(MYSQLI_ASSOC);
-
-require_once 'includes/header.php';
 ?>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-person-plus-fill me-2"></i>Add New Teacher</h2>
-        <a href="<?php echo teachers_url(); ?>" class="btn btn-secondary">Back to Teachers</a>
+<h2>Add New Teacher</h2>
+<form id="teacher-form" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+    <div class="card">
+        <div class="card-header">Teacher's Details</div>
+        <div class="card-body">
+            <?php if(isset($errors['db'])): ?><div class="alert alert-danger"><?php echo htmlspecialchars($errors['db']); ?></div><?php endif; ?>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="first_name" class="form-label">First Name</label>
+                    <input type="text" name="first_name" id="first_name" class="form-control <?php echo isset($errors['first_name']) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($first_name); ?>" required>
+                    <?php if(isset($errors['first_name'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['first_name']); ?></div><?php endif; ?>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="last_name" class="form-label">Surname</label>
+                    <input type="text" name="last_name" id="last_name" class="form-control <?php echo isset($errors['last_name']) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($last_name); ?>" required>
+                    <?php if(isset($errors['last_name'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['last_name']); ?></div><?php endif; ?>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="other_name" class="form-label">Other Name</label>
+                    <input type="text" name="other_name" id="other_name" class="form-control" value="<?php echo htmlspecialchars($other_name); ?>">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" name="email" id="email" class="form-control <?php echo isset($errors['email']) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($email); ?>" required>
+                    <?php if(isset($errors['email'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['email']); ?></div><?php endif; ?>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="phone_number" class="form-label">Phone Number</label>
+                    <input type="tel" name="phone_number" id="phone_number" class="form-control" value="<?php echo htmlspecialchars($phone_number); ?>">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="gender" class="form-label">Gender</label>
+                    <select name="gender" id="gender" class="form-select <?php echo isset($errors['gender']) ? 'is-invalid' : ''; ?>" required>
+                        <option value="">Select Gender...</option>
+                        <option value="Male" <?php echo ($gender == 'Male') ? 'selected' : ''; ?>>Male</option>
+                        <option value="Female" <?php echo ($gender == 'Female') ? 'selected' : ''; ?>>Female</option>
+                    </select>
+                    <?php if(isset($errors['gender'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['gender']); ?></div><?php endif; ?>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="date_of_birth" class="form-label">Date of Birth</label>
+                    <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" value="<?php echo htmlspecialchars($date_of_birth); ?>">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="availability" class="form-label">Availability</label>
+                    <select name="availability" id="availability" class="form-select <?php echo isset($errors['availability']) ? 'is-invalid' : ''; ?>" required>
+                        <option value="">Select Availability...</option>
+                        <option value="full-time" <?php echo ($availability == 'full-time') ? 'selected' : ''; ?>>Full-time</option>
+                        <option value="part-time" <?php echo ($availability == 'part-time') ? 'selected' : ''; ?>>Part-time</option>
+                    </select>
+                     <?php if(isset($errors['availability'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['availability']); ?></div><?php endif; ?>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <form id="teacher-form" action="<?php echo teacher_create_url(); ?>" method="post">
-        <div class="card mb-4">
-            <div class="card-header">Teacher's Details</div>
-            <div class="card-body">
-                <?php if(isset($errors['db'])): ?><div class="alert alert-danger"><?php echo htmlspecialchars($errors['db']); ?></div><?php endif; ?>
-
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="first_name" class="form-label">First Name</label>
-                        <input type="text" name="first_name" id="first_name" class="form-control <?php echo isset($errors['first_name']) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($first_name); ?>" required>
-                        <?php if(isset($errors['first_name'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['first_name']); ?></div><?php endif; ?>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="last_name" class="form-label">Surname</label>
-                        <input type="text" name="last_name" id="last_name" class="form-control <?php echo isset($errors['last_name']) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($last_name); ?>" required>
-                        <?php if(isset($errors['last_name'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['last_name']); ?></div><?php endif; ?>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="other_name" class="form-label">Other Name</label>
-                        <input type="text" name="other_name" id="other_name" class="form-control" value="<?php echo htmlspecialchars($other_name); ?>">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="email" class="form-label">Email Address</label>
-                        <input type="email" name="email" id="email" class="form-control <?php echo isset($errors['email']) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($email); ?>" required>
-                        <?php if(isset($errors['email'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['email']); ?></div><?php endif; ?>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="phone_number" class="form-label">Phone Number</label>
-                        <input type="tel" name="phone_number" id="phone_number" class="form-control" value="<?php echo htmlspecialchars($phone_number); ?>">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label for="gender" class="form-label">Gender</label>
-                        <select name="gender" id="gender" class="form-select <?php echo isset($errors['gender']) ? 'is-invalid' : ''; ?>" required>
-                            <option value="">Select Gender...</option>
-                            <option value="Male" <?php echo ($gender == 'Male') ? 'selected' : ''; ?>>Male</option>
-                            <option value="Female" <?php echo ($gender == 'Female') ? 'selected' : ''; ?>>Female</option>
-                        </select>
-                        <?php if(isset($errors['gender'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['gender']); ?></div><?php endif; ?>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="date_of_birth" class="form-label">Date of Birth</label>
-                        <input type="date" name="date_of_birth" id="date_of_birth" class="form-control" value="<?php echo htmlspecialchars($date_of_birth); ?>">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="availability" class="form-label">Availability</label>
-                        <select name="availability" id="availability" class="form-select <?php echo isset($errors['availability']) ? 'is-invalid' : ''; ?>" required>
-                            <option value="">Select Availability...</option>
-                            <option value="full-time" <?php echo ($availability == 'full-time') ? 'selected' : ''; ?>>Full-time</option>
-                            <option value="part-time" <?php echo ($availability == 'part-time') ? 'selected' : ''; ?>>Part-time</option>
-                        </select>
-                         <?php if(isset($errors['availability'])): ?><div class="invalid-feedback"><?php echo htmlspecialchars($errors['availability']); ?></div><?php endif; ?>
-                    </div>
-                </div>
+    <div class="card mt-3">
+        <div class="card-header">Teachable Subjects</div>
+        <div class="card-body">
+            <?php if(isset($errors['subjects'])): ?><div class="alert alert-danger"><?php echo htmlspecialchars($errors['subjects']); ?></div><?php endif; ?>
+            <div id="subjects-container">
+                <!-- Subject dropdowns will be added here by JS -->
             </div>
+            <button type="button" id="add-subject-btn" class="btn btn-secondary mt-2"><i class="bi bi-plus-circle me-2"></i>Add Subject</button>
         </div>
+    </div>
 
-        <div class="card mt-4">
-            <div class="card-header">Teachable Subjects</div>
-            <div class="card-body">
-                <?php if(isset($errors['subjects'])): ?><div class="alert alert-danger"><?php echo htmlspecialchars($errors['subjects']); ?></div><?php endif; ?>
-                <div id="subjects-container">
-                    <!-- Subject dropdowns will be added here by JS -->
-                </div>
-                <button type="button" id="add-subject-btn" class="btn btn-secondary mt-2"><i class="bi bi-plus-circle me-2"></i>Add Subject</button>
-            </div>
-        </div>
-
-        <div class="mt-4">
-            <button type="submit" class="btn btn-primary">Create Teacher</button>
-            <a href="<?php echo teachers_url(); ?>" class="btn btn-outline-secondary">Cancel</a>
-        </div>
-    </form>
-</div>
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Create Teacher</button>
+        <a href="teachers.php" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

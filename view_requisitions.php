@@ -3,14 +3,19 @@ require_once 'config.php';
 
 // All logged-in users can view requisitions
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: " . login_url());
+    header("location: login.php");
     exit;
 }
 
+require_once 'includes/header.php';
+
+$requisitions = [];
+$errors = [];
 $user_id = $_SESSION['id'];
 $user_role = $_SESSION['role'];
-$admin_roles = ['bursar', 'headteacher', 'root', 'admin'];
+$admin_roles = ['bursar', 'headteacher', 'root'];
 $is_admin = in_array($user_role, $admin_roles);
+$success_message = '';
 
 // Handle Admin Actions
 if ($is_admin && $_SERVER["REQUEST_METHOD"] == "POST") {
@@ -37,7 +42,7 @@ if ($is_admin && $_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->bind_param($types, ...$params);
 
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Requisition #" . $requisition_id . " has been " . $new_status . ".";
+                $success_message = "Requisition #" . $requisition_id . " has been " . $new_status . ".";
 
                 // --- Send notification to the user who made the request ---
                 $req_info_sql = "SELECT user_id, item_name FROM requisitions WHERE id = ?";
@@ -53,7 +58,7 @@ if ($is_admin && $_SERVER["REQUEST_METHOD"] == "POST") {
                     if ($new_status === 'rejected' && !empty($rejection_reason)) {
                         $message .= " Reason: " . $rejection_reason;
                     }
-                    $link = view_requisitions_url();
+                    $link = "view_requisitions.php";
                     $notify_sql = "INSERT INTO app_notifications (user_id, message, link) VALUES (?, ?, ?)";
                     $notify_stmt = $conn->prepare($notify_sql);
                     $notify_stmt->bind_param("iss", $requester_id, $message, $link);
@@ -61,12 +66,14 @@ if ($is_admin && $_SERVER["REQUEST_METHOD"] == "POST") {
                     $notify_stmt->close();
                 }
                 $req_stmt->close();
+                // --- End notification ---
+
             } else {
-                $_SESSION['error_message'] = "Failed to update requisition status.";
+                $errors[] = "Failed to update requisition status.";
             }
             $stmt->close();
         } else {
-            $_SESSION['error_message'] = "Invalid status update.";
+            $errors[] = "Invalid status update.";
         }
     }
 
@@ -77,14 +84,14 @@ if ($is_admin && $_SERVER["REQUEST_METHOD"] == "POST") {
         $unit_price = floatval($_POST['unit_price']);
 
         if (empty($item_name) || $quantity <= 0 || $unit_price < 0) {
-            $_SESSION['error_message'] = "Invalid data provided for editing.";
+            $errors[] = "Invalid data provided for editing.";
         } else {
             $stmt = $conn->prepare("UPDATE requisitions SET item_name = ?, quantity = ?, unit_price = ? WHERE id = ?");
             $stmt->bind_param("sidi", $item_name, $quantity, $unit_price, $req_id);
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Requisition #" . $req_id . " has been updated.";
+                $success_message = "Requisition #" . $req_id . " has been updated.";
             } else {
-                $_SESSION['error_message'] = "Failed to update requisition.";
+                $errors[] = "Failed to update requisition.";
             }
             $stmt->close();
         }
@@ -95,20 +102,14 @@ if ($is_admin && $_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = $conn->prepare("DELETE FROM requisitions WHERE id = ?");
         $stmt->bind_param("i", $req_id);
         if ($stmt->execute()) {
-            $_SESSION['success_message'] = "Requisition #" . $req_id . " has been deleted.";
+            $success_message = "Requisition #" . $req_id . " has been deleted.";
         } else {
-            $_SESSION['error_message'] = "Failed to delete requisition.";
+            $errors[] = "Failed to delete requisition.";
         }
         $stmt->close();
     }
-    header("Location: " . view_requisitions_url());
-    exit();
 }
 
-// Fetch session messages
-$success_message = $_SESSION['success_message'] ?? null;
-$error_message = $_SESSION['error_message'] ?? null;
-unset($_SESSION['success_message'], $_SESSION['error_message']);
 
 // --- Data Fetching ---
 $sql = "";
@@ -116,10 +117,12 @@ $params = [];
 $types = '';
 
 if ($is_admin) {
-    $sql = "SELECT r.id, r.item_name, r.quantity, r.unit_price, r.status, r.created_at,
+    // Admins can see all requisitions and filter by status
+    $sql = "SELECT r.id, r.item_name, r.quantity, r.total_price, r.status, r.created_at,
                    CONCAT(u.first_name, ' ', u.last_name) as requester_name
             FROM requisitions r
             JOIN users u ON r.user_id = u.id";
+
     $filter_status = $_GET['status'] ?? '';
     if (!empty($filter_status)) {
         $sql .= " WHERE r.status = ?";
@@ -127,8 +130,10 @@ if ($is_admin) {
         $types .= 's';
     }
     $sql .= " ORDER BY r.created_at DESC";
+
 } else {
-    $sql = "SELECT id, item_name, quantity, unit_price, status, created_at
+    // Regular users see only their own requisitions
+    $sql = "SELECT id, item_name, quantity, total_price, status, created_at
             FROM requisitions
             WHERE user_id = ?
             ORDER BY created_at DESC";
@@ -145,30 +150,42 @@ $result = $stmt->get_result();
 $requisitions = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center my-4">
-        <h2 class="text-primary"><i class="bi bi-journal-text me-2"></i>View Requisitions</h2>
+        <h2 class="text-primary">View Requisitions</h2>
         <div>
-            <a href="<?php echo export_requisitions_pdf_url(); ?>" class="btn btn-pdf" target="_blank">
+            <a href="export_requisitions_pdf.php" class="btn btn-pdf" target="_blank">
                 <i class="bi bi-file-earmark-pdf me-2"></i>Export All as PDF
             </a>
-            <a href="<?php echo make_requisition_url(); ?>" class="btn btn-primary">
+            <a href="make_requisition.php" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-2"></i>Make a New Requisition
             </a>
         </div>
     </div>
 
-    <?php if ($success_message): ?><div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div><?php endif; ?>
-    <?php if ($error_message): ?><div class="alert alert-danger"><?php echo htmlspecialchars($error_message); ?></div><?php endif; ?>
+    <?php if (isset($_GET['success']) && $_GET['success'] == '1'): ?>
+        <div class="alert alert-success">Your requisition has been submitted successfully.</div>
+    <?php elseif (!empty($success_message)): ?>
+         <div class="alert alert-success"><?php echo htmlspecialchars($success_message); ?></div>
+    <?php endif; ?>
+     <?php if (!empty($errors)): ?>
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                <?php foreach ($errors as $error): ?>
+                    <li><?php echo htmlspecialchars($error); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
 
     <?php if ($is_admin): ?>
-    <div class="card mb-4 shadow-sm">
+    <!-- Admin Filter Bar -->
+    <div class="card mb-4">
         <div class="card-header">Filter Requisitions</div>
         <div class="card-body">
-            <form action="<?php echo view_requisitions_url(); ?>" method="get">
+            <form action="view_requisitions.php" method="get">
                 <div class="row">
                     <div class="col-md-4">
                         <label for="status" class="form-label">Filter by Status</label>
@@ -189,14 +206,14 @@ require_once 'includes/header.php';
     </div>
     <?php endif; ?>
 
-    <div class="card shadow-sm">
+    <div class="card">
         <div class="card-header">
             <?php echo $is_admin ? 'All Requisitions' : 'My Requisitions'; ?>
         </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover">
-                    <thead class="table-light">
+                    <thead class="table-dark">
                         <tr>
                             <?php if ($is_admin): ?><th>Requested By</th><?php endif; ?>
                             <th>Date & Time</th>
@@ -223,31 +240,32 @@ require_once 'includes/header.php';
                                 <td><?php echo date("d-M-Y H:i:s", strtotime($req['created_at'])); ?></td>
                                 <td><?php echo htmlspecialchars($req['item_name']); ?></td>
                                 <td><?php echo $req['quantity']; ?></td>
-                                <td class="text-end"><?php echo number_format($req['quantity'] * $req['unit_price'], 2); ?></td>
+                                <td class="text-end"><?php echo number_format($req['total_price'], 2); ?></td>
                                 <td><span class="badge <?php echo $status_class; ?>"><?php echo ucfirst($req['status']); ?></span></td>
                                 <?php if ($is_admin): ?>
                                     <td>
                                         <button type="button" class="btn btn-sm btn-info action-btn" title="View Details & Action"
-                                                data-bs-toggle="modal" data-bs-target="#actionRequisitionModal"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#actionRequisitionModal"
                                                 data-id="<?php echo $req['id']; ?>"
                                                 data-requester="<?php echo htmlspecialchars($req['requester_name']); ?>"
                                                 data-item="<?php echo htmlspecialchars($req['item_name']); ?>"
                                                 data-quantity="<?php echo $req['quantity']; ?>"
-                                                data-price="<?php echo number_format($req['quantity'] * $req['unit_price'], 2); ?>"
+                                                data-price="<?php echo number_format($req['total_price'], 2); ?>"
                                                 data-status="<?php echo $req['status']; ?>">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        <a href="<?php echo export_requisitions_pdf_url(['id' => $req['id']]); ?>" class="btn btn-sm btn-pdf" target="_blank" title="Export to PDF"><i class="bi bi-file-earmark-pdf"></i></a>
+                                        <a href="export_requisitions_pdf.php?id=<?php echo $req['id']; ?>" class="btn btn-sm btn-pdf" target="_blank" title="Export to PDF"><i class="bi bi-file-earmark-pdf"></i></a>
                                         <button type="button" class="btn btn-sm btn-warning edit-btn" title="Edit"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#editRequisitionModal"
                                                 data-id="<?php echo $req['id']; ?>"
                                                 data-item="<?php echo htmlspecialchars($req['item_name']); ?>"
                                                 data-quantity="<?php echo $req['quantity']; ?>"
-                                                data-unitprice="<?php echo $req['unit_price']; ?>">
+                                                data-unitprice="<?php echo $req['total_price'] / $req['quantity']; ?>">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
-                                        <form action="<?php echo view_requisitions_url(); ?>" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this requisition?');">
+                                        <form action="view_requisitions.php" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this requisition?');">
                                             <input type="hidden" name="requisition_id" value="<?php echo $req['id']; ?>">
                                             <button type="submit" name="delete_requisition" class="btn btn-sm btn-danger" title="Delete"><i class="bi bi-trash"></i></button>
                                         </form>
@@ -271,7 +289,7 @@ require_once 'includes/header.php';
 <div class="modal fade" id="actionRequisitionModal" tabindex="-1" aria-labelledby="actionRequisitionModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form action="<?php echo view_requisitions_url(); ?>" method="post">
+      <form action="view_requisitions.php" method="post">
         <input type="hidden" name="requisition_id" id="modal_requisition_id">
         <div class="modal-header">
           <h5 class="modal-title" id="actionRequisitionModalLabel">Requisition Details</h5>
@@ -305,7 +323,7 @@ require_once 'includes/header.php';
 <div class="modal fade" id="editRequisitionModal" tabindex="-1" aria-labelledby="editRequisitionModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form action="<?php echo view_requisitions_url(); ?>" method="post">
+      <form action="view_requisitions.php" method="post">
         <input type="hidden" name="requisition_id" id="edit_requisition_id">
         <div class="modal-header">
           <h5 class="modal-title" id="editRequisitionModalLabel">Edit Requisition</h5>
@@ -333,6 +351,7 @@ require_once 'includes/header.php';
     </div>
   </div>
 </div>
+
 
 <?php
 $conn->close();

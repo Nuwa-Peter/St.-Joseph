@@ -2,14 +2,14 @@
 require_once 'config.php';
 
 // Ensure user is logged in and is an admin with appropriate permissions
-$allowed_roles = ['headteacher', 'root', 'admin'];
+$allowed_roles = ['headteacher', 'root'];
 if (!isset($_SESSION["loggedin"]) || !in_array($_SESSION['role'], $allowed_roles)) {
     // Redirect class teachers to their specific view
     if (isset($_SESSION["loggedin"]) && $_SESSION['role'] === 'teacher') {
-        header("location: " . url('class_attendance.php'));
+        header("location: class_attendance.php");
         exit;
     }
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
 
@@ -26,6 +26,7 @@ $filter_student_id = $_GET['student_id'] ?? '';
 $filter_start_date = $_GET['start_date'] ?? date('Y-m-d'); // Default to today
 $filter_end_date = $_GET['end_date'] ?? date('Y-m-d');   // Default to today
 
+// This query now correctly uses the `attendances` table and the `stream_id` we added.
 $sql = "SELECT a.date, a.status, a.notes,
                u.first_name, u.last_name, u.unique_id,
                s.name as stream_name, cl.name as class_name,
@@ -97,7 +98,7 @@ require_once 'includes/header.php';
             <i class="bi bi-filter me-2"></i>Filters
         </div>
         <div class="card-body">
-            <form action="<?php echo view_attendance_url(); ?>" method="get" id="filter-form">
+            <form action="view_class_attendance.php" method="get" id="filter-form">
                 <div class="row g-3 align-items-end">
                     <div class="col-12 mb-2">
                         <label class="form-label">Quick Date Filters</label><br>
@@ -193,6 +194,7 @@ require_once 'includes/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // --- Quick Date Filter Logic ---
     const startDateInput = document.getElementById('start_date');
     const endDateInput = document.getElementById('end_date');
     const filterForm = document.getElementById('filter-form');
@@ -206,9 +208,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('filter-week').addEventListener('click', function() {
         const today = new Date();
-        const dayOfWeek = today.getDay();
+        const dayOfWeek = today.getDay(); // Sunday - 0, Monday - 1, ...
+        // Adjust to make Monday the first day of the week
         const firstDayOfWeek = new Date(today.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1) )).toISOString().slice(0, 10);
         const lastDayOfWeek = new Date(new Date(firstDayOfWeek).setDate(new Date(firstDayOfWeek).getDate() + 6)).toISOString().slice(0,10);
+
         startDateInput.value = firstDayOfWeek;
         endDateInput.value = lastDayOfWeek;
         filterForm.submit();
@@ -223,6 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
         filterForm.submit();
     });
 
+    // --- Live Student Search Logic ---
     const searchInput = document.getElementById('student_search');
     const resultsContainer = document.getElementById('student-search-results-report');
     const studentIdInput = document.getElementById('student_id');
@@ -231,12 +236,15 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('input', () => {
         clearTimeout(debounceTimer);
         const query = searchInput.value.trim();
+
+        // Clear previous results and hidden ID
         resultsContainer.innerHTML = '';
         studentIdInput.value = '';
+
         if (query.length < 2) return;
 
         debounceTimer = setTimeout(() => {
-            fetch(`<?php echo url('api/search_users'); ?>?role=student&q=${encodeURIComponent(query)}`)
+            fetch(`api_search_users.php?role=student&q=${encodeURIComponent(query)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.length > 0) {
@@ -260,18 +268,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         noResult.textContent = 'No students found';
                         resultsContainer.appendChild(noResult);
                     }
-                });
+                })
+                .catch(error => console.error('Error fetching students:', error));
         }, 300);
     });
 
+    // Hide search results when clicking outside
     document.addEventListener('click', function(e) {
         if (!resultsContainer.contains(e.target) && e.target !== searchInput) {
             resultsContainer.innerHTML = '';
         }
     });
 
+    // Pre-fill student search box if a student_id is in the URL
     if (studentIdInput.value) {
-        fetch(`<?php echo url('api/get_user'); ?>?id=${studentIdInput.value}`)
+        fetch(`api_get_user.php?id=${studentIdInput.value}`)
             .then(response => response.json())
             .then(data => {
                 if (data.id) {

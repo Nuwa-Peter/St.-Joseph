@@ -2,21 +2,39 @@
 require_once 'config.php';
 
 // Authorization check
-$admin_roles = ['headteacher', 'root', 'director', 'admin'];
+$admin_roles = ['headteacher', 'root', 'director'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $admin_roles)) {
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
 
 $errors = [];
-$event_id = isset($_REQUEST['id']) ? (int)$_REQUEST['id'] : 0;
+$event_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($event_id === 0) {
-    $_SESSION['error_message'] = "Event not found.";
-    header("location: " . events_url());
+    header("location: events.php?error=notfound");
     exit;
 }
 
-// Handle form submission
+// Fetch existing event data
+$sql = "SELECT * FROM events WHERE id = ?";
+if ($stmt = $conn->prepare($sql)) {
+    $stmt->bind_param("i", $event_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows === 1) {
+        $event = $result->fetch_assoc();
+        $title = $event['title'];
+        $description = $event['description'];
+        $start_date = date('Y-m-d\TH:i', strtotime($event['start_date']));
+        $end_date = $event['end_date'] ? date('Y-m-d\TH:i', strtotime($event['end_date'])) : '';
+        $event_type = $event['event_type'];
+    } else {
+        header("location: events.php?error=notfound");
+        exit;
+    }
+    $stmt->close();
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $title = trim($_POST['title']);
     $description = trim($_POST['description']);
@@ -34,8 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $end_date_to_update = !empty($end_date) ? $end_date : null;
             $stmt_update->bind_param("sssssi", $title, $description, $start_date, $end_date_to_update, $event_type, $event_id);
             if ($stmt_update->execute()) {
-                $_SESSION['success_message'] = "Event updated successfully.";
-                header("location: " . events_url());
+                header("location: events.php");
                 exit();
             } else {
                 $errors['db'] = "Database error: " . $stmt_update->error;
@@ -45,35 +62,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// Fetch existing event data
-$sql = "SELECT * FROM events WHERE id = ?";
-if ($stmt = $conn->prepare($sql)) {
-    $stmt->bind_param("i", $event_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($result->num_rows === 1) {
-        $event = $result->fetch_assoc();
-        $title = $event['title'];
-        $description = $event['description'];
-        $start_date = date('Y-m-d\TH:i', strtotime($event['start_date']));
-        $end_date = $event['end_date'] ? date('Y-m-d\TH:i', strtotime($event['end_date'])) : '';
-        $event_type = $event['event_type'];
-    } else {
-        $_SESSION['error_message'] = "Event not found.";
-        header("location: " . events_url());
-        exit;
-    }
-    $stmt->close();
-}
-
 require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
     <h2>Edit Event</h2>
-    <a href="<?php echo events_url(); ?>" class="btn btn-secondary mb-3">Back to Events</a>
+    <a href="events.php" class="btn btn-secondary mb-3">Back to Events</a>
 
-    <form action="<?php echo event_edit_url($event_id); ?>" method="post">
+    <form action="event_edit.php?id=<?php echo $event_id; ?>" method="post">
         <?php if(isset($errors['db'])): ?><div class="alert alert-danger"><?php echo $errors['db']; ?></div><?php endif; ?>
 
         <div class="mb-3">

@@ -4,7 +4,7 @@ require_once 'config.php';
 // Ensure user is logged in and is a teacher or admin
 $allowed_roles = ['teacher', 'headteacher', 'root'];
 if (!isset($_SESSION["loggedin"]) || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
 
@@ -33,10 +33,11 @@ $streams = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
 // Check for session messages from save_attendance.php
-$success_message = $_SESSION['success_message'] ?? '';
-$error_message = $_SESSION['error_message'] ?? '';
-unset($_SESSION['success_message']);
-unset($_SESSION['error_message']);
+$success_message = $_SESSION['attendance_success'] ?? '';
+$error_message = $_SESSION['attendance_error'] ?? '';
+unset($_SESSION['attendance_success']);
+unset($_SESSION['attendance_error']);
+
 
 require_once 'includes/header.php';
 ?>
@@ -80,7 +81,7 @@ require_once 'includes/header.php';
     </div>
 
     <div id="attendance-sheet-container" class="mt-4 d-none">
-        <form id="attendance-form" action="<?php echo save_daily_attendance_url(); ?>" method="post">
+        <form id="attendance-form" action="save_attendance.php" method="post">
             <input type="hidden" name="stream_id" id="form-stream-id">
             <input type="hidden" name="attendance_date" id="form-attendance-date">
 
@@ -119,11 +120,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Set form values
         document.getElementById('form-stream-id').value = streamId;
         document.getElementById('form-attendance-date').value = attendanceDate;
         sheetHeader.textContent = `Attendance for ${className} on ${attendanceDate}`;
 
-        fetch(`<?php echo url('api/get_students_for_stream'); ?>?stream_id=${streamId}`)
+        // Fetch student list
+        fetch(`api_get_students_for_stream.php?stream_id=${streamId}`)
             .then(response => response.json())
             .then(students => {
                 if (students.error) {

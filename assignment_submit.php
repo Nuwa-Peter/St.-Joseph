@@ -3,14 +3,13 @@ require_once 'config.php';
 
 // Authorization check: only students can view this page
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION['role'] !== 'student') {
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
 
 $assignment_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($assignment_id === 0) {
-    $_SESSION['error_message'] = "Assignment not found.";
-    header("location: " . student_assignments_view_url());
+    header("location: student_assignments_view.php?error=notfound");
     exit;
 }
 
@@ -27,8 +26,7 @@ $stmt_assignment->bind_param("i", $assignment_id);
 $stmt_assignment->execute();
 $result_assignment = $stmt_assignment->get_result();
 if ($result_assignment->num_rows !== 1) {
-    $_SESSION['error_message'] = "Assignment not found.";
-    header("location: " . student_assignments_view_url());
+    header("location: student_assignments_view.php?error=notfound");
     exit;
 }
 $assignment = $result_assignment->fetch_assoc();
@@ -46,19 +44,11 @@ if ($result_submission->num_rows === 1) {
 }
 $stmt_submission->close();
 
-// Fetch session messages
-$success_message = $_SESSION['success_message'] ?? null;
-$error_message = $_SESSION['error_message'] ?? null;
-unset($_SESSION['success_message'], $_SESSION['error_message']);
-
 require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
-    <a href="<?php echo student_assignments_view_url(); ?>" class="btn btn-secondary mb-3"><i class="bi bi-arrow-left"></i> My Assignments</a>
-
-    <?php if ($success_message): ?><div class="alert alert-success"><?php echo $success_message; ?></div><?php endif; ?>
-    <?php if ($error_message): ?><div class="alert alert-danger"><?php echo $error_message; ?></div><?php endif; ?>
+    <a href="student_assignments_view.php" class="btn btn-secondary mb-3"><i class="bi bi-arrow-left"></i> My Assignments</a>
 
     <div class="card mb-4">
         <div class="card-header">
@@ -70,7 +60,7 @@ require_once 'includes/header.php';
             <p class="card-text mt-3"><?php echo nl2br(htmlspecialchars($assignment['description'])); ?></p>
             <p><strong>Due Date:</strong> <?php echo date('F j, Y, g:i a', strtotime($assignment['due_date'])); ?></p>
             <?php if ($assignment['file_path']): ?>
-                <p><strong>Attachment:</strong> <a href="<?php echo url($assignment['file_path']); ?>" download>Download Assignment File</a></p>
+                <p><strong>Attachment:</strong> <a href="<?php echo htmlspecialchars($assignment['file_path']); ?>" download>Download Assignment File</a></p>
             <?php endif; ?>
         </div>
     </div>
@@ -81,7 +71,7 @@ require_once 'includes/header.php';
             <?php if ($submission): ?>
                 <h5>Your work has been submitted.</h5>
                 <p><strong>Submitted on:</strong> <?php echo date('F j, Y, g:i a', strtotime($submission['submission_date'])); ?></p>
-                <p><strong>Submitted File:</strong> <a href="<?php echo url($submission['file_path']); ?>" download>Download Your Submission</a></p>
+                <p><strong>Submitted File:</strong> <a href="<?php echo htmlspecialchars($submission['file_path']); ?>" download>Download Your Submission</a></p>
                 <hr>
                 <h5>Feedback</h5>
                 <?php if (!empty($submission['grade']) || !empty($submission['feedback'])): ?>
@@ -95,7 +85,7 @@ require_once 'includes/header.php';
                 <?php endif; ?>
             <?php else: ?>
                 <h5>Submit Your Work</h5>
-                <form action="<?php echo student_assignment_submit_url(); ?>" method="post" enctype="multipart/form-data">
+                <form action="handle_submission.php" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="assignment_id" value="<?php echo $assignment_id; ?>">
                     <div class="mb-3">
                         <label for="submission_file" class="form-label">Upload your file:</label>

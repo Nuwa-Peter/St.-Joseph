@@ -5,7 +5,7 @@ require_once 'includes/header.php';
 // Authorization check: only admins can manage events
 $admin_roles = ['headteacher', 'root', 'director'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $admin_roles)) {
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
 
@@ -26,15 +26,8 @@ if ($result = $conn->query($sql)) {
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Manage School Events</h2>
-        <a href="<?php echo event_create_url(); ?>" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Create New Event</a>
+        <a href="event_create.php" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Create New Event</a>
     </div>
-
-    <?php
-    if (isset($_SESSION['success_message'])) {
-        echo '<div class="alert alert-success alert-dismissible fade show" role="alert">' . $_SESSION['success_message'] . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
-        unset($_SESSION['success_message']);
-    }
-    ?>
 
     <div class="card">
         <div class="card-body">
@@ -62,8 +55,8 @@ if ($result = $conn->query($sql)) {
                                     <td><?php echo $event['end_date'] ? htmlspecialchars(date('F j, Y, g:i a', strtotime($event['end_date']))) : 'N/A'; ?></td>
                                     <td><?php echo htmlspecialchars($event['creator']); ?></td>
                                     <td>
-                                        <a href="<?php echo event_edit_url($event['id']); ?>" class="btn btn-sm btn-warning" title="Edit"><i class="bi bi-pencil-fill"></i></a>
-                                        <a href="<?php echo url('event_delete.php', ['id' => $event['id']]); ?>" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this event?');"><i class="bi bi-trash-fill"></i></a>
+                                        <a href="event_edit.php?id=<?php echo $event['id']; ?>" class="btn btn-sm btn-warning" title="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                        <a href="event_delete.php?id=<?php echo $event['id']; ?>" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this event?');"><i class="bi bi-trash-fill"></i></a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

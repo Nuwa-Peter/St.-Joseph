@@ -1,13 +1,12 @@
 <?php
 require_once 'config.php';
+require_once 'includes/header.php';
 require_once 'vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-// Authorization check
-$allowed_roles = ['admin', 'headteacher', 'root'];
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: " . login_url());
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    header("location: login.php");
     exit;
 }
 
@@ -79,6 +78,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['student_file'])) {
                     $stmt_check->execute();
                     $stmt_check->store_result();
                     if($stmt_check->num_rows > 0) {
+                        // Handle duplicate username from file - maybe skip and log error? For now, we'll append a random number.
                         $username = $username . '_' . rand(100, 999);
                     }
                     $stmt_check->close();
@@ -105,62 +105,58 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['student_file'])) {
             }
         }
         $conn->commit();
-        $_SESSION['success_message'] = "$success_count students were successfully imported.";
     } catch (Exception $e) {
         $conn->rollback();
-        $_SESSION['error_message'] = "An error occurred during import: " . $e->getMessage();
+        $errors[] = "An error occurred during import: " . $e->getMessage();
     }
-    header("Location: " . student_import_export_url());
-    exit();
 }
-
-// Fetch session messages
-$success_message = $_SESSION['success_message'] ?? null;
-$error_message = $_SESSION['error_message'] ?? null;
-unset($_SESSION['success_message'], $_SESSION['error_message']);
-
-require_once 'includes/header.php';
 ?>
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center my-4">
-        <h2 class="text-primary"><i class="bi bi-person-lines-fill me-2"></i>Import & Export Students</h2>
-        <a href="<?php echo students_url(); ?>" class="btn btn-secondary">Back to Students List</a>
-    </div>
+<h2>Import & Export Students</h2>
 
-    <?php if($success_message): ?><div class="alert alert-success"><?php echo $success_message; ?></div><?php endif; ?>
-    <?php if($error_message): ?><div class="alert alert-danger"><?php echo $error_message; ?></div><?php endif; ?>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h4>Import Students from Excel</h4>
-                </div>
-                <div class="card-body">
-                    <p>Upload an Excel file with student data. The file should have separate sheets for each stream (e.g., "S1 A", "S5 ARTS").</p>
-                    <p>
-                        <a href="<?php echo url('student_template_download.php'); ?>" class="btn btn-primary"><i class="bi bi-file-earmark-arrow-down-fill me-2"></i>Download Excel Template</a>
-                    </p>
-                    <hr>
-                    <form action="<?php echo student_import_export_url(); ?>" method="post" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <label for="student_file" class="form-label">Select Excel File</label>
-                            <input class="form-control" type="file" name="student_file" id="student_file" required accept=".xlsx, .xls">
-                        </div>
-                        <button type="submit" class="btn btn-success">Upload and Import</button>
-                    </form>
-                </div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>Import Students from Excel</h4>
+            </div>
+            <div class="card-body">
+                <p>Upload an Excel file with student data. The file should have separate sheets for each stream (e.g., "S1 A", "S5 ARTS").</p>
+                <p>
+                    <a href="student_template_download.php" class="btn btn-primary"><i class="bi bi-file-earmark-arrow-down-fill me-2"></i>Download Excel Template</a>
+                </p>
+                <hr>
+                <?php if($success_count > 0): ?>
+                    <div class="alert alert-success"><?php echo $success_count; ?> students were successfully imported.</div>
+                <?php endif; ?>
+                <?php if(!empty($errors)): ?>
+                    <div class="alert alert-danger">
+                        <?php foreach($errors as $error): ?>
+                            <p><?php echo $error; ?></p>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+                <form action="student_import_export.php" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="student_file" class="form-label">Select Excel File</label>
+                        <input class="form-control" type="file" name="student_file" id="student_file" required accept=".xlsx, .xls">
+                    </div>
+                    <button type="submit" class="btn btn-success">Upload and Import</button>
+                </form>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <h4>Export Students to PDF</h4>
-                </div>
-                <div class="card-body">
-                    <p>Select filters to export a list of students to a PDF document.</p>
-                     <form action="<?php echo student_export_pdf_url(); ?>" method="get" target="_blank">
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4>Export Students to PDF</h4>
+            </div>
+            <div class="card-body">
+                <p>Select filters to export a list of students to a PDF document.</p>
+                <!-- PDF Export Form from students.php could be reused here -->
+                 <form action="student_export_pdf.php" method="get" target="_blank">
+                    <div class="modal-body">
+                        <p>Select a filter for the PDF export. Leave blank to export all students.</p>
                         <div class="mb-3">
                             <label for="class_level_id" class="form-label">Filter by Class</label>
                             <select name="class_level_id" class="form-select">
@@ -188,11 +184,11 @@ require_once 'includes/header.php';
                             </select>
                         </div>
                         <small class="text-muted">Note: Filtering by stream will override class filter.</small>
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-danger"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Export PDF</button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-danger"><i class="bi bi-file-earmark-pdf-fill me-2"></i>Export PDF</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -4,9 +4,11 @@ require_once 'config.php';
 // Role-based access control
 $authorized_roles = ['bursar', 'headteacher', 'root'];
 if (!isset($_SESSION['loggedin']) || !in_array($_SESSION['role'], $authorized_roles)) {
-    header("location: " . dashboard_url() . "?unauthorized=true");
+    header("location: dashboard.php?unauthorized=true");
     exit;
 }
+
+require_once 'includes/header.php';
 
 // Fetch distinct academic years for the termly filter dropdown
 $academic_years = [];
@@ -86,12 +88,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->close();
     }
 }
-
-require_once 'includes/header.php';
 ?>
 
 <div class="container-fluid">
-    <h2 class="text-primary my-4"><i class="bi bi-journal-check me-2"></i>Accountability Ledger</h2>
+    <h2 class="text-primary my-4">Accountability Ledger</h2>
 
     <div class="card mb-4 no-print">
         <div class="card-header">
@@ -107,16 +107,16 @@ require_once 'includes/header.php';
             <div class="tab-content p-3 border border-top-0" id="nav-tabContent">
                 <!-- Date Range Filter -->
                 <div class="tab-pane fade show active" id="nav-daterange" role="tabpanel" aria-labelledby="nav-daterange-tab">
-                    <form action="<?php echo accountability_url(); ?>" method="post">
+                    <form action="accountability.php" method="post">
                         <input type="hidden" name="report_type" value="date_range">
                         <div class="row align-items-end">
                             <div class="col-md-4">
                                 <label for="start_date" class="form-label">Start Date</label>
-                                <input type="date" class="form-control" name="start_date" id="start_date" value="<?php echo htmlspecialchars($start_date); ?>" required>
+                                <input type="date" class="form-control" name="start_date" id="start_date" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="end_date" class="form-label">End Date</label>
-                                <input type="date" class="form-control" name="end_date" id="end_date" value="<?php echo htmlspecialchars($end_date); ?>" required>
+                                <input type="date" class="form-control" name="end_date" id="end_date" required>
                             </div>
                             <div class="col-md-4">
                                 <button type="submit" class="btn btn-primary w-100">Generate Report</button>
@@ -143,7 +143,7 @@ require_once 'includes/header.php';
                 </div>
                 <!-- Termly Filter -->
                 <div class="tab-pane fade" id="nav-termly" role="tabpanel" aria-labelledby="nav-termly-tab">
-                    <form action="<?php echo accountability_url(); ?>" method="post">
+                    <form action="accountability.php" method="post">
                          <input type="hidden" name="report_type" value="termly">
                         <div class="row align-items-end">
                             <div class="col-md-5">
@@ -176,18 +176,19 @@ require_once 'includes/header.php';
 
     <!-- Report Results -->
     <div id="report-results">
-        <?php if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($transactions)):
-            // Calculate totals for the summary
-            $total_income = array_sum(array_column($transactions, 'amount_in'));
-            $total_expenses = array_sum(array_column($transactions, 'amount_out'));
-            $net_profit = $total_income - $total_expenses;
-        ?>
+        <?php if ($_SERVER["REQUEST_METHOD"] == "POST"): ?>
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0"><?php echo $report_title; ?></h4>
                     <button class="btn btn-secondary no-print" onclick="window.print();"><i class="bi bi-printer me-2"></i>Print Report</button>
                 </div>
                 <div class="card-body">
+                    <?php if (!empty($transactions)):
+                        // Calculate totals for the summary
+                        $total_income = array_sum(array_column($transactions, 'amount_in'));
+                        $total_expenses = array_sum(array_column($transactions, 'amount_out'));
+                        $net_profit = $total_income - $total_expenses;
+                    ?>
                         <!-- Summary Cards -->
                         <div class="row mb-4">
                             <div class="col-md-4">
@@ -252,10 +253,11 @@ require_once 'includes/header.php';
                                 </tbody>
                             </table>
                         </div>
+                    <?php else: ?>
+                        <div class="alert alert-warning mb-0">No transactions found for the selected period.</div>
+                    <?php endif; ?>
                 </div>
             </div>
-        <?php elseif ($_SERVER["REQUEST_METHOD"] == "POST"): ?>
-            <div class="alert alert-warning mb-0">No transactions found for the selected period.</div>
         <?php endif; ?>
     </div>
 
@@ -275,9 +277,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('btn-this-week').addEventListener('click', function() {
         const today = new Date();
-        const dayOfWeek = today.getDay();
-        const firstDayOfWeek = new Date(today.setDate(today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)));
-        const lastDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 7));
+        const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+        const lastDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 6));
         startDateInput.value = firstDayOfWeek.toISOString().slice(0, 10);
         endDateInput.value = lastDayOfWeek.toISOString().slice(0, 10);
     });

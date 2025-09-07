@@ -2,11 +2,14 @@
 require_once 'config.php';
 
 // Access control for admins
-$admin_roles = ['root', 'headteacher', 'admin'];
+$admin_roles = ['root', 'headteacher'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $admin_roles)) {
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
+
+$success_message = "";
+$error_message = "";
 
 // Handle Add Resource
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_resource'])) {
@@ -21,17 +24,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_resource'])) {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ssssi", $name, $type, $location, $description, $is_bookable);
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Resource added successfully.";
+                $success_message = "Resource added successfully.";
             } else {
-                $_SESSION['error_message'] = "Error: " . $stmt->error;
+                $error_message = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     } else {
-        $_SESSION['error_message'] = "Resource name and type are required.";
+        $error_message = "Resource name and type are required.";
     }
-    header("Location: " . resources_url());
-    exit();
 }
 
 // Handle Edit Resource
@@ -48,17 +49,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_resource'])) {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ssssii", $name, $type, $location, $description, $is_bookable, $id);
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Resource updated successfully.";
+                $success_message = "Resource updated successfully.";
             } else {
-                $_SESSION['error_message'] = "Error: " . $stmt->error;
+                $error_message = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     } else {
-        $_SESSION['error_message'] = "ID, name, and type are required.";
+        $error_message = "ID, name, and type are required.";
     }
-    header("Location: " . resources_url());
-    exit();
 }
 
 // Handle Delete Resource
@@ -70,36 +69,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_resource'])) {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("i", $id);
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Resource deleted successfully.";
+                $success_message = "Resource deleted successfully.";
             } else {
-                $_SESSION['error_message'] = "Error: " . $stmt->error;
+                $error_message = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     } else {
-        $_SESSION['error_message'] = "ID is required.";
+        $error_message = "ID is required.";
     }
-    header("Location: " . resources_url());
-    exit();
 }
 
-// Fetch session messages
-$success_message = $_SESSION['success_message'] ?? null;
-$error_message = $_SESSION['error_message'] ?? null;
-unset($_SESSION['success_message'], $_SESSION['error_message']);
+require_once 'includes/header.php';
 
 // Fetch all resources
 $resources = [];
 $sql_resources = "SELECT * FROM resources ORDER BY type, name";
 $result = $conn->query($sql_resources);
 if ($result) {
-    $resources = $result->fetch_all(MYSQLI_ASSOC);
-} else {
-    $error_message = "Failed to load resources: " . $conn->error;
+    while ($row = $result->fetch_assoc()) {
+        $resources[] = $row;
+    }
 }
-
-
-require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
@@ -137,7 +128,7 @@ require_once 'includes/header.php';
                                     <td><?php echo htmlspecialchars($resource['location']); ?></td>
                                     <td><span class="badge <?php echo $resource['is_bookable'] ? 'bg-success' : 'bg-secondary'; ?>"><?php echo $resource['is_bookable'] ? 'Yes' : 'No'; ?></span></td>
                                     <td>
-                                        <button class="btn btn-warning btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editResourceModal" data-resource='<?php echo htmlspecialchars(json_encode($resource), ENT_QUOTES, 'UTF-8'); ?>'><i class="bi bi-pencil-fill me-1"></i>Edit</button>
+                                        <button class="btn btn-warning btn-sm edit-btn" data-bs-toggle="modal" data-bs-target="#editResourceModal" data-resource='<?php echo json_encode($resource); ?>'><i class="bi bi-pencil-fill me-1"></i>Edit</button>
                                         <button class="btn btn-danger btn-sm delete-btn" data-bs-toggle="modal" data-bs-target="#deleteResourceModal" data-id="<?php echo $resource['id']; ?>"><i class="bi bi-trash-fill me-1"></i>Delete</button>
                                     </td>
                                 </tr>
@@ -156,7 +147,7 @@ require_once 'includes/header.php';
 <div class="modal fade" id="addResourceModal" tabindex="-1" aria-labelledby="addResourceModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="<?php echo resources_url(); ?>" method="post">
+            <form action="resources.php" method="post">
                 <div class="modal-header"><h5 class="modal-title" id="addResourceModalLabel">Add New Resource</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body">
                     <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control" name="name" required></div>
@@ -175,7 +166,7 @@ require_once 'includes/header.php';
 <div class="modal fade" id="editResourceModal" tabindex="-1" aria-labelledby="editResourceModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="<?php echo resources_url(); ?>" method="post">
+            <form action="resources.php" method="post">
                 <input type="hidden" name="resource_id" id="edit_resource_id">
                 <div class="modal-header"><h5 class="modal-title" id="editResourceModalLabel">Edit Resource</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body">
@@ -195,7 +186,7 @@ require_once 'includes/header.php';
 <div class="modal fade" id="deleteResourceModal" tabindex="-1" aria-labelledby="deleteResourceModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="<?php echo resources_url(); ?>" method="post">
+            <form action="resources.php" method="post">
                 <input type="hidden" name="resource_id" id="delete_resource_id">
                 <div class="modal-header"><h5 class="modal-title" id="deleteResourceModalLabel">Delete Resource</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <div class="modal-body"><p>Are you sure you want to delete this resource? All associated bookings will also be deleted. This action cannot be undone.</p></div>

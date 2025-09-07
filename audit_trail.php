@@ -3,7 +3,7 @@ require_once 'config.php';
 
 // This page is for the root super-administrator only.
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || $_SESSION['role'] !== 'root') {
-    header("location: " . dashboard_url()); // Redirect non-root users
+    header("location: dashboard.php"); // Redirect non-root users
     exit;
 }
 
@@ -39,13 +39,13 @@ require_once 'includes/header.php';
     <h1 class="my-4"><i class="bi bi-shield-lock-fill me-2"></i>System Audit Trail</h1>
     <p>This page shows a log of all significant actions taken within the system. Showing the last 100 entries.</p>
 
-    <div class="card shadow-sm">
+    <div class="card">
         <div class="card-header">
             <i class="bi bi-list-ul me-2"></i>Audit Logs
         </div>
         <div class="card-body">
             <!-- Filter Form -->
-            <form action="<?php echo audit_url(); ?>" method="get" class="row g-3 mb-4">
+            <form action="audit_trail.php" method="get" class="row g-3 mb-4">
                 <div class="col-md-4">
                     <label for="action" class="form-label">Filter by Action</label>
                     <select name="action" id="action" class="form-select">
@@ -62,7 +62,7 @@ require_once 'includes/header.php';
 
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
                             <th>User</th>
                             <th>Action</th>
@@ -123,11 +123,11 @@ require_once 'includes/header.php';
         <div class="row">
             <div class="col-md-6">
                 <h6>Old Values</h6>
-                <pre id="old-values-pre" class="bg-light p-2 rounded"></pre>
+                <pre id="old-values-pre"></pre>
             </div>
             <div class="col-md-6">
                 <h6>New Values</h6>
-                <pre id="new-values-pre" class="bg-light p-2 rounded"></pre>
+                <pre id="new-values-pre"></pre>
             </div>
         </div>
       </div>
@@ -140,24 +140,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var logDetailsModal = document.getElementById('logDetailsModal');
     logDetailsModal.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
-        var oldValuesStr = button.getAttribute('data-old') || '{}';
-        var newValuesStr = button.getAttribute('data-new') || '{}';
+        var oldValues = JSON.parse(button.getAttribute('data-old') || '{}');
+        var newValues = JSON.parse(button.getAttribute('data-new') || '{}');
 
         var oldPre = logDetailsModal.querySelector('#old-values-pre');
         var newPre = logDetailsModal.querySelector('#new-values-pre');
 
-        try {
-            // Prettify the JSON string
-            var oldValues = JSON.parse(oldValuesStr);
-            var newValues = JSON.parse(newValuesStr);
-            oldPre.textContent = JSON.stringify(oldValues, null, 2);
-            newPre.textContent = JSON.stringify(newValues, null, 2);
-        } catch (e) {
-            // If JSON is invalid, show the raw string
-            oldPre.textContent = oldValuesStr;
-            newPre.textContent = newValuesStr;
-            console.error("Error parsing JSON for audit log details:", e);
-        }
+        oldPre.textContent = JSON.stringify(oldValues, null, 2);
+        newPre.textContent = JSON.stringify(newValues, null, 2);
     });
 });
 </script>

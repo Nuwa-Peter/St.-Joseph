@@ -2,9 +2,9 @@
 require_once 'config.php';
 
 // Ensure user is an admin
-$admin_roles = ['root', 'headteacher', 'director', 'dos', 'deputy headteacher', 'admin'];
+$admin_roles = ['root', 'headteacher', 'director', 'dos', 'deputy headteacher'];
 if (!isset($_SESSION["loggedin"]) || !in_array($_SESSION['role'], $admin_roles)) {
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
 
@@ -15,28 +15,19 @@ $sql = "SELECT lr.id, lr.start_date, lr.end_date, lr.reason, lr.status, lr.reque
         ORDER BY lr.requested_at DESC";
 $all_requests = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
 
-// Fetch session messages
-$success_message = $_SESSION['success_message'] ?? null;
-$error_message = $_SESSION['error_message'] ?? null;
-unset($_SESSION['success_message'], $_SESSION['error_message']);
-
 require_once 'includes/header.php';
 ?>
 
-<div class="container-fluid">
-    <h1 class="my-4"><i class="bi bi-calendar2-check-fill me-2"></i>Manage Leave Requests</h1>
-
-    <?php if ($success_message): ?><div class="alert alert-success"><?php echo $success_message; ?></div><?php endif; ?>
-    <?php if ($error_message): ?><div class="alert alert-danger"><?php echo $error_message; ?></div><?php endif; ?>
-
-    <div class="card shadow-sm">
+<div class="container">
+    <h1 class="my-4">Manage Leave Requests</h1>
+    <div class="card">
         <div class="card-header">
             <i class="bi bi-calendar-event me-2"></i>All Submitted Requests
         </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-striped table-hover">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
                             <th>Requester</th>
                             <th>Requested On</th>
@@ -58,7 +49,7 @@ require_once 'includes/header.php';
                                 <?php
                                     $start = new DateTime($request['start_date']);
                                     $end = new DateTime($request['end_date']);
-                                    $duration = $start->diff($end)->days + 1;
+                                    $duration = $start->diff($end)->days + 1; // Add 1 to include the start day
                                 ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($request['first_name'] . ' ' . $request['last_name']); ?></td>
@@ -79,7 +70,7 @@ require_once 'includes/header.php';
                                     </td>
                                     <td>
                                         <?php if ($request['status'] === 'pending'): ?>
-                                            <form action="<?php echo update_leave_status_url(); ?>" method="post" class="d-inline">
+                                            <form action="update_leave_status.php" method="post" class="d-inline">
                                                 <input type="hidden" name="request_id" value="<?php echo $request['id']; ?>">
                                                 <button type="submit" name="status" value="approved" class="btn btn-sm btn-success" title="Approve"><i class="bi bi-check-lg"></i></button>
                                                 <button type="submit" name="status" value="rejected" class="btn btn-sm btn-danger" title="Reject"><i class="bi bi-x-lg"></i></button>

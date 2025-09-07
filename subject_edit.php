@@ -1,31 +1,47 @@
 <?php
-require_once 'config.php'; // Must be first
 
-// Authorization check
-$allowed_roles = ['admin', 'headteacher', 'root'];
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
-    header("location: " . login_url());
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    header("location: login.php");
     exit;
 }
 
+require_once 'config.php';
+require_once 'includes/header.php';
+
 $name = $code = "";
 $name_err = $code_err = "";
-$db_err = "";
 $id = 0;
 
-// Determine the subject ID from GET or POST
 if (isset($_GET["id"]) && !empty(trim($_GET["id"]))) {
     $id = trim($_GET["id"]);
-} elseif (isset($_POST["id"]) && !empty(trim($_POST["id"]))) {
-    $id = trim($_POST["id"]);
+
+    $sql = "SELECT name, code FROM subjects WHERE id = ?";
+    if ($stmt = $conn->prepare($sql)) {
+        $stmt->bind_param("i", $id);
+        if ($stmt->execute()) {
+            $result = $stmt->get_result();
+            if ($result->num_rows == 1) {
+                $row = $result->fetch_assoc();
+                $name = $row["name"];
+                $code = $row["code"];
+            } else {
+                echo "No record found with that ID.";
+                exit();
+            }
+        } else {
+            echo "Oops! Something went wrong. Please try again later.";
+            exit();
+        }
+        $stmt->close();
+    }
 } else {
-    $_SESSION['error_message'] = "No Subject ID specified.";
-    header("location: " . subjects_url());
+    echo "ID parameter is missing.";
     exit();
 }
 
-// Processing form data when form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $id = $_POST["id"];
+
     // Validate name
     if (empty(trim($_POST["name"]))) {
         $name_err = "Please enter a subject name.";
@@ -37,12 +53,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($stmt->execute()) {
                 $stmt->store_result();
                 if ($stmt->num_rows > 0) {
-                    $name_err = "This subject name already exists.";
+                    $name_err = "This subject already exists.";
                 } else {
                     $name = trim($_POST["name"]);
                 }
             } else {
-                $db_err = "Oops! Something went wrong.";
+                echo "Oops! Something went wrong. Please try again later.";
             }
             $stmt->close();
         }
@@ -64,89 +80,53 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $code = trim($_POST["code"]);
                 }
             } else {
-                $db_err = "Oops! Something went wrong.";
+                echo "Oops! Something went wrong. Please try again later.";
             }
             $stmt->close();
         }
     }
 
-    if (empty($name_err) && empty($code_err) && empty($db_err)) {
+    if (empty($name_err) && empty($code_err)) {
         $sql = "UPDATE subjects SET name = ?, code = ?, updated_at = NOW() WHERE id = ?";
+
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ssi", $name, $code, $id);
+
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Subject updated successfully.";
-                header("location: " . subjects_url());
+                header("location: subjects.php");
                 exit();
             } else {
-                $db_err = "Something went wrong. Please try again later.";
+                echo "Something went wrong. Please try again later.";
             }
             $stmt->close();
         }
     }
-} else {
-    // If not a POST request, fetch the current data for the form
-    $sql = "SELECT name, code FROM subjects WHERE id = ?";
-    if ($stmt = $conn->prepare($sql)) {
-        $stmt->bind_param("i", $id);
-        if ($stmt->execute()) {
-            $result = $stmt->get_result();
-            if ($result->num_rows == 1) {
-                $row = $result->fetch_assoc();
-                $name = $row["name"];
-                $code = $row["code"];
-            } else {
-                $_SESSION['error_message'] = "No subject found with that ID.";
-                header("location: " . subjects_url());
-                exit();
-            }
-        } else {
-            $_SESSION['error_message'] = "Oops! Something went wrong fetching data.";
-            header("location: " . subjects_url());
-            exit();
-        }
-        $stmt->close();
-    }
+
+    $conn->close();
 }
 
-require_once 'includes/header.php';
 ?>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Edit Subject</h2>
-        <a href="<?php echo subjects_url(); ?>" class="btn btn-secondary">Back to Subjects</a>
+<h2>Edit Subject</h2>
+<p>Please edit the input values and submit to update the subject.</p>
+<form action="<?php echo htmlspecialchars(basename($_SERVER['REQUEST_URI'])); ?>" method="post">
+    <div class="form-group <?php echo (!empty($name_err)) ? 'has-error' : ''; ?>">
+        <label>Name</label>
+        <input type="text" name="name" class="form-control" value="<?php echo $name; ?>">
+        <span class="help-block"><?php echo $name_err; ?></span>
     </div>
-
-    <?php if(!empty($db_err)): ?>
-        <div class="alert alert-danger"><?php echo $db_err; ?></div>
-    <?php endif; ?>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <p>Please edit the input values and submit to update the subject.</p>
-            <form action="<?php echo subject_edit_url($id); ?>" method="post">
-                <div class="mb-3">
-                    <label for="name" class="form-label">Name</label>
-                    <input type="text" name="name" id="name" class="form-control <?php echo (!empty($name_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($name); ?>">
-                    <div class="invalid-feedback"><?php echo $name_err; ?></div>
-                </div>
-                <div class="mb-3">
-                    <label for="code" class="form-label">Code</label>
-                    <input type="text" name="code" id="code" class="form-control <?php echo (!empty($code_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($code); ?>">
-                    <div class="invalid-feedback"><?php echo $code_err; ?></div>
-                </div>
-                <input type="hidden" name="id" value="<?php echo $id; ?>"/>
-                <div class="mt-4">
-                    <button type="submit" class="btn btn-primary">Update Subject</button>
-                    <a href="<?php echo subjects_url(); ?>" class="btn btn-outline-secondary">Cancel</a>
-                </div>
-            </form>
-        </div>
+    <div class="form-group <?php echo (!empty($code_err)) ? 'has-error' : ''; ?>">
+        <label>Code</label>
+        <input type="text" name="code" class="form-control" value="<?php echo $code; ?>">
+        <span class="help-block"><?php echo $code_err; ?></span>
     </div>
-</div>
+    <input type="hidden" name="id" value="<?php echo $id; ?>"/>
+    <div class="form-group">
+        <input type="submit" class="btn btn-primary" value="Submit">
+        <a href="subjects.php" class="btn btn-default">Cancel</a>
+    </div>
+</form>
 
 <?php
 require_once 'includes/footer.php';
-$conn->close();
 ?>

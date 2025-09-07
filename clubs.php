@@ -4,32 +4,33 @@ require_once 'config.php';
 // Role-based access control
 $admin_roles = ['root', 'headteacher'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $admin_roles)) {
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
+
+$success_message = "";
+$error_message = "";
 
 // Handle Add Club submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_club'])) {
     $name = trim($_POST['name']);
     $description = trim($_POST['description']);
-    $teacher_id = !empty($_POST['teacher_in_charge_id']) ? (int)trim($_POST['teacher_in_charge_id']) : null;
+    $teacher_id = !empty($_POST['teacher_in_charge_id']) ? trim($_POST['teacher_in_charge_id']) : null;
 
     if (empty($name)) {
-        $_SESSION['error_message'] = "Club name is required.";
+        $error_message = "Club name is required.";
     } else {
         $sql = "INSERT INTO clubs (name, description, teacher_in_charge_id, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())";
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ssi", $name, $description, $teacher_id);
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Club added successfully.";
+                $success_message = "Club added successfully.";
             } else {
-                $_SESSION['error_message'] = "Error: " . $stmt->error;
+                $error_message = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     }
-    header("Location: " . clubs_url());
-    exit();
 }
 
 // Handle Edit Club submission
@@ -37,24 +38,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_club'])) {
     $club_id = trim($_POST['club_id']);
     $name = trim($_POST['name']);
     $description = trim($_POST['description']);
-    $teacher_id = !empty($_POST['teacher_in_charge_id']) ? (int)trim($_POST['teacher_in_charge_id']) : null;
+    $teacher_id = !empty($_POST['teacher_in_charge_id']) ? trim($_POST['teacher_in_charge_id']) : null;
 
     if (empty($club_id) || empty($name)) {
-        $_SESSION['error_message'] = "Club ID and name are required for editing.";
+        $error_message = "Club ID and name are required for editing.";
     } else {
         $sql = "UPDATE clubs SET name = ?, description = ?, teacher_in_charge_id = ?, updated_at = NOW() WHERE id = ?";
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("ssii", $name, $description, $teacher_id, $club_id);
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Club updated successfully.";
+                $success_message = "Club updated successfully.";
             } else {
-                $_SESSION['error_message'] = "Error: " . $stmt->error;
+                $error_message = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     }
-    header("Location: " . clubs_url());
-    exit();
 }
 
 // Handle Delete Club submission
@@ -62,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_club'])) {
     $club_id = trim($_POST['club_id']);
 
     if (empty($club_id)) {
-        $_SESSION['error_message'] = "Club ID is required for deletion.";
+        $error_message = "Club ID is required for deletion.";
     } else {
         // Also delete associated members to maintain data integrity
         $sql_delete_members = "DELETE FROM club_members WHERE club_id = ?";
@@ -76,15 +75,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['delete_club'])) {
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param("i", $club_id);
             if ($stmt->execute()) {
-                $_SESSION['success_message'] = "Club deleted successfully.";
+                $success_message = "Club deleted successfully.";
             } else {
-                $_SESSION['error_message'] = "Error: " . $stmt->error;
+                $error_message = "Error: " . $stmt->error;
             }
             $stmt->close();
         }
     }
-    header("Location: " . clubs_url());
-    exit();
 }
 
 require_once 'includes/header.php';
@@ -130,16 +127,18 @@ if ($result_clubs && $result_clubs->num_rows > 0) {
     </div>
 
     <!-- Display success/error messages -->
-    <?php
-    if (isset($_SESSION['success_message'])) {
-        echo '<div class="alert alert-success alert-dismissible fade show" role="alert">' . $_SESSION['success_message'] . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
-        unset($_SESSION['success_message']);
-    }
-    if (isset($_SESSION['error_message'])) {
-        echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">' . $_SESSION['error_message'] . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
-        unset($_SESSION['error_message']);
-    }
-    ?>
+    <?php if(!empty($success_message)): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <?php echo $success_message; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+    <?php if(!empty($error_message)): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <?php echo $error_message; ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
 
     <div class="card">
         <div class="card-body">
@@ -161,7 +160,7 @@ if ($result_clubs && $result_clubs->num_rows > 0) {
                                     <td><?php echo htmlspecialchars($club['description']); ?></td>
                                     <td><?php echo htmlspecialchars($club['teacher_name'] ?? 'Not Assigned'); ?></td>
                                     <td>
-                                        <a href="<?php echo url('view_club.php', ['id' => $club['id']]); ?>" class="btn btn-sm btn-info"><i class="bi bi-people-fill me-1"></i>Members</a>
+                                        <a href="view_club.php?id=<?php echo $club['id']; ?>" class="btn btn-sm btn-info"><i class="bi bi-people-fill me-1"></i>Members</a>
                                         <button type="button" class="btn btn-sm btn-warning edit-btn" data-bs-toggle="modal" data-bs-target="#editClubModal" data-club-id="<?php echo $club['id']; ?>">
                                             <i class="bi bi-pencil-fill me-1"></i>Edit
                                         </button>
@@ -187,7 +186,7 @@ if ($result_clubs && $result_clubs->num_rows > 0) {
 <div class="modal fade" id="addClubModal" tabindex="-1" aria-labelledby="addClubModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="<?php echo clubs_url(); ?>" method="post">
+            <form action="clubs.php" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addClubModalLabel">Add New Club</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -226,7 +225,7 @@ if ($result_clubs && $result_clubs->num_rows > 0) {
 <div class="modal fade" id="editClubModal" tabindex="-1" aria-labelledby="editClubModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="<?php echo clubs_url(); ?>" method="post">
+            <form action="clubs.php" method="post">
                 <input type="hidden" name="club_id" id="edit_club_id">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editClubModalLabel">Edit Club</h5>
@@ -266,7 +265,7 @@ if ($result_clubs && $result_clubs->num_rows > 0) {
 <div class="modal fade" id="deleteClubModal" tabindex="-1" aria-labelledby="deleteClubModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="<?php echo clubs_url(); ?>" method="post">
+            <form action="clubs.php" method="post">
                 <input type="hidden" name="club_id" id="delete_club_id">
                 <div class="modal-header">
                     <h5 class="modal-title" id="deleteClubModalLabel">Delete Club</h5>
@@ -294,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const clubId = button.getAttribute('data-club-id');
 
             // Fetch club data via AJAX
-            fetch(`<?php echo url('api/get_club_details'); ?>?id=${clubId}`)
+            fetch(`api_get_club_details.php?id=${clubId}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');

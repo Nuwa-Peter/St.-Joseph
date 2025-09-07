@@ -2,24 +2,27 @@
 require_once 'config.php';
 
 // Role-based access control
-$admin_roles = ['root', 'headteacher', 'admin'];
+$admin_roles = ['root', 'headteacher'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $admin_roles)) {
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
 
 // Check for club ID
 if (!isset($_GET['id']) || empty($_GET['id'])) {
-    header("location: " . clubs_url());
+    header("location: clubs.php");
     exit;
 }
 $club_id = (int)$_GET['id'];
+
+$success_message = "";
+$error_message = "";
 
 // Handle Add Member submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_member'])) {
     $student_id = trim($_POST['student_id']);
     if (empty($student_id)) {
-        $_SESSION['error_message'] = "Please select a student to add.";
+        $error_message = "Please select a student to add.";
     } else {
         $sql_check = "SELECT id FROM club_members WHERE club_id = ? AND user_id = ?";
         if($stmt_check = $conn->prepare($sql_check)) {
@@ -27,15 +30,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_member'])) {
             $stmt_check->execute();
             $stmt_check->store_result();
             if ($stmt_check->num_rows > 0) {
-                $_SESSION['error_message'] = "This student is already a member of the club.";
+                $error_message = "This student is already a member of the club.";
             } else {
                 $sql_insert = "INSERT INTO club_members (club_id, user_id, created_at, updated_at) VALUES (?, ?, NOW(), NOW())";
                 if ($stmt_insert = $conn->prepare($sql_insert)) {
                     $stmt_insert->bind_param("ii", $club_id, $student_id);
                     if ($stmt_insert->execute()) {
-                        $_SESSION['success_message'] = "Member added successfully.";
+                        $success_message = "Member added successfully.";
                     } else {
-                        $_SESSION['error_message'] = "Error adding member.";
+                        $error_message = "Error adding member.";
                     }
                     $stmt_insert->close();
                 }
@@ -43,35 +46,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_member'])) {
             $stmt_check->close();
         }
     }
-    header("Location: " . club_view_url($club_id));
-    exit();
 }
 
 // Handle Remove Member submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['remove_member'])) {
     $member_id = trim($_POST['member_id']);
     if (empty($member_id)) {
-        $_SESSION['error_message'] = "Invalid member ID.";
+        $error_message = "Invalid member ID.";
     } else {
         $sql_delete = "DELETE FROM club_members WHERE club_id = ? AND user_id = ?";
         if ($stmt_delete = $conn->prepare($sql_delete)) {
             $stmt_delete->bind_param("ii", $club_id, $member_id);
             if ($stmt_delete->execute()) {
-                $_SESSION['success_message'] = "Member removed successfully.";
+                $success_message = "Member removed successfully.";
             } else {
-                $_SESSION['error_message'] = "Error removing member.";
+                $error_message = "Error removing member.";
             }
             $stmt_delete->close();
         }
     }
-    header("Location: " . club_view_url($club_id));
-    exit();
 }
 
-// Fetch session messages
-$success_message = $_SESSION['success_message'] ?? null;
-$error_message = $_SESSION['error_message'] ?? null;
-unset($_SESSION['success_message'], $_SESSION['error_message']);
+require_once 'includes/header.php';
 
 // Fetch club details
 $club = null;
@@ -87,8 +83,8 @@ if ($stmt_club = $conn->prepare($sql_club)) {
 }
 
 if (!$club) {
-    $_SESSION['error_message'] = "Error: Club not found.";
-    header("Location: " . clubs_url());
+    echo "<div class='container mt-4'><div class='alert alert-danger'>Error: Club not found.</div></div>";
+    require_once 'includes/footer.php';
     exit;
 }
 
@@ -99,7 +95,9 @@ if ($stmt_members = $conn->prepare($sql_members)) {
     $stmt_members->bind_param("i", $club_id);
     $stmt_members->execute();
     $result_members = $stmt_members->get_result();
-    $members = $result_members->fetch_all(MYSQLI_ASSOC);
+    while ($row = $result_members->fetch_assoc()) {
+        $members[] = $row;
+    }
     $stmt_members->close();
 }
 
@@ -110,11 +108,11 @@ if ($stmt_non_members = $conn->prepare($sql_non_members)) {
     $stmt_non_members->bind_param("i", $club_id);
     $stmt_non_members->execute();
     $result_non_members = $stmt_non_members->get_result();
-    $non_members = $result_non_members->fetch_all(MYSQLI_ASSOC);
+    while ($row = $result_non_members->fetch_assoc()) {
+        $non_members[] = $row;
+    }
     $stmt_non_members->close();
 }
-
-require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
@@ -123,7 +121,7 @@ require_once 'includes/header.php';
             <h2 class="mb-0"><i class="bi bi-people-fill me-2"></i>Manage Club: <?php echo htmlspecialchars($club['name']); ?></h2>
             <p class="text-muted mb-0"><?php echo htmlspecialchars($club['description']); ?></p>
         </div>
-        <a href="<?php echo clubs_url(); ?>" class="btn btn-secondary"><i class="bi bi-arrow-left-circle me-2"></i>Back to Clubs</a>
+        <a href="clubs.php" class="btn btn-secondary"><i class="bi bi-arrow-left-circle me-2"></i>Back to Clubs</a>
     </div>
 
     <!-- Display success/error messages -->
@@ -153,7 +151,7 @@ require_once 'includes/header.php';
                             <?php foreach ($members as $member): ?>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     <?php echo htmlspecialchars($member['last_name'] . ', ' . $member['first_name']); ?>
-                                    <form action="<?php echo club_view_url($club_id); ?>" method="post" class="d-inline">
+                                    <form action="view_club.php?id=<?php echo $club_id; ?>" method="post" class="d-inline">
                                         <input type="hidden" name="member_id" value="<?php echo $member['id']; ?>">
                                         <button type="submit" name="remove_member" class="btn btn-sm btn-outline-danger" title="Remove Member"><i class="bi bi-x-circle"></i></button>
                                     </form>
@@ -174,7 +172,7 @@ require_once 'includes/header.php';
                     <h5 class="mb-0">Add New Member</h5>
                 </div>
                 <div class="card-body">
-                    <form action="<?php echo club_view_url($club_id); ?>" method="post">
+                    <form action="view_club.php?id=<?php echo $club_id; ?>" method="post">
                         <div class="mb-3">
                             <label for="student_id" class="form-label">Select Student</label>
                             <select class="form-select" id="student_id" name="student_id" required>

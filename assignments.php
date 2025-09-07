@@ -6,7 +6,7 @@ require_once 'includes/header.php';
 $allowed_roles = ['teacher', 'headteacher', 'root'];
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['role'], $allowed_roles)) {
     // Redirect to dashboard if not authorized
-    header("location: " . dashboard_url());
+    header("location: dashboard.php");
     exit;
 }
 
@@ -46,15 +46,8 @@ if ($stmt = $conn->prepare($sql)) {
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Manage Assignments</h2>
-        <a href="<?php echo assignment_create_url(); ?>" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Create New Assignment</a>
+        <a href="assignment_create.php" class="btn btn-primary"><i class="bi bi-plus-circle-fill me-2"></i>Create New Assignment</a>
     </div>
-
-    <?php
-    if (isset($_SESSION['success_message'])) {
-        echo '<div class="alert alert-success alert-dismissible fade show" role="alert">' . $_SESSION['success_message'] . '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
-        unset($_SESSION['success_message']);
-    }
-    ?>
 
     <div class="card">
         <div class="card-body">
@@ -80,9 +73,9 @@ if ($stmt = $conn->prepare($sql)) {
                                     <td><?php echo htmlspecialchars($assignment['subject_name']); ?></td>
                                     <td><?php echo htmlspecialchars(date('F j, Y, g:i a', strtotime($assignment['due_date']))); ?></td>
                                     <td>
-                                        <a href="<?php echo url('assignment_submissions.php', ['id' => $assignment['id']]); ?>" class="btn btn-sm btn-info" title="View Submissions"><i class="bi bi-eye-fill"></i></a>
-                                        <a href="<?php echo assignment_edit_url($assignment['id']); ?>" class="btn btn-sm btn-warning" title="Edit"><i class="bi bi-pencil-fill"></i></a>
-                                        <a href="<?php echo url('assignment_delete.php', ['id' => $assignment['id']]); ?>" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this assignment?');"><i class="bi bi-trash-fill"></i></a>
+                                        <a href="assignment_submissions.php?id=<?php echo $assignment['id']; ?>" class="btn btn-sm btn-info" title="View Submissions"><i class="bi bi-eye-fill"></i></a>
+                                        <a href="assignment_edit.php?id=<?php echo $assignment['id']; ?>" class="btn btn-sm btn-warning" title="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                        <a href="assignment_delete.php?id=<?php echo $assignment['id']; ?>" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this assignment?');"><i class="bi bi-trash-fill"></i></a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
