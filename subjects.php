@@ -11,6 +11,7 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array
 
 $sql = "SELECT id, name, code FROM subjects ORDER BY name ASC";
 $result = $conn->query($sql);
+$subjects = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
 // Fetch session messages
 $success_message = $_SESSION['success_message'] ?? null;
@@ -43,8 +44,8 @@ require_once 'includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if ($result->num_rows > 0): ?>
-                            <?php while($row = $result->fetch_assoc()): ?>
+                        <?php if (!empty($subjects)): ?>
+                            <?php foreach($subjects as $row): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($row["name"]); ?></td>
                                     <td><?php echo htmlspecialchars($row["code"]); ?></td>
@@ -53,7 +54,7 @@ require_once 'includes/header.php';
                                         <a href="<?php echo subject_delete_url($row["id"]); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this subject?');">Delete</a>
                                     </td>
                                 </tr>
-                            <?php endwhile; ?>
+                            <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
                                 <td colspan="3" class="text-center">No subjects found.</td>
@@ -67,6 +68,6 @@ require_once 'includes/header.php';
 </div>
 
 <?php
-$conn->close();
 require_once 'includes/footer.php';
+$conn->close();
 ?>

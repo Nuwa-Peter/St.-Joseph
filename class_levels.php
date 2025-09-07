@@ -20,6 +20,7 @@ $sql = "
     ORDER BY cl.name ASC
 ";
 $result = $conn->query($sql);
+$classes = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
 
 // Fetch session messages
 $success_message = $_SESSION['success_message'] ?? null;
@@ -52,8 +53,8 @@ require_once 'includes/header.php';
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if ($result && $result->num_rows > 0): ?>
-                            <?php while($row = $result->fetch_assoc()): ?>
+                        <?php if (!empty($classes)): ?>
+                            <?php foreach($classes as $row): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($row["name"]); ?></td>
                                     <td><?php echo htmlspecialchars($row["streams"] ?? 'No streams yet'); ?></td>
@@ -63,7 +64,7 @@ require_once 'includes/header.php';
                                         <a href="<?php echo class_delete_url($row["id"]); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure? This will delete the class and all associated streams.');">Delete</a>
                                     </td>
                                 </tr>
-                            <?php endwhile; ?>
+                            <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
                                 <td colspan="3" class="text-center">No classes found.</td>
@@ -77,6 +78,6 @@ require_once 'includes/header.php';
 </div>
 
 <?php
-$conn->close();
 require_once 'includes/footer.php';
+$conn->close();
 ?>
