@@ -1,30 +1,44 @@
 <?php
+// 1. Include dependencies and start session
+require_once 'config.php';
+session_start();
 
+// 2. Check if the user is logged in
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+    header("location: login.php"); // Consider using login_url()
     exit;
 }
 
-require_once 'config.php';
+// 3. Include the header, which also needs url_helper
 require_once 'includes/header.php';
-require_once 'includes/url_helper.php';
 
+// 4. Page-specific logic: Fetch data
 $sql = "SELECT id, name, code FROM subjects ORDER BY name ASC";
 $result = $conn->query($sql);
 
-// Fetch all results into an array to prevent "mysqli_result object is already closed" error
+// Fetch all results into an array to prevent mysqli_result errors
 $subjects = [];
-if ($result && $result->num_rows > 0) {
-    $subjects = $result->fetch_all(MYSQLI_ASSOC);
-}
 if ($result) {
+    $subjects = $result->fetch_all(MYSQLI_ASSOC);
     $result->close();
 }
-
 ?>
 
 <h2>Subjects</h2>
 <a href="<?php echo subject_create_url(); ?>" class="btn btn-success mb-3">Create Subject</a>
+
+<?php
+// Display success or error messages
+if (isset($_SESSION['success_message'])) {
+    echo '<div class="alert alert-success">' . htmlspecialchars($_SESSION['success_message']) . '</div>';
+    unset($_SESSION['success_message']);
+}
+if (isset($_SESSION['error_message'])) {
+    echo '<div class="alert alert-danger">' . htmlspecialchars($_SESSION['error_message']) . '</div>';
+    unset($_SESSION['error_message']);
+}
+?>
+
 <table class="table table-bordered">
     <thead>
         <tr>
@@ -54,6 +68,6 @@ if ($result) {
 </table>
 
 <?php
+// 5. Include the footer
 require_once 'includes/footer.php';
-$conn->close();
 ?>

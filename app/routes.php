@@ -229,6 +229,12 @@ $router->post('/classes/edit/(\d+)', function ($id) {
     include __DIR__ . '/../class_level_edit.php';
 });
 
+$router->get('/classes/delete/(\d+)', function ($id) {
+    global $conn;
+    $_GET['id'] = $id;
+    include __DIR__ . '/../class_level_delete.php';
+});
+
 $router->get('/streams', function () {
     global $conn;
     include __DIR__ . '/../streams.php';
@@ -293,6 +299,11 @@ $router->post('/assignments/edit/(\d+)', function ($id) {
 $router->get('/assignments/submissions', function () {
     global $conn;
     include __DIR__ . '/../assignment_submissions.php';
+});
+
+$router->get('/marks-entry', function () {
+    global $conn;
+    include __DIR__ . '/../marks_entry.php';
 });
 
 

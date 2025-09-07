@@ -35,7 +35,8 @@ $is_parent = $user_role === 'parent';
                         <li><a class="dropdown-item" href="<?php echo assignments_url(); ?>">Assignments</a></li>
                         <li><a class="dropdown-item" href="<?php echo grading_scales_url(); ?>">Grading Scales</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="<?php echo set_exam_url(); ?>">Examinations</a></li>
+                        <li><a class="dropdown-item" href="<?php echo set_exam_url(); ?>">Set Exam Type</a></li>
+                        <li><a class="dropdown-item" href="<?php echo marks_entry_url(); ?>">Marks Entry</a></li>
                         <li><a class="dropdown-item" href="<?php echo report_card_generator_url(); ?>">Report Cards</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="<?php echo lesson_planner_url(); ?>">Lesson Planner</a></li>
