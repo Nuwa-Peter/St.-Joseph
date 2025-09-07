@@ -5,6 +5,9 @@ ini_set('session.gc_maxlifetime', 900);
 session_set_cookie_params(900);
 session_start();
 
+// Define a constant to check in included files to prevent direct access
+define('APP_RAN', true);
+
 // 2. Include all dependencies and helpers
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config.php';

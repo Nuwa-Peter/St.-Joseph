@@ -8,8 +8,9 @@ require_once __DIR__ . '/../controllers/AuthController.php';
 
 // Custom 404 Handler
 $router->set404(function () {
-    header('HTTP/1.1 404 Not Found');
-    include __DIR__ . '/../404.php'; // It's good practice to have a real 404 page
+    global $conn;
+    http_response_code(404);
+    include __DIR__ . '/../404.php';
 });
 
 // Define a route for the root directory
