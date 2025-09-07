@@ -1,11 +1,10 @@
 <?php
-require_once 'config.php';
-session_start();
-require_once 'includes/url_helper.php';
-require_once 'includes/csrf_helper.php';
+// All dependencies like config, session, and helpers are now loaded by index.php
+// before the router includes this file.
 
 // Authentication and Authorization
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    // url_helper is loaded in index.php, so login_url() is available
     header("location: " . login_url());
     exit;
 }
@@ -17,6 +16,7 @@ if (!in_array($_SESSION['role'], ['admin', 'headteacher', 'root', 'director'])) 
 
 // Handle POST request for creating a new exam
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // csrf_helper is loaded in index.php
     verify_csrf_token();
 
     $subject_id = trim($_POST['subject_id']);
@@ -30,6 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Check for duplicate paper name within the same subject
     if (empty($errors)) {
+        // $conn is available globally from the router's scope
         $sql_check = "SELECT id FROM papers WHERE subject_id = ? AND name = ?";
         if ($stmt_check = $conn->prepare($sql_check)) {
             $stmt_check->bind_param("is", $subject_id, $name);
@@ -63,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 // Include header
-require_once 'includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 
 // Retrieve and clear any form data or messages from session
 $form_data = $_SESSION['form_data'] ?? [];
@@ -164,5 +165,5 @@ $exam_types = ['AOI', 'CA', 'Beginning of Term', 'Midterm', 'End of Term'];
 </div>
 
 <?php
-require_once 'includes/footer.php';
+require_once __DIR__ . '/includes/footer.php';
 ?>
