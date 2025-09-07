@@ -303,6 +303,16 @@ $router->get('/assignments/submissions', function () {
     include __DIR__ . '/../assignment_submissions.php';
 });
 
+$router->get('/set_exams', function () {
+    global $conn;
+    include __DIR__ . '/../set_exam.php';
+});
+
+$router->post('/set_exams', function () {
+    global $conn;
+    include __DIR__ . '/../set_exam.php';
+});
+
 $router->get('/marks-entry', function () {
     global $conn;
     include __DIR__ . '/../marks_entry.php';

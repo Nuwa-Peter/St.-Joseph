@@ -93,7 +93,7 @@ function assignments_url() { return url('assignments'); }
 function assignment_create_url() { return url('assignments/create'); }
 function assignment_edit_url($id) { return url('assignments/edit/' . $id); }
 function assignment_submissions_url() { return url('assignments/submissions'); }
-function set_exam_url() { return url('set-exam'); }
+function set_exam_url() { return url('set_exams'); }
 function exam_edit_url($id) { return url('exams/edit/' . $id); }
 function exam_delete_url($id) { return url('exams/delete/' . $id); }
 function marks_entry_url() { return url('marks-entry'); }
