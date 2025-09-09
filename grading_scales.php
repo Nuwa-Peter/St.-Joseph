@@ -1,10 +1,9 @@
 <?php
-require_once 'config.php';
-session_start();
-
-// This page has complex logic, so we need all helpers
-require_once 'includes/url_helper.php';
-require_once 'includes/csrf_helper.php';
+// All dependencies like config, session, and helpers are now loaded by index.php
+if (session_status() === PHP_SESSION_NONE) {
+    // This is a fallback in case the file is accessed directly, though it shouldn't be.
+    session_start();
+}
 
 // Authentication and Authorization
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
@@ -58,7 +57,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // Delete a grading scale
         if (isset($_POST['delete_scale'])) {
             $scale_id = $_POST['scale_id'];
-            // Also delete boundaries to avoid orphaned rows
             $conn->begin_transaction();
             $stmt_b = $conn->prepare("DELETE FROM grade_boundaries WHERE grading_scale_id = ?");
             $stmt_b->bind_param("i", $scale_id);
@@ -95,7 +93,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 // Page setup
-require_once 'includes/header.php';
+require_once __DIR__ . '/includes/header.php';
 
 // Fetch all grading scales and their boundaries for display
 $scales = [];
@@ -108,9 +106,7 @@ if ($scales_result) {
         $stmt->execute();
         $boundaries_result = $stmt->get_result();
         if($boundaries_result) {
-            while ($boundary = $boundaries_result->fetch_assoc()) {
-                $boundaries[] = $boundary;
-            }
+            $boundaries = $boundaries_result->fetch_all(MYSQLI_ASSOC);
         }
         $scale['boundaries'] = $boundaries;
         $scales[] = $scale;
@@ -140,7 +136,7 @@ if (isset($_SESSION['error_message'])) {
             <div class="card-header">Create New Scale</div>
             <div class="card-body">
                 <form action="<?php echo grading_scales_url(); ?>" method="post">
-                    <?php generate_csrf_token_form(); ?>
+                    <?php echo csrf_input(); ?>
                     <div class="mb-3">
                         <label for="scale_name" class="form-label">Scale Name</label>
                         <input type="text" name="scale_name" class="form-control" placeholder="e.g., O-Level Scale" required>
@@ -184,7 +180,7 @@ if (isset($_SESSION['error_message'])) {
                                             <td><?php echo htmlspecialchars($boundary['comment']); ?></td>
                                             <td>
                                                 <form action="<?php echo grading_scales_url(); ?>" method="post" class="d-inline">
-                                                    <?php generate_csrf_token_form(); ?>
+                                                    <?php echo csrf_input(); ?>
                                                     <input type="hidden" name="boundary_id" value="<?php echo $boundary['id']; ?>">
                                                     <button type="submit" name="delete_boundary" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure?')"><i class="bi bi-trash"></i></button>
                                                 </form>
@@ -200,7 +196,7 @@ if (isset($_SESSION['error_message'])) {
                                 <hr>
                                 <h5>Add New Boundary</h5>
                                 <form action="<?php echo grading_scales_url(); ?>" method="post" class="row gx-2 align-items-center">
-                                    <?php generate_csrf_token_form(); ?>
+                                    <?php echo csrf_input(); ?>
                                     <input type="hidden" name="scale_id" value="<?php echo $scale['id']; ?>">
                                     <div class="col-auto"><input type="text" name="grade_name" class="form-control form-control-sm" placeholder="Grade" required></div>
                                     <div class="col-auto"><input type="number" name="min_score" class="form-control form-control-sm" placeholder="Min" required></div>
@@ -211,7 +207,7 @@ if (isset($_SESSION['error_message'])) {
 
                                 <hr>
                                 <form action="<?php echo grading_scales_url(); ?>" method="post" class="text-end">
-                                    <?php generate_csrf_token_form(); ?>
+                                    <?php echo csrf_input(); ?>
                                     <input type="hidden" name="scale_id" value="<?php echo $scale['id']; ?>">
                                     <button type="submit" name="delete_scale" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this entire scale and all its boundaries?')">Delete Full Scale</button>
                                 </form>
@@ -225,5 +221,5 @@ if (isset($_SESSION['error_message'])) {
 </div>
 
 <?php
-require_once 'includes/footer.php';
+require_once __DIR__ . '/includes/footer.php';
 ?>

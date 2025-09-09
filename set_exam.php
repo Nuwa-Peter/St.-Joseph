@@ -96,7 +96,7 @@ $exam_types = ['AOI', 'CA', 'Beginning of Term', 'Midterm', 'End of Term'];
             <div class="card-header">Create New Exam</div>
             <div class="card-body">
                 <form action="<?php echo set_exam_url(); ?>" method="post">
-                    <?php generate_csrf_token_form(); ?>
+                    <?php echo csrf_input(); ?>
                     <div class="mb-3">
                         <label for="subject_id" class="form-label">Subject</label>
                         <select name="subject_id" id="subject_id" class="form-select" required>
